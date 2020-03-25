@@ -1,9 +1,10 @@
 process artic {
-    label 'artic'  
+    label 'artic'
+    publishDir "${name}/fasta/", mode: 'copy'
   input:
     tuple val(name), path(reads)
   output:
-    tuple val(name), path(read), path("${name}.fastq.consensus.fasta")
+    tuple val(name), path("*.consensus.fasta")
   script:
     """
     artic minion --medaka --normalise 200 --threads ${task.cpus} --scheme-directory /artic-ncov2019/primer_schemes \

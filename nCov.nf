@@ -38,6 +38,12 @@ if (params.fasta && params.fastq) {
         .map { file -> tuple(file.baseName, file) }
     }
 
+// references input 
+    if (params.references) { reference_input_ch = Channel
+        .fromPath( params.references, checkIfExists: true)
+        .map { file -> tuple(file.baseName, file) }
+    }
+
 // fastq input
     if (params.fastq) { fastq_input_ch = Channel
         .fromPath( params.fastq, checkIfExists: true)
@@ -55,7 +61,12 @@ if (params.fasta && params.fastq) {
 * DATABASES
 **************************/
 
+/*
 
+
+mafft machen (linsi) und das dann an beast/ timetree/ raxml geben
+
+*/
 
 
 
@@ -64,29 +75,87 @@ if (params.fasta && params.fastq) {
 * MODULES
 **************************/
     include artic from './modules/artic' 
-    include filter_fastq_by_length from './modules/filter_fastq_by_length'
     include cat_fastq from './modules/cat_fastq'
+    include fasttree from "./modules/fasttree"
+    include filter_fastq_by_length from './modules/filter_fastq_by_length'
+    include gubbins from "./modules/gubbins"
+    include snippy from "./modules/snippy" 
+    include snp_sites from "./modules/snp_sites" 
+    include snippy_msa from './modules/snippy_msa'
+    include mafft from './modules/mafft'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
 
 workflow artic_nCov19_wf {
-    take:   fastq
-    main:   artic(filter_fastq_by_length(fastq))
-    emit:   medaka.out
+    take:   
+        fastq
+    main:   
+        artic(filter_fastq_by_length(fastq))
+    emit:   
+        artic.out
 }
 
+
+
+
+workflow create_tree_wf_temp {
+    take: 
+        fasta
+        references
+    main:
+        snippy(fasta.combine(references))
+
+        input_snippy_msa =  snippy.out
+                                .groupTuple()
+                                .map { it -> tuple(it[0], it[1][0], it[2]) }
+
+        fasttree(
+            snp_sites(
+                gubbins(
+                    snippy_msa(input_snippy_msa))))
+    emit:
+        fasttree.out
+}
+
+workflow create_tree_wf {
+    take: 
+        fasta
+        references
+    main:
+        fasttree(
+            snp_sites(
+                gubbins(
+                    mafft (fasta, references))))
+    emit:
+        fasttree.out
+}
+
+workflow toytree_wf {
+    take: 
+        trees  
+    main:
+        toytree(trees)
+    emit:
+        toytree.out
+} 
 
 /************************** 
 * MAIN WORKFLOW
 **************************/
 
 workflow {
-    if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(cat_fastq(dir_input_ch)) fasta_input_ch = artic_nCov19_wf.out }
+    
+// get genome workflows
+    if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(cat_fastq(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.artic_ncov19 && params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
-    if (params.references && (params.fastq || params.fasta)) { build_tree_wf }
+// analyse genome to references
+    if (params.references && (params.fastq || params.fasta || params.dir)) { 
+        create_tree_wf (fasta_input_ch, reference_input_ch) 
+        //toytree_wf (create_tree_wf.out) 
+    }
 }
 
 /*************  
@@ -118,6 +187,7 @@ def helpMSG() {
 
     ${c_reset}Options:
     --cores             max cores for local use [default: $params.cores]
+    --memory            available memory [default: $params.memory]
     --output            name of the result folder [default: $params.output]
 
     ${c_dim}Nextflow options:
