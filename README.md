@@ -11,43 +11,32 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/gcloudChris.svg?style=social)](https://twitter.com/gcloudChris) 
 
 * by Christian Brandt
-* **this tool is currently under heavy development, so expect some bugs but feel free to report issues**
+* **under heavy development**
 
 ## What is this Repo?
 
-* an attempt to streamline the usage of various nCov analysis workflows
-* the main focus is stability and easy to use for the User
+* general nCov analysis workflows collection for the JUH  
+
+## Workflows - WiP - 
+
++ for live basecalling use [this repos](https://github.com/replikation/docker_pipelines)
+
+### Current implementations and a few planned features
+
+* [x] [artic](https://github.com/artic-network/fieldbioinformatics) via nanopore
+    * [x] single flongle input
+    * [ ] demultiplex, barcoded fastq input
+* [ ] metagenomic approach via nanopore
+* [ ] direct DNA sequencing via nanopore
+* [ ] direct RNA sequencing via nanopore
+* [x] Reference based sample comparision
+    * [x] mafft based alignment
+    * [ ] snippy based alignment 
+    * [ ] time calc. inclusion / time tree or beast 
+* [x] toytree vis
+
 
 ## Installation
-
-* nCov runs with the workflow manager `nextflow` using `docker`
-* this means all the other programs are automatically pulled via docker
-* Only `docker` and `nextflow` needs to be installed
-
-### Easy Installation
-* if you dont have experience with bioinformatic tools use this
-* just copy the commands into your terminal to set everything up
-
-```bash
-sudo apt-get update
-sudo apt install -y default-jre
-curl -s https://get.nextflow.io | bash 
-sudo mv nextflow /bin/
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-sudo usermod -a -G docker $USER
-```
-
-* restart your computer
-
-* try out the installation by entering the following
-
-```bash
-nextflow run replikation/nCov --help
-```
-
-### Normal Installation
-
-* this is the default choice
 
 **Dependencies**
 

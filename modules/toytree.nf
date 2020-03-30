@@ -1,21 +1,16 @@
 process toytree {
-
-    publishDir "${params.output}/${clonal_complex}/tree/", mode: 'copy', pattern: "tree.svg"
-    publishDir "${params.output}/${clonal_complex}/tree/", mode: 'copy', pattern: "tree.pdf"
+    publishDir "${params.output}/${name}/tree/", mode: 'copy'
     label 'toytree'
   input:
-    tuple val(clonal_complex), val(refname), path(tree), path(metadata)
+    tuple val(name), path(tree)
   output:
 	  tuple path("tree.svg"), path("tree.pdf")
+    
+    //def clean_name = name.split('.')
   script:
     """
-    vis_tree_features.py --tree ${tree} --reroot ${refname} --data ${metadata}  --outfmt svg,pdf --prefix tree
+    cleanname=\$(printf "${name}" | cut -f 1 -d ".")
+
+    render_tree.py --tree ${tree} --highlight \${cleanname}
     """
 }
-
-
-
-/*
-
-
-*/

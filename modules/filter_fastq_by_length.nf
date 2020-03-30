@@ -8,19 +8,13 @@ process filter_fastq_by_length {
     """
     case "${reads}" in
       *.fastq.gz ) 
-        zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 400' | sed 's/\\t/\\n/g' |\
-          awk -F"\\t" 'length(\$2)  <= 700' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+        zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' | sed 's/\\t/\\n/g' |\
+          awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
       *.fastq)
-        cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 400' | sed 's/\\t/\\n/g' |\
-          awk -F"\\t" 'length(\$2)  <= 700' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+        cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' | sed 's/\\t/\\n/g' |\
+          awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
     esac   
     """
 }
-
-/* Comments:
-This is a super fast process to remove short reads.
-
-it can take .fastq or .fastq.gz
-*/

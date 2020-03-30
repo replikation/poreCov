@@ -61,28 +61,21 @@ if (params.fasta && params.fastq) {
 * DATABASES
 **************************/
 
-/*
-
-
-mafft machen (linsi) und das dann an beast/ timetree/ raxml geben
-
-*/
-
 
 
 
 /************************** 
 * MODULES
 **************************/
-    include artic from './modules/artic' 
-    include cat_fastq from './modules/cat_fastq'
-    include fasttree from "./modules/fasttree"
-    include filter_fastq_by_length from './modules/filter_fastq_by_length'
-    include gubbins from "./modules/gubbins"
-    include snippy from "./modules/snippy" 
-    include snp_sites from "./modules/snp_sites" 
-    include snippy_msa from './modules/snippy_msa'
-    include mafft from './modules/mafft'
+
+include artic from './modules/artic' 
+include cat_fastq from './modules/cat_fastq'
+include fasttree from "./modules/fasttree"
+include filter_fastq_by_length from './modules/filter_fastq_by_length'
+include mafft from './modules/mafft'
+include split_reference from './modules/split_reference'
+include toytree from './modules/toytree'
+include snp_sites from './modules/snp_sites'
 
 /************************** 
 * SUB WORKFLOWS
@@ -98,14 +91,22 @@ workflow artic_nCov19_wf {
 }
 
 
+// TODO: rewrite this one to the nextstrain pipeline
 
-
-workflow create_tree_wf_temp {
+workflow create_tree_snippy_wf {
     take: 
-        fasta
-        references
+        fasta       // the nCov fasta
+        references  // multiple references to compare against
     main:
-        snippy(fasta.combine(references))
+        split_reference(references)
+
+        // val(fasta), path(fasta), val(reference_name), path(references)
+        snippy_input =  fasta   .combine(split_reference.out
+                                .flatten()
+                                .map { file -> tuple( file.baseName, file ) } 
+                                )
+
+        snippy(snippy_input)
 
         input_snippy_msa =  snippy.out
                                 .groupTuple()
@@ -113,21 +114,22 @@ workflow create_tree_wf_temp {
 
         fasttree(
             snp_sites(
-                gubbins(
-                    snippy_msa(input_snippy_msa))))
+                    snippy_msa(input_snippy_msa)))
     emit:
         fasttree.out
 }
 
-workflow create_tree_wf {
+// TODO: get fastaname and carry it as env / val to the toytree highlight
+// this way i can highlight all samples in there
+workflow create_tree_mafft_wf {
     take: 
         fasta
         references
     main:
         fasttree(
             snp_sites(
-                gubbins(
-                    mafft (fasta, references))))
+                mafft (fasta, references)))
+            
     emit:
         fasttree.out
 }
@@ -136,7 +138,7 @@ workflow toytree_wf {
     take: 
         trees  
     main:
-        toytree(trees)
+        toytree(trees.map{ it -> [it[0], it[2]] })
     emit:
         toytree.out
 } 
@@ -153,8 +155,10 @@ workflow {
 
 // analyse genome to references
     if (params.references && (params.fastq || params.fasta || params.dir)) { 
-        create_tree_wf (fasta_input_ch, reference_input_ch) 
-        //toytree_wf (create_tree_wf.out) 
+        if (!params.snippy) { create_tree_mafft_wf (fasta_input_ch, reference_input_ch); newick = create_tree_mafft_wf.out } 
+        if (params.snippy)  { create_tree_snippy_wf (fasta_input_ch, reference_input_ch); newick = create_tree_snippy_wf.out }
+
+        toytree_wf(newick) 
     }
 }
 
@@ -170,20 +174,27 @@ def helpMSG() {
     log.info """
     ____________________________________________________________________________________________
     
-    Nextflow nCov workflows for easy use, by Christian Brandt
+    Nextflow nCov workflows, by Christian Brandt
     
     ${c_yellow}Usage example:${c_reset}
-    nextflow run replikation/nCov ${c_blue}--artic_ncov19${c_reset} ${c_green}--fastq 'sample_01.fasta.gz'${c_reset} -profile local,docker
+    nextflow run replikation/nCov ${c_blue}--artic_ncov19${c_reset} ${c_green}--fastq 'sample_01.fasta.gz'${c_reset} \\ 
+            ${c_blue}--references references.fasta${c_reset} -profile local,docker
 
     ${c_yellow}Workflow options:${c_reset}
-    ${c_blue} --artic_ncov19 ${c_reset}
-    Input options:
-    ${c_green}--fastq Sample_01.fastq${c_reset}     (one sample per fastq file)
-    ${c_green}--fastq 'Sample_*.fastq'${c_reset}    (multiple samples at once, one sample per fastq)
-    ${c_green}--dir fastq_files/${c_reset}          (on dir containing multiple fastq files for one sample)
-    Setting:
-    ${c_green}--primerV ${params.primerV}${c_reset} (artic-ncov2019 primer_schemes version used, available: V1, V2, V3)
+    ${c_blue} --artic_ncov19 ${c_reset} one sample per fastq or fastq.gz file ${c_green}[--fastq]${c_reset} 
+                                        or one dir containing fastq files of one ont run ${c_green}[--dir]${c_reset} 
+    ${c_dim} Options:${c_reset} 
+    ${c_dim} --primerV${c_reset}        artic-ncov2019 primer_schemes [default: ${params.primerV}]
+    ${c_dim} --minLength${c_reset}      min length filter raw reads [default: ${params.minLength}]
+    ${c_dim} --maxLength${c_reset}      max length filter raw reads [default: ${params.maxLength}]
+ 
+    ${c_yellow}Analysis options:${c_reset}
+    ${c_blue} --references ${c_reset}   [--references references.fasta] fasta file(s) to compare against sample 
+                                        Provide sample(s) via ${c_green}[--fasta]${c_reset}
+                                        Or use ${c_green}[--fastq]${c_reset} or ${c_green}[--dir]${c_reset} && ${c_blue}--<workflow>${c_reset}
 
+    ${c_dim} Options:${c_reset} 
+    ${c_dim} --snippy${c_reset}         use snippy instead of mafft to build tree
 
     ${c_reset}Options:
     --cores             max cores for local use [default: $params.cores]
@@ -199,3 +210,84 @@ def helpMSG() {
     -profile                 local,docker -> merge profiles e.g. -profile local,docker ${c_reset}
     """.stripIndent()
 }
+
+/*
+
+// NEXTSTRAIN container via: (?)
+// https://nextstrain.org/docs/getting-started/local-installation
+
+ https://github.com/blab/sars-like-cov
+
+ snake file
+https://github.com/blab/sars-like-cov/blob/master/Snakefile
+
+https://nextstrain-augur.readthedocs.io/en/stable/usage/cli/tree.html
+the TLDR
+
+
+// AUGUR approach
+
+rule align:
+    message:
+        """
+        Aligning sequences to {input.reference}
+          - filling gaps with N
+        """
+    input:
+        sequences = rules.filter.output.sequences,
+        reference = files.reference
+    output:
+        alignment = "results/aligned.fasta"
+    shell:
+        """
+        augur align \
+            --sequences {input.sequences} \
+            --reference-sequence {input.reference} \
+            --output {output.alignment} \
+            --fill-gaps \
+            --remove-reference
+        """
+    
+
+
+rule mask:
+    message:
+        """
+        Mask bases in alignment
+          - masking {params.mask_from_beginning} from beginning
+          - masking {params.mask_from_end} from end
+          - masking other sites: {params.mask_sites}
+        """
+    input:
+        alignment = rules.align.output.alignment
+    output:
+        alignment = "results/masked.fasta"
+    params:
+        mask_from_beginning = 15,
+        mask_from_end = 15,
+        mask_sites = 18460
+    shell:
+        """
+        python3 scripts/mask-alignment.py \
+            --alignment {input.alignment} \
+            --mask-from-beginning {params.mask_from_beginning} \
+            --mask-from-end {params.mask_from_end} \
+            --mask-sites {params.mask_sites} \
+            --output {output.alignment}
+        """
+
+rule tree:
+    message: "Building tree"
+    input:
+        alignment = rules.mask.output.alignment
+    output:
+        tree = "results/tree_raw.nwk"
+    shell:
+        """
+        augur tree \
+            --alignment {input.alignment} \
+            --output {output.tree}
+        """
+
+
+*/
