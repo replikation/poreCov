@@ -9,9 +9,15 @@ nextflow.preview.dsl=2
 /************************** 
 * HELP messages & USER INPUT checks
 **************************/
+if( !nextflow.version.matches('20.+') ) {
+    println "This workflow requires Nextflow version 20.X or greater -- You are running version $nextflow.version"
+    exit 1
+}
+
 if (params.help) { exit 0, helpMSG() }
 
 println " "
+println "\u001B[32mnCov - Workflows\033[0m"
 println "\u001B[32mProfile: $workflow.profile\033[0m"
 println " "
 println "\033[2mCurrent User: $workflow.userName"
@@ -29,8 +35,10 @@ if (params.profile) {
     exit 1, "--profile is WRONG use -profile" }
 if (!params.fasta &&  !params.dir &&  !params.fastq ) {
     exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
-if (params.fasta && params.fastq) {
-    exit 1, "please us either: [--fasta] or [--fastq]"}   
+if (params.fasta && params.fastq && params.dir) {
+    exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
+if (params.augur && (!params.metadata || !params.references)) {
+    exit 1, "Please provide for augur: [--references] and [--metadata]"} 
 
 // fasta input 
     if (params.fasta) { fasta_input_ch = Channel
@@ -42,6 +50,11 @@ if (params.fasta && params.fastq) {
     if (params.references) { reference_input_ch = Channel
         .fromPath( params.references, checkIfExists: true)
         .map { file -> tuple(file.baseName, file) }
+    }
+
+// metadata input 
+    if (params.metadata) { metadata_input_ch = Channel
+        .fromPath( params.metadata, checkIfExists: true)
     }
 
 // fastq input
@@ -69,6 +82,10 @@ if (params.fasta && params.fastq) {
 **************************/
 
 include artic from './modules/artic' 
+include augur_align from './modules/augur'
+include augur_tree from './modules/augur'
+include augur_tree_refine from './modules/augur'
+include mask_alignment from './modules/mask_alignment'
 include cat_fastq from './modules/cat_fastq'
 include fasttree from "./modules/fasttree"
 include filter_fastq_by_length from './modules/filter_fastq_by_length'
@@ -90,37 +107,25 @@ workflow artic_nCov19_wf {
         artic.out
 }
 
-
-// TODO: rewrite this one to the nextstrain pipeline
-
-workflow create_tree_snippy_wf {
+workflow create_tree_nextstrain_wf {
     take: 
-        fasta       // the nCov fasta
+        fasta       // the nCov fasta (own samples or reconstructed here)
         references  // multiple references to compare against
+        metadata    // tsv file of meta data  strain country date
     main:
-        split_reference(references)
 
-        // val(fasta), path(fasta), val(reference_name), path(references)
-        snippy_input =  fasta   .combine(split_reference.out
-                                .flatten()
-                                .map { file -> tuple( file.baseName, file ) } 
-                                )
+        align_reference = Channel.fromPath( workflow.projectDir + "/data/reference_nCov19/MN908947.gb", checkIfExists: true)
 
-        snippy(snippy_input)
+        augur_tree(
+            mask_alignment(
+                augur_align(fasta, references, align_reference)))
 
-        input_snippy_msa =  snippy.out
-                                .groupTuple()
-                                .map { it -> tuple(it[0], it[1][0], it[2]) }
+        augur_tree_refine(augur_tree.out, metadata)
 
-        fasttree(
-            snp_sites(
-                    snippy_msa(input_snippy_msa)))
     emit:
-        fasttree.out
+        augur_tree_refine.out
 }
 
-// TODO: get fastaname and carry it as env / val to the toytree highlight
-// this way i can highlight all samples in there
 workflow create_tree_mafft_wf {
     take: 
         fasta
@@ -134,6 +139,10 @@ workflow create_tree_mafft_wf {
         fasttree.out
 }
 
+// TODO: get fastaname and carry it as env / val to the toytree highlight
+// this way i can highlight all samples in there
+
+// also you could parse a highlight syntax so ppl can do --highlight "UKJ" therefore annotate multiple key words
 workflow toytree_wf {
     take: 
         trees  
@@ -155,8 +164,8 @@ workflow {
 
 // analyse genome to references
     if (params.references && (params.fastq || params.fasta || params.dir)) { 
-        if (!params.snippy) { create_tree_mafft_wf (fasta_input_ch, reference_input_ch); newick = create_tree_mafft_wf.out } 
-        if (params.snippy)  { create_tree_snippy_wf (fasta_input_ch, reference_input_ch); newick = create_tree_snippy_wf.out }
+        if (params.mafft) { create_tree_mafft_wf (fasta_input_ch, reference_input_ch); newick = create_tree_mafft_wf.out } 
+        if (params.augur)  { create_tree_nextstrain_wf (fasta_input_ch, reference_input_ch, metadata_input_ch); newick = create_tree_nextstrain_wf.out }
 
         toytree_wf(newick) 
     }
@@ -176,118 +185,46 @@ def helpMSG() {
     
     Nextflow nCov workflows, by Christian Brandt
     
-    ${c_yellow}Usage example:${c_reset}
-    nextflow run replikation/nCov ${c_blue}--artic_ncov19${c_reset} ${c_green}--fastq 'sample_01.fasta.gz'${c_reset} \\ 
-            ${c_blue}--references references.fasta${c_reset} -profile local,docker
+    ${c_yellow}Usage examples:${c_reset}
+    nextflow run replikation/nCov --artic_ncov19 --fastq 'sample_01.fasta.gz'
 
-    ${c_yellow}Workflow options:${c_reset}
+    nCov.nf --artic_ncov19 --fastq 'sample_01.fasta.gz' \\ 
+                    --augur --references references.fasta \\
+                    --metadata metadata.tsv \\
+                    --cores 8 -profile local,docker
+
+    ${c_yellow}Reconstruct genome workflows:${c_reset}
     ${c_blue} --artic_ncov19 ${c_reset} one sample per fastq or fastq.gz file ${c_green}[--fastq]${c_reset} 
-                                        or one dir containing fastq files of one ont run ${c_green}[--dir]${c_reset} 
-    ${c_dim} Options:${c_reset} 
-    ${c_dim} --primerV${c_reset}        artic-ncov2019 primer_schemes [default: ${params.primerV}]
-    ${c_dim} --minLength${c_reset}      min length filter raw reads [default: ${params.minLength}]
-    ${c_dim} --maxLength${c_reset}      max length filter raw reads [default: ${params.maxLength}]
+                     or one dir containing fastq files of one ont run ${c_green}[--dir]${c_reset} 
+    ${c_dim}Parameters:${c_reset} 
+    ${c_dim} --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]${c_reset}
+    ${c_dim} --minLength     min length filter raw reads [default: ${params.minLength}]${c_reset}
+    ${c_dim} --maxLength     max length filter raw reads [default: ${params.maxLength}]${c_reset}
  
-    ${c_yellow}Analysis options:${c_reset}
-    ${c_blue} --references ${c_reset}   [--references references.fasta] fasta file(s) to compare against sample 
-                                        Provide sample(s) via ${c_green}[--fasta]${c_reset}
-                                        Or use ${c_green}[--fastq]${c_reset} or ${c_green}[--dir]${c_reset} && ${c_blue}--<workflow>${c_reset}
+    ${c_yellow}Pyholgenetic tree workflows:${c_reset}
+    ${c_blue} --augur${c_reset}         Input own genomes via ${c_green}[--fasta]${c_reset} or 
+                     use ${c_green}[--fastq],[--dir]${c_reset} with  ${c_blue}--<reconstruct workflow>${c_reset}
+    ${c_dim}Mandatory: 
+    ${c_dim} --references    fasta file(s) to compare against your data sample 
+    ${c_dim} --metadata      tsv file with 3 headers: strain country date   (date in YYYY-MM-DD)
+    ${c_dim}Parameters: 
+    ${c_dim} --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
+    ${c_dim} --maskEnd       masks end of alignment [default: ${params.maskEnd}]
 
-    ${c_dim} Options:${c_reset} 
-    ${c_dim} --snippy${c_reset}         use snippy instead of mafft to build tree
+    ${c_blue} --mafft${c_reset}         Input own genomes via ${c_green}[--fasta]${c_reset} or 
+                     use ${c_green}[--fastq],[--dir]${c_reset} with  ${c_blue}--<reconstruct workflow>${c_reset}
 
     ${c_reset}Options:
-    --cores             max cores for local use [default: $params.cores]
-    --memory            available memory [default: $params.memory]
-    --output            name of the result folder [default: $params.output]
+    --cores          max cores for local use [default: $params.cores]
+    --memory         available memory [default: $params.memory]
+    --output         name of the result folder [default: $params.output]
 
     ${c_dim}Nextflow options:
-    -with-report rep.html    cpu / ram usage (may cause errors)
-    -with-dag chart.html     generates a flowchart for the process tree
-    -with-timeline time.html timeline (may cause errors)
+    -with-report rep.html       cpu / ram usage (may cause errors)
+    -with-dag chart.html        generates a flowchart for the process tree
+    -with-timeline time.html    timeline (may cause errors)
 
     Profile:
     -profile                 local,docker -> merge profiles e.g. -profile local,docker ${c_reset}
     """.stripIndent()
 }
-
-/*
-
-// NEXTSTRAIN container via: (?)
-// https://nextstrain.org/docs/getting-started/local-installation
-
- https://github.com/blab/sars-like-cov
-
- snake file
-https://github.com/blab/sars-like-cov/blob/master/Snakefile
-
-https://nextstrain-augur.readthedocs.io/en/stable/usage/cli/tree.html
-the TLDR
-
-
-// AUGUR approach
-
-rule align:
-    message:
-        """
-        Aligning sequences to {input.reference}
-          - filling gaps with N
-        """
-    input:
-        sequences = rules.filter.output.sequences,
-        reference = files.reference
-    output:
-        alignment = "results/aligned.fasta"
-    shell:
-        """
-        augur align \
-            --sequences {input.sequences} \
-            --reference-sequence {input.reference} \
-            --output {output.alignment} \
-            --fill-gaps \
-            --remove-reference
-        """
-    
-
-
-rule mask:
-    message:
-        """
-        Mask bases in alignment
-          - masking {params.mask_from_beginning} from beginning
-          - masking {params.mask_from_end} from end
-          - masking other sites: {params.mask_sites}
-        """
-    input:
-        alignment = rules.align.output.alignment
-    output:
-        alignment = "results/masked.fasta"
-    params:
-        mask_from_beginning = 15,
-        mask_from_end = 15,
-        mask_sites = 18460
-    shell:
-        """
-        python3 scripts/mask-alignment.py \
-            --alignment {input.alignment} \
-            --mask-from-beginning {params.mask_from_beginning} \
-            --mask-from-end {params.mask_from_end} \
-            --mask-sites {params.mask_sites} \
-            --output {output.alignment}
-        """
-
-rule tree:
-    message: "Building tree"
-    input:
-        alignment = rules.mask.output.alignment
-    output:
-        tree = "results/tree_raw.nwk"
-    shell:
-        """
-        augur tree \
-            --alignment {input.alignment} \
-            --output {output.tree}
-        """
-
-
-*/

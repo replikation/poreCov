@@ -1,0 +1,8 @@
+# nextflow related entries
+*.log*
+wip/
+nextflow-autodownload-databases/
+work/
+.nextflow/
+# default out put dir
+results/

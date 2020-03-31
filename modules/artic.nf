@@ -1,6 +1,6 @@
 process artic {
     label 'artic'
-    publishDir "${name}/fasta/", mode: 'copy'
+    publishDir "${params.output}/${name}/fasta/", mode: 'copy'
   input:
     tuple val(name), path(reads)
   output:

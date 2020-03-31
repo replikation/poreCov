@@ -21,14 +21,19 @@ parser.add_argument(
     '--highlight', required=True,
     help='which leaf to highlight')
 
+parser.add_argument(
+    '--format', required=True,
+    help='which treeformat')
+
 args = parser.parse_args()
 
 newick = args.tree
 highlighttip = args.highlight
+formattree = args.format
 
 # Creating tree
 
-tree = toytree.tree(newick, tree_format=0)
+tree = toytree.tree(newick, tree_format = int(formattree))
 
 # Tree Style
 

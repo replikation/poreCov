@@ -24,15 +24,15 @@
 ### Current implementations and a few planned features
 
 * [x] [artic](https://github.com/artic-network/fieldbioinformatics) via nanopore
-    * [x] single flongle input
+    * [x] single flongle input (one fastq file of a sample)
     * [ ] demultiplex, barcoded fastq input
 * [ ] metagenomic approach via nanopore
 * [ ] direct DNA sequencing via nanopore
 * [ ] direct RNA sequencing via nanopore
 * [x] Reference based sample comparision
-    * [x] mafft based alignment
-    * [ ] snippy based alignment 
-    * [ ] time calc. inclusion / time tree or beast 
+    * [x] mafft based comparison (WIP time interference is missing here - use augur for now)
+    * [x] augur based comparision, see also (Link)[https://nextstrain.org/help/coronavirus/SARS-CoV-2]
+    * [x] time / location calc. inclusion
 * [x] toytree vis
 
 
@@ -44,9 +44,18 @@
 >   * nextflow + java runtime 
 >   * git (should be already installed)
 >   * wget (should be already installed)
->   * tar (should be already installed)
 
 * Docker installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce)
 * Nextflow installation [here](https://www.nextflow.io/)
 * move or add the nextflow executable to a bin path
 * add docker to your User group via `sudo usermod -a -G docker $USER`
+
+## Help
+
+* workflows and inputs are described here:
+
+```bash
+nextflow run replikation/nCov --help
+# or
+./nCov.nf --help
+```
