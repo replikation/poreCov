@@ -17,9 +17,12 @@
 
 * general nCov analysis workflows collection for the JUH  
 
-## Workflows - WiP - 
+## Workflows
 
 + for live basecalling use [this repos](https://github.com/replikation/docker_pipelines)
++ currently: 
+    + use artic workflow for genome construction 
+    + use augur to analyse nCov19 genomes afterwards (either from artic results or use you own fastas)
 
 ### Current implementations and a few planned features
 
@@ -31,7 +34,7 @@
 * [ ] direct RNA sequencing via nanopore
 * [x] Reference based sample comparision
     * [x] mafft based comparison (WIP time interference is missing here - use augur for now)
-    * [x] augur based comparision, see also (Link)[https://nextstrain.org/help/coronavirus/SARS-CoV-2]
+    * [x] augur based comparision, see also [Link](https://nextstrain.org/help/coronavirus/SARS-CoV-2)
     * [x] time / location calc. inclusion
 * [x] toytree vis
 
