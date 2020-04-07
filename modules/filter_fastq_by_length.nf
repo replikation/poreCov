@@ -3,7 +3,7 @@ process filter_fastq_by_length {
     input:
         tuple val(name), path(reads) 
     output:
-	      tuple val(name), path("${name}_filtered.fastq.gz") 
+	    tuple val(name), path("${name}_filtered.fastq.gz") 
     script:
     """
     case "${reads}" in

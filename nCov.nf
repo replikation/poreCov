@@ -26,16 +26,18 @@ println "Starting time: $nextflow.timestamp"
 println "Workdir location:"
 println "  $workflow.workDir\u001B[0m"
 println " "
-if (workflow.profile == 'standard') {
 println "\033[2mCPUs to use: $params.cores"
-println "Output dir name: $params.output\u001B[0m"
-println " "}
+println "\033[2mMemory in GB: $params.memory"
+if (params.dir) { println "\033[2mBarcodes: $params.barcodes" }
+if (params.artic_ncov19) { println "\033[2mPrimerscheme: $params.primerV"  }
+println "Output dir: $params.output\u001B[0m"
+println " "
 
 if (params.profile) {
     exit 1, "--profile is WRONG use -profile" }
 if (!params.fasta &&  !params.dir &&  !params.fastq ) {
     exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
-if (params.fasta && params.fastq && params.dir) {
+if (params.fasta && ( params.fastq || params.dir )) {
     exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
 if (params.augur && (!params.metadata || !params.references)) {
     exit 1, "Please provide for augur: [--references] and [--metadata]"} 
@@ -69,7 +71,6 @@ if (params.augur && (!params.metadata || !params.references)) {
         .map { file -> tuple(file.name, file) }
     }
 
-
 /************************** 
 * DATABASES
 **************************/
@@ -85,18 +86,40 @@ include artic from './modules/artic'
 include augur_align from './modules/augur'
 include augur_tree from './modules/augur'
 include augur_tree_refine from './modules/augur'
-include mask_alignment from './modules/mask_alignment'
-include cat_fastq from './modules/cat_fastq'
 include fasttree from "./modules/fasttree"
 include filter_fastq_by_length from './modules/filter_fastq_by_length'
+include guppy_gpu from './modules/guppy'
 include mafft from './modules/mafft'
+include mask_alignment from './modules/mask_alignment'
+include snp_sites from './modules/snp_sites'
 include split_reference from './modules/split_reference'
 include toytree from './modules/toytree'
-include snp_sites from './modules/snp_sites'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
+
+
+
+workflow dir_handler_wf {
+    take: 
+        dir_input  
+    main:
+        
+        guppy_gpu(dir_input)
+        
+        if (params.barcodes) {
+            fastq_channel = guppy_gpu.out
+                            .map { it -> it[1] }
+                            .flatten()
+                            .map { it -> [ it.simpleName, it ] }
+            }
+        else { fastq_channel = guppy_gpu.out }
+    
+    emit:
+        fastq_channel
+} 
+
 
 workflow artic_nCov19_wf {
     take:   
@@ -132,8 +155,7 @@ workflow create_tree_mafft_wf {
         references
     main:
         fasttree(
-            snp_sites(
-                mafft (fasta, references)))
+                mafft (fasta.map{it -> it [1] }.collect(), references))
             
     emit:
         fasttree.out
@@ -157,9 +179,10 @@ workflow toytree_wf {
 **************************/
 
 workflow {
-    
+
+
 // get genome workflows
-    if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(cat_fastq(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
+    if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(dir_handler_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.artic_ncov19 && params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
 // analyse genome to references
@@ -194,16 +217,20 @@ def helpMSG() {
                     --cores 8 -profile local,docker
 
     ${c_yellow}Reconstruct genome workflows:${c_reset}
-    ${c_blue} --artic_ncov19 ${c_reset} one sample per fastq or fastq.gz file ${c_green}[--fastq]${c_reset} 
-                     or one dir containing fastq files of one ont run ${c_green}[--dir]${c_reset} 
+    ${c_blue} --artic_ncov19 ${c_reset}
+    ${c_dim}Inputs:${c_reset}
+    ${c_dim}--fastq${c_reset}   one fastq file per sample as input
+    ${c_dim}--dir     one fast5 dir of a nanopore run 
+                                add [--barcodes] to the command if they are barcoded${c_reset}
+                      
     ${c_dim}Parameters:${c_reset} 
     ${c_dim} --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]${c_reset}
     ${c_dim} --minLength     min length filter raw reads [default: ${params.minLength}]${c_reset}
     ${c_dim} --maxLength     max length filter raw reads [default: ${params.maxLength}]${c_reset}
  
     ${c_yellow}Pyholgenetic tree workflows:${c_reset}
-    ${c_blue} --augur${c_reset}         Input own genomes via ${c_green}[--fasta]${c_reset} or 
-                     use ${c_green}[--fastq],[--dir]${c_reset} with  ${c_blue}--<reconstruct workflow>${c_reset}
+    ${c_blue} --augur${c_reset}         Input own genomes via ${c_green}[--fasta]${c_reset}
+                     or use ${c_green}[--fastq],[--dir]${c_reset} with  ${c_blue}--<reconstruct workflow>${c_reset}
     ${c_dim}Mandatory: 
     ${c_dim} --references    fasta file(s) to compare against your data sample 
     ${c_dim} --metadata      tsv file with 3 headers: strain country date   (date in YYYY-MM-DD)

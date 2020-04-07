@@ -1,7 +1,7 @@
 process mask_alignment {
         label 'augur'
     input:
-        tuple val(name), path(alignment)
+      tuple val(name), path(alignment)
   	output:
     	tuple val(name), path("alignment_masked.fasta")
   	script:
