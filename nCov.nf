@@ -199,7 +199,6 @@ workflow {
     if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(dir_handler_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.artic_ncov19 && params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
-// checkout the fasta genome
 
 // analyse genome to references
     if (params.references && (params.fastq || params.fasta || params.dir)) { 

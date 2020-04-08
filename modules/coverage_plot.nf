@@ -1,5 +1,5 @@
 process coverage_plot {
-    label "bwa"
+    label "ggplot2"
     publishDir "${params.output}/coverage_info/", mode: 'copy'
     input:
         tuple val(name), path(coverage_info)

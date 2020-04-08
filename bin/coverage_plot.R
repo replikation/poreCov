@@ -23,7 +23,7 @@ svg("overview.svg", height = 3, width = 12)
 plot
 dev.off()
 
-svg("overview.pdf", height = 3, width = 12)
+pdf("overview.pdf", height = 3, width = 12)
 plot
 dev.off()
 
