@@ -250,7 +250,8 @@ def helpMSG() {
     ${c_dim}Mandatory: 
     ${c_dim} --references    fasta file(s) to compare against your data sample 
     ${c_dim} --metadata      tsv file with 3 headers: strain country date   (date in YYYY-MM-DD)
-    ${c_dim}Parameters: 
+    ${c_dim}Parameters:
+    ${c_dim} --highlight     color this name in the tree in red [default: ${params.highlight}]
     ${c_dim} --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
     ${c_dim} --maskEnd       masks end of alignment [default: ${params.maskEnd}]
 
