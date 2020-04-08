@@ -15,29 +15,30 @@
 
 ## What is this Repo?
 
-* general nCov analysis workflows collection for the JUH  
+* general nCov analysis workflows collection for the JUH
+* a few handy QC and plots are included to decrease post analytic "downtime"
 
 ## Workflows
 
 + for live basecalling use [this repos](https://github.com/replikation/docker_pipelines)
 + currently: 
-    + use artic workflow for genome construction 
-    + use augur to analyse nCov19 genomes afterwards (either from artic results or use you own fastas)
+    + **use artic workflow** for genome construction 
+    + **use augur to analyse nCov19 genomes afterwards** (either from artic results or use you own fastas)
 
 ### Current implementations and a few planned features
 
 * [x] [artic](https://github.com/artic-network/fieldbioinformatics) via nanopore
     * [x] single flongle input (one fastq file of a sample)
-    * [ ] demultiplex, barcoded fastq input
+        * [x] read coverage plots to validate PCR product coverage for genome construction
+    * [x] demultiplex, barcoded fastq input
 * [ ] metagenomic approach via nanopore
 * [ ] direct DNA sequencing via nanopore
 * [ ] direct RNA sequencing via nanopore
 * [x] Reference based sample comparision
-    * [x] mafft based comparison (WIP time interference is missing here - use augur for now)
+    * [x] mafft based comparison (NO time interference! - serves nly for a quick data check)
     * [x] augur based comparision, see also [Link](https://nextstrain.org/help/coronavirus/SARS-CoV-2)
-    * [x] time / location calc. inclusion
-* [x] toytree vis
-
+        * [x] timetree / location calc. inclusion
+* [x] toytree vis plot
 
 ## Installation
 

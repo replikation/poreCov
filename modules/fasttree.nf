@@ -4,7 +4,7 @@ process fasttree {
     input:
         path(clean_core_alignment)
     output:
-        tuple path(clean_core_alignment), path("clean.core.tree.nwk")
+        path("clean.core.tree.nwk")
     script:
         """
         FastTree -gtr -nt ${clean_core_alignment} > clean.core.tree.nwk

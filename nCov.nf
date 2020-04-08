@@ -41,6 +41,8 @@ if (params.fasta && ( params.fastq || params.dir )) {
     exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
 if (params.augur && (!params.metadata || !params.references)) {
     exit 1, "Please provide for augur: [--references] and [--metadata]"} 
+if (params.mafft &&  !params.references) {
+    exit 1, "Please provide for mafft: [--references]"} 
 
 // fasta input 
     if (params.fasta) { fasta_input_ch = Channel
@@ -94,6 +96,8 @@ include mask_alignment from './modules/mask_alignment'
 include snp_sites from './modules/snp_sites'
 include split_reference from './modules/split_reference'
 include toytree from './modules/toytree'
+include bwa_samtools from './modules/bwa_samtools'
+include coverage_plot from './modules/coverage_plot'
 
 /************************** 
 * SUB WORKFLOWS
@@ -124,11 +128,21 @@ workflow dir_handler_wf {
 workflow artic_nCov19_wf {
     take:   
         fastq
-    main:   
+    main: 
+
+        // assembly  
         artic(filter_fastq_by_length(fastq))
+
+        // validate fasta
+        coverage_plot(
+            bwa_samtools(
+                artic.out.join(filter_fastq_by_length.out)))
+
     emit:   
         artic.out
 }
+
+
 
 workflow create_tree_nextstrain_wf {
     take: 
@@ -169,7 +183,7 @@ workflow toytree_wf {
     take: 
         trees  
     main:
-        toytree(trees.map{ it -> [it[0], it[2]] })
+        toytree(trees)
     emit:
         toytree.out
 } 
@@ -184,6 +198,8 @@ workflow {
 // get genome workflows
     if (params.artic_ncov19 && params.dir) { artic_nCov19_wf(dir_handler_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.artic_ncov19 && params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
+
+// checkout the fasta genome
 
 // analyse genome to references
     if (params.references && (params.fastq || params.fasta || params.dir)) { 

@@ -48,7 +48,7 @@ process augur_tree_refine {
         tuple val(name), path(alignment), path(tree)
 		path(metadata)
   	output:
-    	tuple val(name), path("nodes.json"), path("tree_refined.nwk")
+    	path("tree_refined.nwk")
   	script:
     """
         augur refine \
