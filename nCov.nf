@@ -33,6 +33,8 @@ if (params.artic_ncov19) { println "\033[2mPrimerscheme: $params.primerV"  }
 println "Output dir: $params.output\u001B[0m"
 println " "
 
+if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
+
 if (params.profile) {
     exit 1, "--profile is WRONG use -profile" }
 if (!params.fasta &&  !params.dir &&  !params.fastq ) {
