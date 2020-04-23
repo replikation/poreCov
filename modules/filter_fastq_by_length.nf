@@ -3,7 +3,7 @@ process filter_fastq_by_length {
     input:
         tuple val(name), path(reads) 
     output:
-	    tuple val(name), path("${name}_filtered.fastq.gz") 
+	    tuple val(name), path("${name}_filtered.fastq.gz") optional true
     script:
     """
     case "${reads}" in
@@ -15,6 +15,8 @@ process filter_fastq_by_length {
             cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' | sed 's/\\t/\\n/g' |\
             awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
-    esac   
+    esac
+
+    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -100k -delete
     """
 }
