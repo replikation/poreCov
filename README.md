@@ -35,13 +35,17 @@
 
 ## References and Metadata for tree construction
 ### References
-* by default the nCov Workflow uses a few hundred nCov strains automatically from ENA to build the tree
+* by default the nCov Workflow uses a few hundred nCov strains automatically to build the tree
+    * these files are from ENA
 * this behaviour can be "replaced" by providing a multifasta reference file via `--references`
-* please make sure that you fasta file does not contain "strange" symbols like `" '  | / \ :`
+* please make sure that your fasta file header does not contain "strange" symbols like `" '  | / \ :`
+    * this causes issues in some of the tools used here
+
 ### Metadata
-* for tree constructions metadata is mandatory (time location)
+* for tree constructions metad ata is mandatory (time and location)
+    * location can be set to "unknown"
 * provide a metadata file via `--metadata` to create a correct tree
-    * if you use you own references add also the reference metadata to your files
+    * if you use you `--references` add this information to you metadata file too
 * style of the meta data (tab separated):
     * strain is the name of the fasta header without `>`
     * date has to be in the format `YYYY-MM-DD` or `YYYY-MM`
@@ -65,9 +69,8 @@ MN908947-China-Dec-2019	China	2019-12
 >   * conda (NOT YET IMPLEMENTED)
 * all of these:
 >   * a local guppy installation if you dont have a gpu docker
+>      * not needed if you only use fastq or fasta as input
 >   * nextflow + java runtime 
->   * git (should be already installed)
->   * wget (should be already installed)
 
 * Docker installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce)
     * add docker to your User group via `sudo usermod -a -G docker $USER`
@@ -75,8 +78,6 @@ MN908947-China-Dec-2019	China	2019-12
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
 * Nextflow installation [here](https://www.nextflow.io/)
 * move or add the nextflow executable to a bin path
-
-
 
 ## Current implementations and a few planned features
 

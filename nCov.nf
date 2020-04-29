@@ -282,17 +282,16 @@ def helpMSG() {
     ${c_yellow}Parameters - Tree construction:${c_reset}
     Input is either: --fasta --fastq --dir
 
-    UNFINISHED
-    --references    fasta file(s) to compare against your data sample
-                    ${c_dim} auto osf download (not implemented)${c_reset}
-    --metadata      tsv file with 3 headers: strain country date   (date in YYYY-MM-DD)
-                    ${c_dim} auto osf download (not implemented)${c_reset}
+    --references    multifasta file to compare against your input
+
+    --metadata      tsv file with 3 rows and header: strain country date   
+                    date in YYYY-MM-DD   strain is fasta header without >
     
     Optional:
-    --highlight     color this name in the tree in red [default: ${params.highlight}]
+    --highlight     names containing this string are colored in the tree in red 
+                    [default: ${params.highlight}]
     --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
     --maskEnd       masks end of alignment [default: ${params.maskEnd}]
-
 
     ${c_yellow}Options:${c_reset}
     --cores         max cores for local use [default: $params.cores]
@@ -310,6 +309,6 @@ def helpMSG() {
       ${c_blue}Engines${c_reset} (choose one):
       docker
       singularity
-      conda (not implemented yet)
+      conda (not yet implemented )
     """.stripIndent()
 }
