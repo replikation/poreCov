@@ -5,16 +5,16 @@ An alignmend guide so to say -> ${align_reference}
 process augur_align {
         label 'augur'
     input:
-        tuple val(name), path(sample)
-        tuple val(reference_name), path(references)
+        path(sample)
+        path(references)
 		path(align_reference)
   	output:
-    	tuple val(name), path("aligned.fasta")
+    	path("aligned.fasta")
   	script:
     """
 	# removing possible windows returns at line endings
 	# cat ${sample} ${references} | tr -d "\\r" | tr "|" "_" | tr "/" "_" | tr " " "_" | awk '/^>/{\$0=\$0"_"(++i)}1' > combined.fasta
-	cat ${sample} ${references} | tr -d "\\r" | tr "|" "_" | tr "/" "_" | tr " " "_"  > combined.fasta
+	cat ${sample} ${references} | tr -d "\\r" | tr ":|/ ,'" "_" > combined.fasta
 
     augur align \
         --sequences combined.fasta \
@@ -28,11 +28,10 @@ process augur_align {
 
 process augur_tree {
         label 'augur'
-        publishDir "${params.output}/${name}/tree/", mode: 'copy'
     input:
-        tuple val(name), path(alignment)
+        path(alignment)
   	output:
-    	tuple val(name), path(alignment), path("tree_raw.nwk")
+    	tuple path(alignment), path("tree_raw.nwk")
   	script:
     """
 	augur tree \
@@ -43,9 +42,8 @@ process augur_tree {
 
 process augur_tree_refine {
         label 'augur'
-        publishDir "${params.output}/${name}/tree/", mode: 'copy'
     input:
-        tuple val(name), path(alignment), path(tree)
+        tuple path(alignment), path(tree)
 		path(metadata)
   	output:
     	path("tree_refined.nwk")
