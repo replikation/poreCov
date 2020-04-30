@@ -1,6 +1,5 @@
 ![logo](data/logo/mobile_logo.png)
-**nCov19 Workflow for nanopore data**   
-Institut für Infektionsmedizin und Krankenhaushygiene
+**nCov19 Workflow for nanopore sequencing data**   
 ===
 
 ![](https://img.shields.io/badge/nextflow-20.01.0-brightgreen)
