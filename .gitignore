@@ -6,3 +6,5 @@ work/
 .nextflow/
 # default out put dir
 results/
+singularity_images/
+references_nCov19/

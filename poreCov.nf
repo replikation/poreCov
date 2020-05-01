@@ -60,7 +60,7 @@ println " "
 // fasta input 
     if (params.fasta) { fasta_input_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
-        .map { file -> tuple(file.baseName, file) }
+        .map { file -> tuple(file.simpleName, file) }
     }
 
 // references input 
@@ -76,7 +76,7 @@ println " "
 // fastq input
     if (params.fastq) { fastq_input_ch = Channel
         .fromPath( params.fastq, checkIfExists: true)
-        .map { file -> tuple(file.baseName, file) }
+        .map { file -> tuple(file.simpleName, file) }
     }
 
 // dir input
@@ -89,8 +89,6 @@ println " "
 * DATABASES
 **************************/
 
-
-
 workflow build_database_wf {
     main:
         fasta_DB = Channel.fromPath( workflow.projectDir + "/database/ena_*.fasta" , checkIfExists: true)
@@ -102,7 +100,6 @@ workflow build_database_wf {
         create_database.out[1]
 }
 
-
 /************************** 
 * MODULES
 **************************/
@@ -111,20 +108,21 @@ include artic from './modules/artic'
 include augur_align from './modules/augur'
 include augur_tree from './modules/augur'
 include augur_tree_refine from './modules/augur'
-include filter_fastq_by_length from './modules/filter_fastq_by_length'
-include guppy_gpu from './modules/guppy'
-include mask_alignment from './modules/mask_alignment'
-include quality_genome_filter from './modules/quality_genome_filter'
-include toytree from './modules/toytree'
 include bwa_samtools from './modules/bwa_samtools'
 include coverage_plot from './modules/coverage_plot'
 include create_database from './modules/create_database'
+include filter_fastq_by_length from './modules/filter_fastq_by_length'
+include guppy_gpu from './modules/guppy'
+include mask_alignment from './modules/mask_alignment'
+include pangolin from './modules/pangolin' 
+include quality_genome_filter from './modules/quality_genome_filter'
+include toytree from './modules/toytree'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
 
-workflow dir_handler_wf {
+workflow basecalling_wf {
     take: 
         dir_input  
     main:
@@ -162,7 +160,7 @@ workflow artic_nCov19_wf {
 }
 
 
-workflow create_tree_nextstrain_wf {
+workflow create_tree_wf {
     take: 
         fasta       // the nCov fasta (own samples or reconstructed here)
         references  // multiple references to compare against
@@ -204,38 +202,63 @@ workflow toytree_wf {
         toytree.out
 } 
 
+workflow determine_lineage_wf {
+    take: 
+        fasta  
+    main:
+        pangolin(fasta)
+
+        // collect lineage also to a summary     
+        channel_tmp = pangolin.out[1]
+                .splitCsv(header: true, sep: ',')
+                .collectFile(seed: 'taxon,lineage,SH-alrt,UFbootstrap,lineages_version,status,note\n', 
+                            storeDir: params.output + "/summary/") {
+                            row -> [ "metadata.tsv", row.taxon + ',' + row.lineage + ',' + row.'SH-alrt' + ',' + 
+                            row.'UFbootstrap' + ',' + row.lineages_version + ',' + row.status + ',' + row.note + '\n']
+                            }
+
+    emit:
+        pangolin.out[0]
+} 
+
 /************************** 
 * MAIN WORKFLOW
 **************************/
 
 workflow {
 
-// reconstruct genomes
-    if (params.dir) { artic_nCov19_wf(dir_handler_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
+// 1. reconstruct genomes
+    if (params.dir) { artic_nCov19_wf(basecalling_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
-// analyse genomes to references and build tree
-    if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) { 
-        create_tree_nextstrain_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
-            newick = create_tree_nextstrain_wf.out
+// 2. analyse genomes to references and build tree
+    if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
+    // build tree 
+        create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
+            newick = create_tree_wf.out
     }
 
     else if (params.metadata && (params.fastq || params.fasta || params.dir)) {
     // build database
         build_database_wf()
-    // merge build_database_wf.out[1] with the metadata file
-        meta_merge_ch = build_database_wf.out[0].splitCsv(header: true, sep: '\t')
+    // merge build_database_wf metadata with user metadata file
+        meta_merge_ch = build_database_wf.out[1].splitCsv(header: true, sep: '\t')
             .mix(metadata_input_ch.splitCsv(header: true, sep: '\t'))
             .collectFile(seed: 'strain\tcountry\tdate\n') { 
                 row -> [ "metadata.tsv", row.strain + '\t' + row.country + '\t' + row.date + '\n' ]  }
     // build tree
-        create_tree_nextstrain_wf (fasta_input_ch, meta_merge_ch, build_database_wf.out[1])
-            newick = create_tree_nextstrain_wf.out
+        create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
+            newick = create_tree_wf.out
     }
 
-// plot tree
+// 3. plot tree
     if (params.metadata) { toytree_wf(newick) }
 
+// 4. determine lineage
+    if (params.fastq || params.fasta || params.dir) {
+        determine_lineage_wf(fasta_input_ch)
+
+    }
 }
 
 /*************  
@@ -250,10 +273,10 @@ def helpMSG() {
     log.info """
     ____________________________________________________________________________________________
     
-    Nextflow nCov19 workflow, by Christian Brandt
+    ${c_green}poreCov${c_reset} | A Nextflow nCov19 workflow for nanopore data
     
     ${c_yellow}Usage examples:${c_reset}
-    nextflow run replikation/nCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
+    nextflow run replikation/poreCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
 
     ${c_yellow}Inputs (choose one):${c_reset}
     --dir           one fast5 dir of a nanopore run conatining multiple samples (barcoded)
