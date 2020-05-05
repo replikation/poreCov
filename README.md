@@ -34,7 +34,7 @@ Table of Contents
 * [References and Metadata for tree construction](#References-and-Metadata-for-tree-construction)
     * [References](#References)
     * [Metadata](#Metadata)
-* [Literature to cite](#Workflow)
+* [Literature to cite](#Literature-to-cite)
 
 
 # Installation
