@@ -28,7 +28,7 @@ Table of Contents
 
 * [Installation](#Installation)
 * [Run poreCov](#Run-poreCov)
-    * [Example commands](##Example-commands)
+    * [Example commands](#Example-commands)
     * [Help](#Help)
 * [Workflow](#Workflow)
 * [References and Metadata for tree construction](#References-and-Metadata-for-tree-construction)
