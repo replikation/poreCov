@@ -14,7 +14,9 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/gcloudChris.svg?style=social)](https://twitter.com/gcloudChris) 
 
 * by Christian Brandt
-* **under development** 
+
+> **Featured here:**
+> Hufsky, F.; Lamkiewicz, K.; Almeida, A.; Aouacheria, A.; Arighi, C.; Bateman, A.; Baumbach, J.; Beerenwinkel, N.; Brandt, C.; Cacciabue, M.; Chuguransky, S.; Drechsel, O.; Finn, R.D.; Fritz, A.; Fuchs, S.; Hattab, G.; Hauschild, A.; Heider, D.; Hoffmann, M.; Hölzer, M.; Hoops, S.; Kaderali, L.; Kalvari, I.; von Kleist, M.; Kmiecinski, R.; Kühnert, D.; Lasso, G.; Libin, P.; List, M.; Löchel, H.F.; Martin, M.J.; Martin, R.; Matschinske, J.; McHardy, A.C.; Mendes, P.; Mistry, J.; Navratil, V.; Nawrocki, E.; O'Toole, Á.N.; Palacios-Ontiveros, N.; Petrov, A.I.; Rangel-Piñeros, G.; Redaschi, N.; Reimering, S.; Reinert, K.; Reyes, A.; Richardson, L.; Robertson, D.L.; Sadegh, S.; Singer, J.B.; Theys, K.; Upton, C.; Welzel, M.; Williams, L.; Marz, M. Computational Strategies to Combat COVID-19: Useful Tools to Accelerate SARS-CoV-2 and Coronavirus Research. Preprints 2020, 2020050376 (doi: 10.20944/preprints202005.0376.v1).
 
 ## What is this Repo?
 
