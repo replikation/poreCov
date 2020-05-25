@@ -47,6 +47,8 @@ Table of Contents
 >   * docker
 >   * singularity
 >   * conda (NOT YET IMPLEMENTED)
+
+* these:
 >   * a local guppy installation or a docker with gpu support
 >      * not needed if you use fastq or fasta as input
 >   * nextflow + java runtime 
