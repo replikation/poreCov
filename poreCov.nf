@@ -40,7 +40,8 @@ println " "
         workflow.profile.contains('singularity') ||
         workflow.profile.contains('docker')
         ) { "engine selected" }
-    else { exit 1, "No engine selected:  -profile EXECUTER,ENGINE" }
+    else { println "No engine selected:  -profile EXECUTER,ENGINE" 
+           println "using native installations" }
     if (
         workflow.profile.contains('local')
         ) { "executer selected" }
