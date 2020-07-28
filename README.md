@@ -1,5 +1,5 @@
 ![logo](data/logo/mobile_logo.png)
-**poreCov | nCov19 Workflow for nanopore sequencing data**   
+**poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**   
 ===
 
 ![](https://img.shields.io/badge/nextflow-20.01.0-brightgreen)
