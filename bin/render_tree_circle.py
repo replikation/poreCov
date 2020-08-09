@@ -38,6 +38,7 @@ tree = toytree.tree(newick, tree_format = int(formattree))
 # Tree Style
 
 mystyle = {
+    "layout": 'circular',
     "edge_type": 'p',
     "edge_style": {
         "stroke": "black",
@@ -56,21 +57,19 @@ mystyle = {
 colorlist = ["#d6557c" if highlighttip in tip else "#5384a3" for tip in tree.get_tip_labels()]
 
 
-canvas, axes = tree.draw( 
+canvas, axes = tree.draw(
     tip_labels_colors=colorlist,
-    width=800,
     height=(tree.ntips * 8),
+    width=(tree.ntips * 8),
     **mystyle,
-    tip_labels_style={"font-size": "8px"},
+    tip_labels_style={"font-size": "10px"},
     node_labels=None,
     node_sizes=5,
     node_colors='grey'
 );
 
 # stretch domain to fit long tip names
+# axes.x.domain.max = 5
 
-#axes.x.domain.max = 800
-
-
-toyplot.svg.render(canvas, "tree.svg")
-toyplot.pdf.render(canvas, "tree.pdf")
+toyplot.svg.render(canvas, "tree_circle.svg")
+toyplot.pdf.render(canvas, "tree_circle.pdf")

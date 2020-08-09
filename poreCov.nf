@@ -105,19 +105,17 @@ workflow build_database_wf {
 * MODULES
 **************************/
 
-include artic from './modules/artic' 
-include augur_align from './modules/augur'
-include augur_tree from './modules/augur'
-include augur_tree_refine from './modules/augur'
-include bwa_samtools from './modules/bwa_samtools'
-include coverage_plot from './modules/coverage_plot'
-include create_database from './modules/create_database'
-include filter_fastq_by_length from './modules/filter_fastq_by_length'
-include guppy_gpu from './modules/guppy'
-include mask_alignment from './modules/mask_alignment'
-include pangolin from './modules/pangolin' 
-include quality_genome_filter from './modules/quality_genome_filter'
-include toytree from './modules/toytree'
+include { artic } from './modules/artic' 
+include { augur_align; augur_tree; augur_tree_refine } from './modules/augur'
+include { bwa_samtools } from './modules/bwa_samtools'
+include { coverage_plot } from './modules/coverage_plot'
+include { create_database } from './modules/create_database'
+include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
+include { guppy_gpu } from './modules/guppy'
+include { mask_alignment } from './modules/mask_alignment'
+include { pangolin } from './modules/pangolin' 
+include { quality_genome_filter } from './modules/quality_genome_filter'
+include { toytree } from './modules/toytree'
 
 /************************** 
 * SUB WORKFLOWS
@@ -315,6 +313,7 @@ def helpMSG() {
                     [default: ${params.highlight}]
     --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
     --maskEnd       masks end of alignment [default: ${params.maskEnd}]
+    --rm_N_genome   removes genomes from tree with x amount of N's [default: ${params.rm_N_genome}]
 
     ${c_yellow}Options:${c_reset}
     --cores         max cores for local use [default: $params.cores]

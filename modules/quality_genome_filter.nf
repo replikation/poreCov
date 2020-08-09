@@ -8,7 +8,7 @@ process quality_genome_filter {
     tuple val(name), path("error_report_*.txt") optional true
   script:
     """
-    genome_integrity.sh ${fasta} ${params.maskBegin} ${params.maskEnd}
+    genome_integrity.sh ${fasta} ${params.maskBegin} ${params.maskEnd} ${params.rm_N_genome}
 
     if [ ! -f error_report_*.txt ]
       then
