@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl=2
+nextflow.enable.dsl=2
 
 /*
 * Nextflow -- nCov Analysis Pipeline
@@ -9,29 +9,32 @@ nextflow.preview.dsl=2
 /************************** 
 * HELP messages & checks
 **************************/
-if( !nextflow.version.matches('20.+') ) {
-    println "This workflow requires Nextflow version 20.X or greater -- You are running version $nextflow.version"
-    exit 1
+
+/* 
+Nextflow version check  
+Format is this: XX.YY.ZZ  (e.g. 20.07.1)
+change below
+*/
+
+XX = "20"
+YY = "07"
+ZZ = "1"
+
+if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
+println "\033[0;33mWtP requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
+exit 1
+}
+else if ( nextflow.version.toString().tokenize('.')[1].toInteger() < YY.toInteger() ) {
+println "\033[0;33mWtP requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
+exit 1
 }
 
-if (params.help) { exit 0, helpMSG() }
 
-println " "
-println "\u001B[32mnCov - Workflows\033[0m"
-println "\u001B[32mProfile: $workflow.profile\033[0m"
-println " "
-println "\033[2mCurrent User: $workflow.userName"
-println "Nextflow-version: $nextflow.version"
-println "Starting time: $nextflow.timestamp"
-println "Workdir location:"
-println "  $workflow.workDir\u001B[0m"
-println " "
-println "CPUs to use: $params.cores"
-println "Memory in GB: $params.memory"
-if (!params.single && params.dir) { println "Barcodes: True" }
-if (params.dir || params.fastq) { println "Primerscheme: $params.primerV"  }
-println "Output dir: $params.output\u001B[0m"
-println " "
+
+// Log infos based on user inputs
+if (params.help) { exit 0, helpMSG() }
+    defaultMSG()
+if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -105,7 +108,7 @@ workflow build_database_wf {
 * MODULES
 **************************/
 
-include { artic } from './modules/artic' 
+include { artic; artic_V1200 } from './modules/artic' 
 include { augur_align; augur_tree; augur_tree_refine } from './modules/augur'
 include { bwa_samtools } from './modules/bwa_samtools'
 include { coverage_plot } from './modules/coverage_plot'
@@ -116,6 +119,7 @@ include { mask_alignment } from './modules/mask_alignment'
 include { pangolin } from './modules/pangolin' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
+include { pycoqc } from './modules/pycoqc'
 
 /************************** 
 * SUB WORKFLOWS
@@ -127,15 +131,16 @@ workflow basecalling_wf {
     main:
         
         guppy_gpu(dir_input)
-        
-        if (params.single) { fastq_channel = guppy_gpu.out }
+        pycoqc(guppy_gpu.out.summary)
 
-        else { fastq_channel = guppy_gpu.out
+        if (params.single) { fastq_channel = guppy_gpu.out.reads }
+
+        else { fastq_channel = guppy_gpu.out.reads
                             .map { it -> it[1] }
                             .flatten()
                             .map { it -> [ it.simpleName, it ] }
             }
-    
+
     emit:
         fastq_channel
 } 
@@ -146,16 +151,25 @@ workflow artic_nCov19_wf {
         fastq
     main: 
 
-        // assembly  
-        artic(filter_fastq_by_length(fastq))
+        // assembly
+        if ( params.primerV.matches('V1200') ) {
+            external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            artic_V1200(filter_fastq_by_length(fastq).combine(external_primer_schemes))
+            assembly = artic_V1200.out
+        }
+        else {
+            artic(filter_fastq_by_length(fastq))
+            assembly = artic.out
+        }
+        
 
         // validate fasta
         coverage_plot(
             bwa_samtools(
-                artic.out.join(filter_fastq_by_length.out)))
+                assembly.join(filter_fastq_by_length.out)))
 
     emit:   
-        artic.out
+        assembly
 }
 
 
@@ -297,6 +311,7 @@ def helpMSG() {
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
+                    Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
 
@@ -331,6 +346,37 @@ def helpMSG() {
       ${c_blue}Engines${c_reset} (choose one):
       docker
       singularity
-      conda (not yet implemented )
+    """.stripIndent()
+}
+
+def defaultMSG(){
+    log.info """
+
+    \u001B[32mSARS-CoV-2 - Workflows\033[0m
+    \u001B[32mProfile: $workflow.profile\033[0m
+
+    \033[2mCurrent User: $workflow.userName
+    Nextflow-version: $nextflow.version
+    Workdir location:
+      $workflow.workDir\u001B[0m
+    Output dir: 
+       $params.output\u001B[0m
+
+    Primerscheme: $params.primerV
+    CPUs to use: $params.cores
+    Memory in GB: $params.memory
+
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
+
+
+
+def v1200_MSG() {
+    log.info """
+    1200 bp options are used as primer scheme (V1200)
+      --minLength set to 1000bp
+      --maxLength set to 1300bp
+    \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }

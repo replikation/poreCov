@@ -1,14 +1,15 @@
 process guppy_gpu {
         maxForks 1
         if (!params.localguppy && workflow.profile.contains('docker') ) {
-            container = 'nanozoo/guppy_gpu:3.4.4-1--3dd30a4'
+            container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
             containerOptions '--gpus all'
         }
         publishDir "${params.output}/fastq/", mode: 'copy'
     input:
         tuple val(name), path(dir)
     output:
-        tuple val(name), path("*.fastq.gz")
+        tuple val(name), path("*.fastq.gz"), emit: reads
+        tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:
         if (params.single)
         """
@@ -24,5 +25,7 @@ process guppy_gpu {
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
         done
+
+        cp fastq/*.txt fastq_tmp
         """
 }
