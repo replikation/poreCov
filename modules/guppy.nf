@@ -17,6 +17,7 @@ process guppy_gpu {
 
         find -L fastq -name '*.fastq' -exec cat {} +  | gzip > ${name}.fastq.gz
         
+        mkdir -p fastq_tmp/
         cp fastq/*.txt fastq_tmp
         """
         else if (!params.single)
