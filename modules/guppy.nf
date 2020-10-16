@@ -16,6 +16,8 @@ process guppy_gpu {
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq -x auto -r --trim_strategy dna -q 0
 
         find -L fastq -name '*.fastq' -exec cat {} +  | gzip > ${name}.fastq.gz
+        
+        cp fastq/*.txt fastq_tmp
         """
         else if (!params.single)
         """
