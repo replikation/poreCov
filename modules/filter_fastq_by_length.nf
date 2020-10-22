@@ -18,7 +18,7 @@ process filter_fastq_by_length {
         ;;
     esac
 
-    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -100k -delete
+    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
     """
     else
     """
@@ -33,6 +33,6 @@ process filter_fastq_by_length {
         ;;
     esac
 
-    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -100k -delete
+    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
     """
 }
