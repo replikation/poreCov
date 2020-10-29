@@ -16,7 +16,10 @@ plot <- ggplot(input) +
         theme_classic() +
         labs(title=as.vector(input$V1[[1]]), 
         x="Genome position",
-        y="Coverage")
+        y="Coverage") +
+        scale_y_continuous(trans = log10_trans(),
+          breaks = trans_breaks("log10", function(x) 10^x),
+          labels = trans_format("log10", math_format(10^.x)))
 
 
 svg("overview.svg", height = 3, width = 12)
