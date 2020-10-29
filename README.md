@@ -2,7 +2,7 @@
 **poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**   
 ===
 
-![](https://img.shields.io/badge/nextflow-20.01.0-brightgreen)
+![](https://img.shields.io/badge/nextflow-20.07.0-brightgreen)
 ![](https://img.shields.io/badge/uses-docker-blue.svg)
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
@@ -58,9 +58,9 @@ Table of Contents
 * Docker installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce)
     * add docker to your User group via `sudo usermod -a -G docker $USER`
 * Singularity installation [here](https://singularity.lbl.gov/install-linux)
-    * need
+    * if you cant use docker
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
-    * not yet implemented
+    * not natively integrated, you can do conda install singularity nextflow in a new environment and execute poreCov via `-profile local,singularity`
 * Nextflow via: `curl -s https://get.nextflow.io | bash`
     * a java runtime is needed
     * move `nextflow` executable to a path location
