@@ -4,6 +4,7 @@
 
 library(ggplot2)
 library(dplyr)
+library(scales)
 
 input  <- read.delim("coverage_info.txt", header = F, sep = "\t")
 
