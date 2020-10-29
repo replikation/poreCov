@@ -13,8 +13,8 @@ process filter_fastq_by_length {
                 awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
         *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 1000' | sed 's/\\t/\\n/g' |\
-            awk -F"\\t" 'length(\$2)  <= 1300' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 250' | sed 's/\\t/\\n/g' |\
+            awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
     esac
 

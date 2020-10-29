@@ -308,6 +308,8 @@ def helpMSG() {
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
                     native guppy installation is used by default for singularity or conda
+    --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
+                    try this if to many barcodes are unclassified (check the pycoQC report)
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -363,6 +365,7 @@ def defaultMSG(){
        $params.output\u001B[0m
 
     Primerscheme: $params.primerV
+    Barcodes on one end enough?: $params.one_end
     CPUs to use: $params.cores
     Memory in GB: $params.memory
 
@@ -370,13 +373,11 @@ def defaultMSG(){
     """.stripIndent()
 }
 
-
-
 def v1200_MSG() {
     log.info """
     1200 bp options are used as primer scheme (V1200)
-      --minLength set to 1000bp
-      --maxLength set to 1300bp
+      --minLength set to 250bp
+      --maxLength set to 1500bp
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
