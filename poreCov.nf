@@ -155,11 +155,11 @@ workflow artic_nCov19_wf {
         if ( params.primerV.matches('V1200') ) {
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
             artic_V1200(filter_fastq_by_length(fastq).combine(external_primer_schemes))
-            assembly = artic_V1200.out
+            assembly = artic_V1200.out.fasta
         }
         else {
             artic(filter_fastq_by_length(fastq))
-            assembly = artic.out
+            assembly = artic.out.fasta
         }
         
 
