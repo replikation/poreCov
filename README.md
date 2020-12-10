@@ -25,6 +25,7 @@
     * ARTIC protocol and reference from [here](https://artic.network/ncov-2019)
 * a few handy QC and plots are included to decrease post analytic "downtime"
     * e.g. was the PCR coverage on each position enough?
+* is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
 
 Table of Contents
 =================
