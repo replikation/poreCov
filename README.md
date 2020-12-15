@@ -103,6 +103,9 @@ nextflow run replikation/poreCov --help
 * the default use case is fast5 raw-data to "results"
 * however by providing fastq or fasta instead poreCov skips over the corresponding steps
 * provide `--metadata` to start the tree construction
+* genomes with 3 or more `N's` are excluded (not ignoring the 70bp at N and C-terminal)
+  * can be modified via `--rm_N_genome`
+* primer schemes for ARTIC can be V1,V2,V3 or the 1200bp ones (see help)
 
 ![workflow](data/figures/workflow.png)
 
@@ -112,7 +115,7 @@ nextflow run replikation/poreCov --help
     * these files are from ENA
     * metadata for this is automatically added
 * this behaviour can be "replaced" by providing a multifasta reference file via `--references`
-* please make sure that these fastaheader dont contain "strange" symbols like `" '  | / \ :`
+* please make sure that these fastaheader dont contain "strange" symbols like `" '  | / \ : & $`
     * this causes issues in some of the tools used here
 
 ## Metadata
@@ -122,11 +125,11 @@ nextflow run replikation/poreCov --help
     * header: `strain   time    location`
     * one sample per line
     * **strain**: 
-        * name of the fasta or fastq file without any suffix (`--fasta` or `--fastq`)
+        * name of the fastq file without any suffix (`--fastq`)
         * barcode01 barcode02 etc. for fast5 data inside a directory (`--dir`)
-        * fasta header name (without >) for the multifasta reference (`--reference`)
+        * fasta header name (without >) for one genome (`--fasta`) or multiple references (`--reference`)
     * **location** can be set to "unknown"
-    * **date** format is `YYYY-MM-DD` or `YYYY-MM`
+    * **date** format is `YYYY-MM-DD` or `YYYY-MM` or `YYYY`
 * example:
 
 ```csv

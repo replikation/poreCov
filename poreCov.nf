@@ -285,7 +285,7 @@ def helpMSG() {
     log.info """
     ____________________________________________________________________________________________
     
-    ${c_green}poreCov${c_reset} | A Nextflow nCov19 workflow for nanopore data
+    ${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 (nCov19) workflow for nanopore data
     
     ${c_yellow}Usage examples:${c_reset}
     nextflow run replikation/poreCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
@@ -330,7 +330,7 @@ def helpMSG() {
                     [default: ${params.highlight}]
     --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
     --maskEnd       masks end of alignment [default: ${params.maskEnd}]
-    --rm_N_genome   removes genomes from tree with x amount of N's [default: ${params.rm_N_genome}]
+    --rm_N_genome   removes genomes from tree with x amount of N's or more [default: ${params.rm_N_genome}]
 
     ${c_yellow}Options:${c_reset}
     --cores         max cores for local use [default: $params.cores]
@@ -340,7 +340,7 @@ def helpMSG() {
                     [default: $params.cachedir] 
 
     ${c_yellow}Execution/Engine profiles:${c_reset}
-    nCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} e.g.:
+    poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} e.g.:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
 
       ${c_green}Executer${c_reset} (choose one):
@@ -348,6 +348,8 @@ def helpMSG() {
       ${c_blue}Engines${c_reset} (choose one):
       docker
       singularity
+      
+    Alternatively provide your own configuration via -c ownconfig.config 
     """.stripIndent()
 }
 
@@ -359,15 +361,15 @@ def defaultMSG(){
 
     \033[2mCurrent User: $workflow.userName
     Nextflow-version: $nextflow.version
-    Workdir location:
+    Workdir location [-work-Dir]:
       $workflow.workDir\u001B[0m
-    Output dir: 
+    Output dir [--outout]: 
        $params.output\u001B[0m
 
-    Primerscheme: $params.primerV
-    Barcodes on one end enough?: $params.one_end
-    CPUs to use: $params.cores
-    Memory in GB: $params.memory
+    Primerscheme: $params.primerV [--primerV]
+    Barcodes on one end enough?: $params.one_end [--one_end]
+    CPUs to use: $params.cores [--cores]
+    Memory in GB: $params.memory [--memory]
 
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
