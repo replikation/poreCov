@@ -20,7 +20,7 @@ process guppy_gpu {
         mkdir -p fastq_tmp/
         cp fastq/*.txt fastq_tmp
         """
-        if (!params.single && !params.one_end)
+        else if (!params.single && !params.one_end)
         """
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq_tmp -x auto -r
         guppy_barcoder --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg"
