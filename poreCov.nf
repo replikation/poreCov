@@ -50,6 +50,16 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
 
+    if (workflow.profile.contains('local')) {
+        println "\033[2mCPUs to use: $params.cores, maximal CPUs to use: $params.max_cores\u001B[0m"
+        println " "
+    }
+    if ( workflow.profile.contains('singularity') ) {
+        println ""
+        println "\033[0;33mWARNING: Singularity image building sometimes fails!"
+        println "Multiple resumes (-resume) and --max_cores 1 --cores 1 for local execution might help.\033[0m\n"
+    }
+
 // params help
     if (!params.fasta &&  !params.dir &&  !params.fastq ) {
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
@@ -334,6 +344,7 @@ def helpMSG() {
 
     ${c_yellow}Options:${c_reset}
     --cores         max cores for local use [default: $params.cores]
+    --max_cores     max cores used on the machine for local use [default: $params.max_cores]
     --memory        available memory [default: $params.memory]
     --output        name of the result folder [default: $params.output]
     --cachedir      defines the path where singularity images are cached
@@ -345,6 +356,7 @@ def helpMSG() {
 
       ${c_green}Executer${c_reset} (choose one):
       local
+      slurm
       ${c_blue}Engines${c_reset} (choose one):
       docker
       singularity
@@ -363,7 +375,7 @@ def defaultMSG(){
     Nextflow-version: $nextflow.version
     Workdir location [-work-Dir]:
       $workflow.workDir\u001B[0m
-    Output dir [--outout]: 
+    Output dir [--output]: 
        $params.output\u001B[0m
 
     Primerscheme: $params.primerV [--primerV]
