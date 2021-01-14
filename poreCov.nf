@@ -350,6 +350,11 @@ def helpMSG() {
     --cachedir      defines the path where singularity images are cached
                     [default: $params.cachedir] 
 
+    ${c_dim}Nextflow options:
+    -with-report rep.html       CPU / RAM usage (may cause errors).
+    -with-dag chart.html        Generates a flowchart for the process tree.
+    -with-timeline time.html    Timeline (may cause errors).${c_reset}
+
     ${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} e.g.:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
