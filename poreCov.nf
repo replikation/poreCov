@@ -41,11 +41,13 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
     if (params.profile) { exit 1, "--profile is WRONG use -profile" }
     if (
         workflow.profile.contains('singularity') ||
+        workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('docker')
         ) { "engine selected" }
     else { println "No engine selected:  -profile EXECUTER,ENGINE" 
            println "using native installations" }
     if (
+        workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('local')
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
