@@ -79,6 +79,11 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
         .map { file -> tuple(file.simpleName, file) }
     }
 
+// consensus qc reference input
+    if (params.reference_for_qc) { reference_for_qc_input_ch = Channel
+        .fromPath( params.reference_for_qc, checkIfExists: true)
+    }
+
 // references input 
     if (params.references) { reference_input_ch = Channel
         .fromPath( params.references, checkIfExists: true)
@@ -130,6 +135,7 @@ include { guppy_gpu } from './modules/guppy'
 include { mask_alignment } from './modules/mask_alignment'
 include { nanoplot } from './modules/nanoplot'
 include { pangolin } from './modules/pangolin' 
+include { president } from './modules/president' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
 include { pycoqc } from './modules/pycoqc'
@@ -170,6 +176,7 @@ workflow read_qc_wf {
 workflow artic_nCov19_wf {
     take:   
         fastq
+        reference_fasta
     main: 
 
         // assembly
@@ -182,17 +189,17 @@ workflow artic_nCov19_wf {
             artic(filter_fastq_by_length(fastq))
             assembly = artic.out.fasta
         }
-        
 
         // validate fasta
         coverage_plot(
             bwa_samtools(
                 assembly.join(filter_fastq_by_length.out)))
 
+        president(assembly.combine(reference_fasta))
+
     emit:   
         assembly
 }
-
 
 workflow create_tree_wf {
     take: 
@@ -262,12 +269,12 @@ workflow {
 
 // 1. reconstruct genomes
     if (params.dir) { 
-        artic_nCov19_wf(basecalling_wf(dir_input_ch))
+        artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch)
         fasta_input_ch = artic_nCov19_wf.out
     }
     if (params.fastq) { 
         read_qc_wf(fastq_input_ch)
-        artic_nCov19_wf(fastq_input_ch)
+        artic_nCov19_wf(fastq_input_ch, reference_for_qc_input_ch)
         fasta_input_ch = artic_nCov19_wf.out
     }
 
@@ -299,6 +306,7 @@ workflow {
         determine_lineage_wf(fasta_input_ch)
 
     }
+
 }
 
 /*************  
@@ -341,9 +349,13 @@ def helpMSG() {
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
-                    Supported: V1, V2, V3, V1200
+                        Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
+
+    ${c_yellow}Parameters - nCov genome reconstruction quality control${c_reset}
+    --reference_for_qc      reference FASTA for consensus qc [default: ${params.reference_for_qc}]
+    --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
 
     ${c_yellow}Parameters - Tree construction:${c_reset}
     Input is either: --fasta --fastq --dir
