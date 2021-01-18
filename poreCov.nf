@@ -133,6 +133,7 @@ include { create_database } from './modules/create_database'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
 include { guppy_gpu } from './modules/guppy'
 include { mask_alignment } from './modules/mask_alignment'
+include { nanoplot } from './modules/nanoplot'
 include { pangolin } from './modules/pangolin' 
 include { president } from './modules/president' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
@@ -161,6 +162,14 @@ workflow basecalling_wf {
 
     emit:
         fastq_channel
+} 
+
+
+workflow read_qc_wf {
+    take: 
+        fastq  
+    main:
+        nanoplot(fastq)
 } 
 
 
@@ -259,8 +268,15 @@ workflow determine_lineage_wf {
 workflow {
 
 // 1. reconstruct genomes
-    if (params.dir) { artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch); fasta_input_ch = artic_nCov19_wf.out }
-    if (params.fastq) { artic_nCov19_wf(fastq_input_ch, reference_for_qc_input_ch); fasta_input_ch = artic_nCov19_wf.out}
+    if (params.dir) { 
+        artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch)
+        fasta_input_ch = artic_nCov19_wf.out
+    }
+    if (params.fastq) { 
+        read_qc_wf(fastq_input_ch)
+        artic_nCov19_wf(fastq_input_ch, reference_for_qc_input_ch)
+        fasta_input_ch = artic_nCov19_wf.out
+    }
 
 // 2. analyse genomes to references and build tree
     if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
