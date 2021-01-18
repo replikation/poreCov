@@ -79,6 +79,11 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
         .map { file -> tuple(file.simpleName, file) }
     }
 
+// consensus qc reference input
+    if (params.reference_for_qc) { reference_for_qc_input_ch = Channel
+        .fromPath( params.reference_for_qc, checkIfExists: true)
+    }
+
 // references input 
     if (params.references) { reference_input_ch = Channel
         .fromPath( params.references, checkIfExists: true)
@@ -129,6 +134,7 @@ include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
 include { guppy_gpu } from './modules/guppy'
 include { mask_alignment } from './modules/mask_alignment'
 include { pangolin } from './modules/pangolin' 
+include { president } from './modules/president' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
 include { pycoqc } from './modules/pycoqc'
@@ -184,6 +190,14 @@ workflow artic_nCov19_wf {
         assembly
 }
 
+workflow consensus_qc {
+    take:
+        consensus_fasta
+        reference_fasta
+    main:
+        // calc pairwise seq identity
+        president(consensus_fasta.combine(reference_fasta))
+}
 
 workflow create_tree_wf {
     take: 
@@ -255,7 +269,10 @@ workflow {
     if (params.dir) { artic_nCov19_wf(basecalling_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
     if (params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
-// 2. analyse genomes to references and build tree
+// 2. reconstructed genome qc
+    consensus_qc(fasta_input_ch, reference_for_qc_input_ch)
+
+// 3. analyse genomes to references and build tree
     if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
     // build tree 
         create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
@@ -275,14 +292,15 @@ workflow {
             newick = create_tree_wf.out
     }
 
-// 3. plot tree
+// 4. plot tree
     if (params.metadata) { toytree_wf(newick) }
 
-// 4. determine lineage
+// 5. determine lineage
     if (params.fastq || params.fasta || params.dir) {
         determine_lineage_wf(fasta_input_ch)
 
     }
+
 }
 
 /*************  
@@ -325,9 +343,13 @@ def helpMSG() {
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
-                    Supported: V1, V2, V3, V1200
+                        Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
+
+    ${c_yellow}Parameters - nCov genome reconstruction quality control${c_reset}
+    --reference_for_qc      reference FASTA for consensus qc [default: ${params.reference_for_qc}]
+    --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
 
     ${c_yellow}Parameters - Tree construction:${c_reset}
     Input is either: --fasta --fastq --dir
