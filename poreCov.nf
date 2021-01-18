@@ -178,7 +178,7 @@ workflow artic_nCov19_wf {
         // validate fasta
         coverage_plot(
             bwa_samtools(
-                assembly.join(filter_fastq_by_length.out)))
+                assembly.join(filter_fastq_by_length.out))[0])
 
     emit:   
         assembly
