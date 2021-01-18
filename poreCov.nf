@@ -167,6 +167,7 @@ workflow basecalling_wf {
 workflow artic_nCov19_wf {
     take:   
         fastq
+        reference_fasta
     main: 
 
         // assembly
@@ -179,24 +180,16 @@ workflow artic_nCov19_wf {
             artic(filter_fastq_by_length(fastq))
             assembly = artic.out.fasta
         }
-        
 
         // validate fasta
         coverage_plot(
             bwa_samtools(
                 assembly.join(filter_fastq_by_length.out)))
 
+        president(assembly.combine(reference_fasta))
+
     emit:   
         assembly
-}
-
-workflow consensus_qc {
-    take:
-        consensus_fasta
-        reference_fasta
-    main:
-        // calc pairwise seq identity
-        president(consensus_fasta.combine(reference_fasta))
 }
 
 workflow create_tree_wf {
@@ -266,13 +259,10 @@ workflow determine_lineage_wf {
 workflow {
 
 // 1. reconstruct genomes
-    if (params.dir) { artic_nCov19_wf(basecalling_wf(dir_input_ch)); fasta_input_ch = artic_nCov19_wf.out }
-    if (params.fastq) { artic_nCov19_wf(fastq_input_ch); fasta_input_ch = artic_nCov19_wf.out}
+    if (params.dir) { artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch); fasta_input_ch = artic_nCov19_wf.out }
+    if (params.fastq) { artic_nCov19_wf(fastq_input_ch, reference_for_qc_input_ch); fasta_input_ch = artic_nCov19_wf.out}
 
-// 2. reconstructed genome qc
-    consensus_qc(fasta_input_ch, reference_for_qc_input_ch)
-
-// 3. analyse genomes to references and build tree
+// 2. analyse genomes to references and build tree
     if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
     // build tree 
         create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
@@ -292,10 +282,10 @@ workflow {
             newick = create_tree_wf.out
     }
 
-// 4. plot tree
+// 3. plot tree
     if (params.metadata) { toytree_wf(newick) }
 
-// 5. determine lineage
+// 4. determine lineage
     if (params.fastq || params.fasta || params.dir) {
         determine_lineage_wf(fasta_input_ch)
 
