@@ -79,9 +79,14 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
         .map { file -> tuple(file.simpleName, file) }
     }
 
-// consensus qc reference input
-    if (params.reference_for_qc) { reference_for_qc_input_ch = Channel
+// consensus qc reference input - auto using git default if not specified
+    if (params.reference_for_qc) { 
+        reference_for_qc_input_ch = Channel
         .fromPath( params.reference_for_qc, checkIfExists: true)
+    }
+    else if (!params.reference_for_qc) {
+        reference_for_qc_input_ch = Channel
+        .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
     }
 
 // references input 
@@ -135,10 +140,15 @@ include { guppy_gpu } from './modules/guppy'
 include { mask_alignment } from './modules/mask_alignment'
 include { nanoplot } from './modules/nanoplot'
 include { pangolin } from './modules/pangolin' 
-include { president } from './modules/president' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
 include { pycoqc } from './modules/pycoqc'
+
+/************************** 
+* Workflows
+**************************/
+
+include { genome_quality_wf } from './workflows/genome_quality.nf'
 
 /************************** 
 * SUB WORKFLOWS
@@ -176,7 +186,6 @@ workflow read_qc_wf {
 workflow artic_nCov19_wf {
     take:   
         fastq
-        reference_fasta
     main: 
 
         // assembly
@@ -195,7 +204,7 @@ workflow artic_nCov19_wf {
             bwa_samtools(
                 assembly.join(filter_fastq_by_length.out))[0])
 
-        president(assembly.combine(reference_fasta))
+
 
     emit:   
         assembly
@@ -274,11 +283,18 @@ workflow {
     }
     if (params.fastq) { 
         read_qc_wf(fastq_input_ch)
-        artic_nCov19_wf(fastq_input_ch, reference_for_qc_input_ch)
+        artic_nCov19_wf(fastq_input_ch)
         fasta_input_ch = artic_nCov19_wf.out
     }
 
-// 2. analyse genomes to references and build tree
+// 2. Genome quality and lineages
+    if (params.fastq || params.fasta || params.dir) {
+        determine_lineage_wf(fasta_input_ch)
+        genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
+
+    }
+
+// 3. (optional) analyse genomes to references and build tree
     if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
     // build tree 
         create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
@@ -298,14 +314,9 @@ workflow {
             newick = create_tree_wf.out
     }
 
-// 3. plot tree
     if (params.metadata) { toytree_wf(newick) }
 
-// 4. determine lineage
-    if (params.fastq || params.fasta || params.dir) {
-        determine_lineage_wf(fasta_input_ch)
 
-    }
 
 }
 
@@ -354,7 +365,7 @@ def helpMSG() {
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
 
     ${c_yellow}Parameters - nCov genome reconstruction quality control${c_reset}
-    --reference_for_qc      reference FASTA for consensus qc [default: ${params.reference_for_qc}]
+    --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
     --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
 
     ${c_yellow}Parameters - Tree construction:${c_reset}
