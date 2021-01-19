@@ -1,5 +1,5 @@
 process guppy_gpu {
-        label 'guppy'
+        label 'guppy_gpu'
         if (!params.localguppy && workflow.profile.contains('docker') ) {
             container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
             containerOptions '--gpus all'
@@ -45,7 +45,7 @@ process guppy_gpu {
 }
 
 process guppy_cpu {
-        label 'guppy'
+        label 'guppy_cpu'
         if (!params.localguppy && workflow.profile.contains('docker') ) {
             container = 'nanozoo/guppy_cpu:4.2.2-1--416f83d'
         }
