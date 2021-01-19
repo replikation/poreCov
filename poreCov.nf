@@ -30,9 +30,10 @@ exit 1
 }
 
 // Log infos based on user inputs
-if (params.help) { exit 0, helpMSG() }
+if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
+if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -51,7 +52,7 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
 
     if (workflow.profile.contains('local')) {
-        println "\033[2mCPUs to use: $params.cores, maximal CPUs to use: $params.max_cores\u001B[0m"
+        println "\033[2m Using $params.cores/$params.max_cores CPU threads [--max_cores]\u001B[0m"
         println " "
     }
     if ( workflow.profile.contains('singularity') ) {
@@ -327,6 +328,7 @@ def helpMSG() {
                     native guppy installation is used by default for singularity or conda
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (check the pycoQC report)
+    --guppy_cpu     use cpus instead of gpus for basecalling
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -385,19 +387,23 @@ def defaultMSG(){
     log.info """
     SARS-CoV-2 - Workflow
 
-    \u001B[32mProfile:      $workflow.profile\033[0m
-    \033[2mCurrent User:    $workflow.userName
-    Nextflow-version:       $nextflow.version
-    Workdir location [-work-Dir]:
-        $workflow.workDir\u001B[0m
+
+    \u001B[32mProfile:             $workflow.profile\033[0m
+    \033[2mCurrent User:        $workflow.userName
+    Nextflow-version:    $nextflow.version
+    \u001B[0m
+    Pathing:
+    \033[2mWorkdir location [-work-Dir]:
+        $workflow.workDir
     Output dir [--output]: 
-        $params.output\u001B[0m
-
-    Primerscheme:           $params.primerV [--primerV]
-    Barcodes on one end enough?: $params.one_end [--one_end]
-    CPUs to use:            $params.cores [--cores]
-    Memory in GB:           $params.memory [--memory]
-
+        $params.output
+    Singularity cache dir [--cachedir]: 
+        $params.cachedir
+    \u001B[1;30m______________________________________\033[0m
+    Parameters:
+    \033[2mPrimerscheme:        $params.primerV [--primerV]
+    CPUs to use:         $params.cores [--cores]
+    Memory in GB:        $params.memory [--memory]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -407,6 +413,16 @@ def v1200_MSG() {
     1200 bp options are used as primer scheme (V1200)
       --minLength set to 250bp
       --maxLength set to 1500bp
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
+
+def basecalling() {
+    log.info """
+    Basecalling options:
+    \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
+    One end demultiplexing? $params.one_end [--one_end]
+    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
