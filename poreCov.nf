@@ -29,8 +29,6 @@ println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY 
 exit 1
 }
 
-
-
 // Log infos based on user inputs
 if (params.help) { exit 0, helpMSG() }
     defaultMSG()
@@ -63,18 +61,19 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
     }
 
 // params help
+if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
     if (!params.fasta &&  !params.dir &&  !params.fastq ) {
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
     if (!params.metadata) { println "\033[0;33mNo [--metadata] file specified, skipping tree build\u001B[0m" }
-
+}
 /************************** 
 * INPUTs
 **************************/
 
 // fasta input 
-    if (params.fasta) { fasta_input_ch = Channel
+    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
         .map { file -> tuple(file.simpleName, file) }
     }
@@ -99,14 +98,21 @@ if ( params.primerV.matches('V1200') ) { v1200_MSG() }
         .fromPath( params.metadata, checkIfExists: true)
     }
 
-// fastq input
-    if (params.fastq) { fastq_input_ch = Channel
-        .fromPath( params.fastq, checkIfExists: true)
-        .map { file -> tuple(file.simpleName, file) }
-    }
+// fastq input or via csv file
+    if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { fastq_input_ch = Channel
+            .fromPath( params.fastq, checkIfExists: true )
+            .splitCsv()
+            .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
+                }
+    else if (params.fastq && !workflow.profile.contains('test_fastq')) { fastq_input_ch = Channel
+            .fromPath( params.fastq, checkIfExists: true)
+            .map { file -> tuple(file.baseName, file) }
+                }
+
+
 
 // dir input
-    if (params.dir) { dir_input_ch = Channel
+    if (params.dir && !workflow.profile.contains('test_fast5')) { dir_input_ch = Channel
         .fromPath( params.dir, checkIfExists: true, type: 'dir')
         .map { file -> tuple(file.name, file) }
     }
@@ -136,44 +142,25 @@ include { bwa_samtools } from './modules/bwa_samtools'
 include { coverage_plot } from './modules/coverage_plot'
 include { create_database } from './modules/create_database'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
-include { guppy_gpu } from './modules/guppy'
 include { mask_alignment } from './modules/mask_alignment'
 include { nanoplot } from './modules/nanoplot'
-include { pangolin } from './modules/pangolin' 
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
-include { pycoqc } from './modules/pycoqc'
+
+include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
+include { get_fasta } from './modules/get_fasta_test_data.nf'
 
 /************************** 
 * Workflows
 **************************/
 
 include { genome_quality_wf } from './workflows/genome_quality.nf'
+include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { basecalling_wf } from './workflows/basecalling.nf'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
-
-workflow basecalling_wf {
-    take: 
-        dir_input  
-    main:
-        
-        guppy_gpu(dir_input)
-        pycoqc(guppy_gpu.out.summary)
-
-        if (params.single) { fastq_channel = guppy_gpu.out.reads }
-
-        else { fastq_channel = guppy_gpu.out.reads
-                            .map { it -> it[1] }
-                            .flatten()
-                            .map { it -> [ it.simpleName, it ] }
-            }
-
-    emit:
-        fastq_channel
-} 
-
 
 workflow read_qc_wf {
     take: 
@@ -252,72 +239,57 @@ workflow toytree_wf {
         toytree.out
 } 
 
-workflow determine_lineage_wf {
-    take: 
-        fasta  
-    main:
-        pangolin(fasta)
-
-        // collect lineage also to a summary     
-        channel_tmp = pangolin.out[1]
-                .splitCsv(header: true, sep: ',')
-                .collectFile(seed: 'taxon,lineage,probability,pangoLEARN_version,status,note\n', 
-                            storeDir: params.output + "/summary/") {
-                            row -> [ "metadata.tsv", row.taxon + ',' + row.lineage + ',' + row.probability + ',' + 
-                            row.'pangoLEARN_version' + ',' + row.status + ',' + row.note + '\n']
-                            }
-    emit:
-        pangolin.out[0]
-} 
-
 /************************** 
 * MAIN WORKFLOW
 **************************/
 
 workflow {
+    // 0. Test profile data
+        if ( workflow.profile.contains('test_fastq')) { fastq_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fast5')) { 
+            //fast5_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } 
+        }
 
-// 1. reconstruct genomes
-    if (params.dir) { 
+    // 1. Reconstruct genomes
+    if (params.dir || workflow.profile.contains('test_fast5')) { 
         artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch)
+
         fasta_input_ch = artic_nCov19_wf.out
     }
-    if (params.fastq) { 
+    if (params.fastq || workflow.profile.contains('test_fastq')) { 
         read_qc_wf(fastq_input_ch)
         artic_nCov19_wf(fastq_input_ch)
+
         fasta_input_ch = artic_nCov19_wf.out
     }
 
-// 2. Genome quality and lineages
-    if (params.fastq || params.fasta || params.dir) {
+    // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
-        genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
-
-    }
-
-// 3. (optional) analyse genomes to references and build tree
-    if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
-    // build tree 
-        create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
-            newick = create_tree_wf.out
-    }
-
-    else if (params.metadata && (params.fastq || params.fasta || params.dir)) {
-    // build database
-        build_database_wf()
-    // merge build_database_wf metadata with user metadata file
-        meta_merge_ch = build_database_wf.out[1].splitCsv(header: true, sep: '\t')
-            .mix(metadata_input_ch.splitCsv(header: true, sep: '\t'))
-            .collectFile(seed: 'strain\tcountry\tdate\n') { 
-                row -> [ "metadata.tsv", row.strain + '\t' + row.country + '\t' + row.date + '\n' ]  }
-    // build tree
-        create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
-            newick = create_tree_wf.out
-    }
-
-    if (params.metadata) { toytree_wf(newick) }
+        //genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
 
+    // 3. (optional) analyse genomes to references and build tree
+        if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
+        // build tree 
+            create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
+                newick = create_tree_wf.out
+        }
 
+        else if (params.metadata && (params.fastq || params.fasta || params.dir)) {
+        // build database
+            build_database_wf()
+        // merge build_database_wf metadata with user metadata file
+            meta_merge_ch = build_database_wf.out[1].splitCsv(header: true, sep: '\t')
+                .mix(metadata_input_ch.splitCsv(header: true, sep: '\t'))
+                .collectFile(seed: 'strain\tcountry\tdate\n') { 
+                    row -> [ "metadata.tsv", row.strain + '\t' + row.country + '\t' + row.date + '\n' ]  }
+        // build tree
+            create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
+                newick = create_tree_wf.out
+        }
+
+        if (params.metadata) { toytree_wf(newick) }
 }
 
 /*************  
@@ -349,8 +321,7 @@ def helpMSG() {
                     ${c_dim}[nCov genome reconstruction]${c_reset}
 
     --fasta         direct input of genomes, one file per genome
-                    ${c_dim}(multifasta not implemented yet) --multifasta ${c_reset}
-                    ${c_dim}[phylogenetic tree contruction]${c_reset}
+                    ${c_dim}[Lineage determination, Quality control]${c_reset}
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -413,21 +384,20 @@ def helpMSG() {
 
 def defaultMSG(){
     log.info """
+    SARS-CoV-2 - Workflow
 
-    \u001B[32mSARS-CoV-2 - Workflows\033[0m
-    \u001B[32mProfile: $workflow.profile\033[0m
-
-    \033[2mCurrent User: $workflow.userName
-    Nextflow-version: $nextflow.version
+    \u001B[32mProfile:      $workflow.profile\033[0m
+    \033[2mCurrent User:    $workflow.userName
+    Nextflow-version:       $nextflow.version
     Workdir location [-work-Dir]:
-      $workflow.workDir\u001B[0m
+        $workflow.workDir\u001B[0m
     Output dir [--output]: 
-       $params.output\u001B[0m
+        $params.output\u001B[0m
 
-    Primerscheme: $params.primerV [--primerV]
+    Primerscheme:           $params.primerV [--primerV]
     Barcodes on one end enough?: $params.one_end [--one_end]
-    CPUs to use: $params.cores [--cores]
-    Memory in GB: $params.memory [--memory]
+    CPUs to use:            $params.cores [--cores]
+    Memory in GB:           $params.memory [--memory]
 
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
