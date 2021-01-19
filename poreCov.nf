@@ -149,6 +149,7 @@ include { toytree } from './modules/toytree'
 
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
+include { get_fast5 } from './modules/get_fast5_test_data.nf'
 
 /************************** 
 * Workflows
@@ -247,13 +248,11 @@ workflow {
     // 0. Test profile data
         if ( workflow.profile.contains('test_fastq')) { fastq_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
-        if ( workflow.profile.contains('test_fast5')) { 
-            //fast5_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } 
-        }
+        if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
 
     // 1. Reconstruct genomes
     if (params.dir || workflow.profile.contains('test_fast5')) { 
-        artic_nCov19_wf(basecalling_wf(dir_input_ch), reference_for_qc_input_ch)
+        artic_nCov19_wf(basecalling_wf(dir_input_ch))
 
         fasta_input_ch = artic_nCov19_wf.out
     }
@@ -335,7 +334,7 @@ def helpMSG() {
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
 
-    ${c_yellow}Parameters - nCov genome reconstruction quality control${c_reset}
+    ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
     --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
 
@@ -362,22 +361,22 @@ def helpMSG() {
     --cachedir      defines the path where singularity images are cached
                     [default: $params.cachedir] 
 
-    ${c_dim}Nextflow options:
-    -with-report rep.html       CPU / RAM usage (may cause errors).
-    -with-dag chart.html        Generates a flowchart for the process tree.
-    -with-timeline time.html    Timeline (may cause errors).${c_reset}
-
     ${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} e.g.:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
+     -profile ${c_yellow}test_fastq${c_reset},${c_green}slurm${c_reset},${c_blue}singularity${c_reset}
 
       ${c_green}Executer${c_reset} (choose one):
-      local
-      slurm
+       local
+       slurm
       ${c_blue}Engines${c_reset} (choose one):
-      docker
-      singularity
-      
+       docker
+       singularity
+      ${c_yellow}Input test data${c_reset} (choose one):
+       test_fasta
+       test_fastq
+       test_fast5
+
     Alternatively provide your own configuration via -c ownconfig.config 
     """.stripIndent()
 }
