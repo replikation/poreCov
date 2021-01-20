@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 /*
-* Nextflow -- nCov Analysis Pipeline
+* Nextflow -- SARS-CoV-2 Analysis Pipeline
 * Author: christian.jena@gmail.com
 */
 
@@ -121,30 +121,8 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     }
 
 /************************** 
-* DATABASES
-**************************/
-
-workflow build_database_wf {
-    main:
-        fasta_DB = Channel.fromPath( workflow.projectDir + "/database/ena_*.fasta" , checkIfExists: true)
-        text_DB = Channel.fromPath( workflow.projectDir + "/database/ena_*.txt", checkIfExists: true)
-    
-        create_database(fasta_DB, text_DB)
-    emit:
-        create_database.out[0]
-        create_database.out[1]
-}
-
-/************************** 
 * MODULES
 **************************/
-
-
-include { augur_align; augur_tree; augur_tree_refine } from './modules/augur'
-include { create_database } from './modules/create_database'
-include { mask_alignment } from './modules/mask_alignment'
-include { quality_genome_filter } from './modules/quality_genome_filter'
-include { toytree } from './modules/toytree'
 
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
@@ -156,47 +134,12 @@ include { get_fast5 } from './modules/get_fast5_test_data.nf'
 
 include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
+include { build_database_wf } from './workflows/databases.nf'
+include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_qc_wf } from './workflows/read_qc.nf'
-
-/************************** 
-* SUB WORKFLOWS
-**************************/
-
-workflow create_tree_wf {
-    take: 
-        fasta       // the nCov fasta (own samples or reconstructed here)
-        references  // multiple references to compare against
-        metadata    // tsv file of meta data  strain country date
-    main:
-
-        align_reference = Channel.fromPath( workflow.projectDir + "/data/reference_nCov19/MN908947.gb", checkIfExists: true)
-
-        quality_genome_filter(fasta)
-
-        // from [val, file] to [files]
-        collect_fasta = quality_genome_filter.out[0].map{ it -> it [1]}
-                                                    .collect()
-
-        augur_tree(
-            mask_alignment(
-                augur_align(collect_fasta, references, align_reference)))
-
-        augur_tree_refine(augur_tree.out, metadata)
-
-    emit:
-        augur_tree_refine.out
-}
-
-workflow toytree_wf {
-    take: 
-        trees  
-    main:
-        toytree(trees)
-    emit:
-        toytree.out
-} 
+include { toytree_wf } from './workflows/toytree.nf'
 
 /************************** 
 * MAIN WORKFLOW
@@ -240,9 +183,8 @@ workflow {
         // build tree
             create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
                 newick = create_tree_wf.out
+            toytree_wf(newick)
         }
-
-        if (params.metadata) { toytree_wf(newick) }
 }
 
 /*************  
