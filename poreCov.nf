@@ -86,10 +86,10 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         reference_for_qc_input_ch = Channel
         .fromPath( params.reference_for_qc, checkIfExists: true)
     }
-    // else if (!params.reference_for_qc) {
-    //     reference_for_qc_input_ch = Channel
-    //     .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
-    // }
+    else if (!params.reference_for_qc) {
+        reference_for_qc_input_ch = Channel
+        .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
+    }
 
 // references input 
     if (params.references) { reference_input_ch = Channel
@@ -219,7 +219,7 @@ workflow {
 
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
-        //genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
+        genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
 
     // 3. (optional) analyse genomes to references and build tree

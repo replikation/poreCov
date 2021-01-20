@@ -7,7 +7,7 @@ process president {
         tuple val(name), path("${name}_seq_ident_check.tsv"), optional: true
     script:
         """
-        president -r ${reference_fasta} -q ${fasta} -x ${params.threshold} -o ${name}_seq_ident_check.tsv
+        president -r ${reference_fasta} -p ${task.cpus} -q ${fasta} -x ${params.threshold} -o ${name}_seq_ident_check.tsv
         """
 }
 
