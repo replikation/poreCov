@@ -111,7 +111,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     else if (params.fastq && !workflow.profile.contains('test_fastq')) { 
         fastq_input_ch = Channel
         .fromPath( params.fastq, checkIfExists: true)
-        .map { file -> tuple(file.baseName, file) }
+        .map { file -> tuple(file.simpleName, file) }
     }
 
 // dir input
