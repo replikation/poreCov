@@ -144,7 +144,7 @@ include { coverage_plot } from './modules/coverage_plot'
 include { create_database } from './modules/create_database'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
 include { mask_alignment } from './modules/mask_alignment'
-include { nanoplot } from './modules/nanoplot'
+
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
 
@@ -159,17 +159,13 @@ include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
+include { read_qc_wf } from './workflows/read_qc.nf'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
 
-workflow read_qc_wf {
-    take: 
-        fastq  
-    main:
-        nanoplot(fastq)
-} 
+
 
 
 workflow artic_nCov19_wf {
@@ -252,17 +248,13 @@ workflow {
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
 
     // 1. Reconstruct genomes
-    if (params.dir || workflow.profile.contains('test_fast5')) { 
-        artic_nCov19_wf(basecalling_wf(dir_input_ch))
-
-        fasta_input_ch = artic_nCov19_wf.out
-    }
-    if (params.fastq || workflow.profile.contains('test_fastq')) { 
-        read_qc_wf(fastq_input_ch)
-        artic_nCov19_wf(fastq_input_ch)
-
-        fasta_input_ch = artic_nCov19_wf.out
-    }
+        if (params.dir || workflow.profile.contains('test_fast5')) { 
+            fasta_input_ch = artic_nCov19_wf(basecalling_wf(dir_input_ch))
+        }
+        if (params.fastq || workflow.profile.contains('test_fastq')) { 
+            read_qc_wf(fastq_input_ch)
+            fasta_input_ch = artic_nCov19_wf(fastq_input_ch)
+        }
 
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
