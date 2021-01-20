@@ -41,12 +41,14 @@ if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
     if (
         workflow.profile.contains('singularity') ||
         workflow.profile.contains('nanozoo') ||
+        workflow.profile.contains('ukj_cloud') ||
         workflow.profile.contains('docker')
         ) { "engine selected" }
     else { println "No engine selected:  -profile EXECUTER,ENGINE" 
            println "using native installations" }
     if (
         workflow.profile.contains('nanozoo') ||
+        workflow.profile.contains('ukj_cloud') ||
         workflow.profile.contains('local')
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
@@ -84,10 +86,10 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         reference_for_qc_input_ch = Channel
         .fromPath( params.reference_for_qc, checkIfExists: true)
     }
-    else if (!params.reference_for_qc) {
-        reference_for_qc_input_ch = Channel
-        .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
-    }
+    // else if (!params.reference_for_qc) {
+    //     reference_for_qc_input_ch = Channel
+    //     .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
+    // }
 
 // references input 
     if (params.references) { reference_input_ch = Channel
@@ -100,17 +102,17 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     }
 
 // fastq input or via csv file
-    if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { fastq_input_ch = Channel
-            .fromPath( params.fastq, checkIfExists: true )
-            .splitCsv()
-            .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
-                }
-    else if (params.fastq && !workflow.profile.contains('test_fastq')) { fastq_input_ch = Channel
-            .fromPath( params.fastq, checkIfExists: true)
-            .map { file -> tuple(file.baseName, file) }
-                }
-
-
+    if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { 
+        fastq_input_ch = Channel
+        .fromPath( params.fastq, checkIfExists: true )
+        .splitCsv()
+        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
+    }
+    else if (params.fastq && !workflow.profile.contains('test_fastq')) { 
+        fastq_input_ch = Channel
+        .fromPath( params.fastq, checkIfExists: true)
+        .map { file -> tuple(file.baseName, file) }
+    }
 
 // dir input
     if (params.dir && !workflow.profile.contains('test_fast5')) { dir_input_ch = Channel
@@ -137,14 +139,10 @@ workflow build_database_wf {
 * MODULES
 **************************/
 
-include { artic; artic_V1200 } from './modules/artic' 
-include { augur_align; augur_tree; augur_tree_refine } from './modules/augur'
-include { bwa_samtools } from './modules/bwa_samtools'
-include { coverage_plot } from './modules/coverage_plot'
-include { create_database } from './modules/create_database'
-include { filter_fastq_by_length } from './modules/filter_fastq_by_length'
-include { mask_alignment } from './modules/mask_alignment'
 
+include { augur_align; augur_tree; augur_tree_refine } from './modules/augur'
+include { create_database } from './modules/create_database'
+include { mask_alignment } from './modules/mask_alignment'
 include { quality_genome_filter } from './modules/quality_genome_filter'
 include { toytree } from './modules/toytree'
 
@@ -156,44 +154,15 @@ include { get_fast5 } from './modules/get_fast5_test_data.nf'
 * Workflows
 **************************/
 
-include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
+include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_qc_wf } from './workflows/read_qc.nf'
 
 /************************** 
 * SUB WORKFLOWS
 **************************/
-
-
-
-
-workflow artic_nCov19_wf {
-    take:   
-        fastq
-    main: 
-
-        // assembly
-        if ( params.primerV.matches('V1200') ) {
-            external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-            artic_V1200(filter_fastq_by_length(fastq).combine(external_primer_schemes))
-            assembly = artic_V1200.out.fasta
-        }
-        else {
-            artic(filter_fastq_by_length(fastq))
-            assembly = artic.out.fasta
-        }
-
-        // validate fasta
-        coverage_plot(
-            bwa_samtools(
-                assembly.join(filter_fastq_by_length.out))[0])
-
-
-
-    emit:   
-        assembly
-}
 
 workflow create_tree_wf {
     take: 
@@ -220,14 +189,6 @@ workflow create_tree_wf {
         augur_tree_refine.out
 }
 
-/*
- TODO: get fastaname and carry it as env / val to the toytree highlight
- this way i can highlight all samples in there
- could be maybe done with a channel extracting the names which merges in here
-
- also highlight location data or annotate this to the nodes
-*/
-
 workflow toytree_wf {
     take: 
         trees  
@@ -249,11 +210,11 @@ workflow {
 
     // 1. Reconstruct genomes
         if (params.dir || workflow.profile.contains('test_fast5')) { 
-            fasta_input_ch = artic_nCov19_wf(basecalling_wf(dir_input_ch))
+            fasta_input_ch = artic_ncov_wf(basecalling_wf(dir_input_ch))
         }
         if (params.fastq || workflow.profile.contains('test_fastq')) { 
             read_qc_wf(fastq_input_ch)
-            fasta_input_ch = artic_nCov19_wf(fastq_input_ch)
+            fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
 
     // 2. Genome quality and lineages
