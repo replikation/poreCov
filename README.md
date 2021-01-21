@@ -142,10 +142,10 @@ MN908947-China-Dec-2019	China	2019-12
 barcode01   Germany 2020-01-01
 ```
 
-# Literature to cite
+# Literature / References to cite
 For citing etc. check out these programs used for poreCov:
 * [nextflow](https://www.nextflow.io/index.html)
-* [artic protocoll](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
+* [artic protocol](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
 * [augur](https://github.com/nextstrain/augur)
 * [pangolin](https://github.com/hCoV-2019/pangolin)
     * [iqtree](http://www.iqtree.org/#download)
@@ -153,3 +153,4 @@ For citing etc. check out these programs used for poreCov:
     * [snakemake](https://snakemake.readthedocs.io/en/stable/index.html)
 * [toytree](https://github.com/eaton-lab/toytree)
 * [medaka](https://github.com/nanoporetech/medaka)
+* [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
