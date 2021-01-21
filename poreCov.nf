@@ -205,8 +205,8 @@ def helpMSG() {
     nextflow run replikation/poreCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
 
     ${c_yellow}Inputs (choose one):${c_reset}
-    --dir           one fast5 dir of a nanopore run containing multiple samples (barcoded)
-                    [--dir fast5/ --single] if you only one sample (no barcodes)
+    --dir           one fast5 dir of a nanopore run containing multiple samples (barcoded);
+                    to run single sample (no barcodes) add [--single]
                     ${c_dim}(not implemented yet) autorename barcodes via [--barcodeIDs rename.csv] 
                         Per line: 01;samplename${c_reset}
                     ${c_dim}[basecalling - demultiplexing - nCov genome reconstruction]${c_reset}
