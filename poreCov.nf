@@ -139,6 +139,7 @@ include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_qc_wf } from './workflows/read_qc.nf'
+include { rki_report_wf } from './workflows/provide_rki.nf'
 include { toytree_wf } from './workflows/toytree.nf'
 
 /************************** 
@@ -163,6 +164,7 @@ workflow {
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
+        if (params.rki) { rki_report_wf(determine_lineage_wf.out) }
 
 
     // 3. (optional) analyse genomes to references and build tree
@@ -218,6 +220,9 @@ def helpMSG() {
     --fasta         direct input of genomes, one file per genome
                     ${c_dim}[Lineage determination, Quality control]${c_reset}
 
+    ${c_yellow}Workflow control ${c_reset}
+    --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
+
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
                     native guppy installation is used by default for singularity or conda
@@ -259,7 +264,8 @@ def helpMSG() {
                     [default: $params.cachedir] 
 
     ${c_yellow}Execution/Engine profiles:${c_reset}
-    poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} e.g.:
+    poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
+    examples:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
      -profile ${c_yellow}test_fastq${c_reset},${c_green}slurm${c_reset},${c_blue}singularity${c_reset}
 
@@ -321,3 +327,4 @@ def basecalling() {
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
+
