@@ -65,7 +65,7 @@ if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
 
 // params help
 if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
-    if (!params.fasta &&  !params.dir &&  !params.fastq ) {
+    if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw ) {
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
@@ -103,14 +103,21 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
 
 // fastq input or via csv file
     if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { 
-        fastq_input_ch = Channel
+        fastq_file_ch = Channel
         .fromPath( params.fastq, checkIfExists: true )
         .splitCsv()
         .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
     }
     else if (params.fastq && !workflow.profile.contains('test_fastq')) { 
-        fastq_input_ch = Channel
+        fastq_file_ch = Channel
         .fromPath( params.fastq, checkIfExists: true)
+        .map { file -> tuple(file.simpleName, file) }
+    }
+
+// fastq raw input direct from basecalling
+    else if (params.fastq_raw && !workflow.profile.contains('test_fastq')) { 
+        fastq_dir_ch = Channel
+        .fromPath( params.fastq_raw, checkIfExists: true, type: 'dir')
         .map { file -> tuple(file.simpleName, file) }
     }
 
@@ -135,6 +142,7 @@ include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
+include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
@@ -153,10 +161,16 @@ workflow {
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
 
     // 1. Reconstruct genomes
+        // fast5
         if (params.dir || workflow.profile.contains('test_fast5')) { 
             fasta_input_ch = artic_ncov_wf(basecalling_wf(dir_input_ch))
         }
-        if (params.fastq || workflow.profile.contains('test_fastq')) { 
+        // fastq input via dir and or files
+        if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
+            if (params.fastq_raw && !params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch) }
+            if (!params.fastq_raw && params.fastq) { fastq_input_ch = fastq_file_ch }
+            if (params.fastq_raw && params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
+
             read_qc_wf(fastq_input_ch)
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
@@ -215,6 +229,10 @@ def helpMSG() {
 
     --fastq         one fastq or fastq.gz file per sample or
                     multiple file-samples: --fastq 'sample_*.fasta.gz'
+                    ${c_dim}[nCov genome reconstruction]${c_reset}
+    --fastq_raw     raw directory from guppy with basecalled .fastq files
+                    --fastq_raw 'basecalls/'
+                    add --single flag if you dont have barcodes (single sample)
                     ${c_dim}[nCov genome reconstruction]${c_reset}
 
     --fasta         direct input of genomes, one file per genome
