@@ -1,6 +1,6 @@
 process coverage_plot {
     label "ggplot2"
-    publishDir "${params.output}/fasta/${name}/", mode: 'copy'
+    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
     input:
         tuple val(name), path(coverage_info)
     output:

@@ -178,7 +178,14 @@ workflow {
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
-        if (params.rki) { rki_report_wf(determine_lineage_wf.out) }
+        if (params.rki) { 
+            // prepare metadata table
+            rki_report_wf(determine_lineage_wf.out)
+            // collect a multifasta file
+            fasta_input_ch
+                .map { it -> it[1] } 
+                .collectFile(name: 'all_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/")
+        }
 
 
     // 3. (optional) analyse genomes to references and build tree
@@ -329,9 +336,9 @@ def defaultMSG(){
 
 def v1200_MSG() {
     log.info """
-    1200 bp options are used as primer scheme (V1200)
-      --minLength set to 250bp
-      --maxLength set to 1500bp
+    1200 bp amplicon scheme is used [--primerV V1200]
+    \033[2m  --minLength set to 250bp
+      --maxLength set to 1500bp\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }

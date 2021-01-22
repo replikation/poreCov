@@ -3,7 +3,7 @@ process collect_fastq {
     input:
         tuple val(name), path(dir)
     output:
-        tuple val(name), path("*.fastq.gz"), emit: reads
+        tuple val(name), path("*.fastq.gz"), emit: reads 
     script:
         if (params.single)
         """
@@ -14,5 +14,6 @@ process collect_fastq {
         for barcodes in ${dir}/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
         done
+        find . -name "*.fastq.gz" -type 'f' -size -1500k -delete
         """
 }

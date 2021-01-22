@@ -1,6 +1,6 @@
 process artic {
         label 'artic'
-        publishDir "${params.output}/fasta/${name}/", mode: 'copy'
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
     input:
         tuple val(name), path(reads)
     output:
@@ -18,7 +18,7 @@ process artic {
 
 process artic_V1200 {
         label 'artic'
-        publishDir "${params.output}/fasta/${name}/", mode: 'copy'
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
     input:
         tuple val(name), path(reads), path(external_scheme)
     output:

@@ -1,6 +1,6 @@
 process president {
     label "president"
-    publishDir "${params.output}/fasta/${name}", mode: 'copy',
+    publishDir "${params.output}/${params.genomedir}/${name}", mode: 'copy',
         saveAs: { filename -> if (filename.endsWith(".tsv")) "${name}_seq_ident_check.tsv" }
     input:
         tuple val(name), path(fasta), path(reference_fasta)

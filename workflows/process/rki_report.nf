@@ -1,6 +1,6 @@
 process rki_report {
     label "ubuntu"
-    publishDir "${params.output}/rki-report/", mode: 'copy'
+    publishDir "${params.output}/${params.rkidir}/", mode: 'copy'
     input:
         path(pangolin_data)
         path(readme)

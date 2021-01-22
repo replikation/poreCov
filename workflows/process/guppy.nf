@@ -4,7 +4,7 @@ process guppy_gpu {
             container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
             containerOptions '--gpus all'
         }
-        publishDir "${params.output}/fastq/", mode: 'copy'
+        publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
         tuple val(name), path(dir)
     output:
@@ -49,7 +49,7 @@ process guppy_cpu {
         if (!params.localguppy && workflow.profile.contains('docker') ) {
             container = 'nanozoo/guppy_cpu:4.2.2-1--416f83d'
         }
-        publishDir "${params.output}/fastq/", mode: 'copy'
+        publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
         tuple val(name), path(dir)
     output:

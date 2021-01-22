@@ -1,6 +1,6 @@
 process bwa_samtools {
     label "bwa"
-    publishDir "${params.output}/fasta/${name}/", mode: 'copy', pattern: '*.sorted.bam*'
+    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: '*.sorted.bam*'
     input:
         tuple val(name), path(fasta), path(reads)
     output:

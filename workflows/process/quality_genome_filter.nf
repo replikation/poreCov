@@ -1,6 +1,6 @@
 process quality_genome_filter {
     label 'ubuntu'
-    publishDir "${params.output}/fasta/${name}/", mode: 'copy', pattern: "error_report_*.txt"
+    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "error_report_*.txt"
   input:
     tuple val(name), path(fasta)
   output:
