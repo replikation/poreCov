@@ -1,17 +1,19 @@
 process nanoplot {
     label 'nanoplot'
-    publishDir "${params.output}/nanoplot_read_qc/${name}/", mode: 'copy', pattern: "${name}_read_quality_report.html"
-    publishDir "${params.output}/nanoplot_read_qc/${name}/", mode: 'copy', pattern: "${name}_read_quality.txt"
-    publishDir "${params.output}/nanoplot_read_qc/${name}/figures", mode: 'copy', pattern: "*.png"
-    publishDir "${params.output}/nanoplot_read_qc/${name}/vector_figures", mode: 'copy', pattern: "*.pdf"
+    publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy', pattern: "${name}_read_quality_report.html"
+    publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy', pattern: "${name}_read_quality.txt"
+    publishDir "${params.output}/${params.readqcdir}/${name}/figures", mode: 'copy', pattern: "*.png"
+    publishDir "${params.output}/${params.readqcdir}/${name}/vector_figures", mode: 'copy', pattern: "*.pdf"
     
     input:
       tuple val(name), path(reads)
     output:
-      tuple val(name), path("*.html"), path("*.pdf")
-      tuple val(name), path("${name}_read_quality.txt"), path("*.png")
+      tuple val(name), path("*.html"), path("*.pdf") optional true
+      tuple val(name), path("${name}_read_quality.txt"), path("*.png") optional true
     script:
       """
+      find . -name "${reads}" -type 'f' -size -1500k -delete
+
       NanoPlot -t ${task.cpus} --fastq ${reads} --title '${name}' --color darkslategrey --N50 --plots hex --loglength -f png --store
       NanoPlot -t ${task.cpus} --pickle NanoPlot-data.pickle --title '${name}' --color darkslategrey --N50 --plots hex --loglength -f pdf
       mv NanoPlot-report.html ${name}_read_quality_report.html

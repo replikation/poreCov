@@ -1,6 +1,6 @@
 process pycoqc {
         label 'pycoqc'  
-        publishDir "${params.output}/sequence_run_info/", mode: 'copy', pattern: "${name}_sequencing_performance.html"
+        publishDir "${params.output}/${params.readqcdir}/", mode: 'copy', pattern: "${name}_sequencing_performance.html"
     input:
         tuple val(name), path(txt_files)
     output:
