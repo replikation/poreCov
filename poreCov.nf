@@ -185,14 +185,8 @@ workflow {
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
-        if (params.rki) { 
-            // prepare metadata table
-            rki_report_wf(determine_lineage_wf.out)
-            // collect a multifasta file
-            fasta_input_ch
-                .map { it -> it[1] } 
-                .collectFile(name: 'all_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/")
-        }
+
+        if (params.rki) { rki_report_wf(determine_lineage_wf.out, genome_quality_wf.out) }
 
 
     // 3. (optional) analyse genomes to references and build tree
