@@ -36,7 +36,7 @@ workflow rki_report_wf {
         president.map{it -> it[2]}
             .flatten()
             .filter{ it =~ '_invalid.fasta' }
-            .collectFile(name: 'valid_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/invalid/")
+            .collectFile(name: 'invalid_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/invalid/")
 
 
     emit: 
