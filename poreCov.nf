@@ -34,6 +34,7 @@ if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
+if ( params.rki ==~ "[0-9]+") {rki_true()} else if (params.rki) {rki()}
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -313,7 +314,6 @@ def defaultMSG(){
     log.info """
     SARS-CoV-2 - Workflow
 
-
     \u001B[32mProfile:             $workflow.profile\033[0m
     \033[2mCurrent User:        $workflow.userName
     Nextflow-version:    $nextflow.version
@@ -353,3 +353,20 @@ def basecalling() {
     """.stripIndent()
 }
 
+def rki() {
+    log.info """
+    RKI output activated:
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    DEMIS number (seq. lab) not provided [--rki]\u001B[0m
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
+
+def rki_true() {
+    log.info """
+    RKI output activated:
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    DEMIS number:        $params.rki [--rki]\u001B[0m
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
