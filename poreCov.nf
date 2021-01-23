@@ -116,6 +116,12 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     }
 
 // fastq raw input direct from basecalling
+    if (params.fastq_raw && params.list && !workflow.profile.contains('test_fastq')) { 
+        fastq_dir_ch = Channel
+        .fromPath( params.fastq_raw, checkIfExists: true )
+        .splitCsv()
+        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true, type: 'dir')] }
+    }
     else if (params.fastq_raw && !workflow.profile.contains('test_fastq')) { 
         fastq_dir_ch = Channel
         .fromPath( params.fastq_raw, checkIfExists: true, type: 'dir')
