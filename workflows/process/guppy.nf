@@ -1,8 +1,12 @@
 process guppy_gpu {
         label 'guppy_gpu'
-        if (!params.localguppy && workflow.profile.contains('docker') ) {
+        if (!params.localguppy && workflow.profile.contains('docker')) {
             container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
             containerOptions '--gpus all'
+        }
+        if (!params.localguppy && workflow.profile.contains('singularity')) {
+            container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
+            containerOptions '--nv'
         }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
@@ -46,7 +50,7 @@ process guppy_gpu {
 
 process guppy_cpu {
         label 'guppy_cpu'
-        if (!params.localguppy && workflow.profile.contains('docker') ) {
+        if (!params.localguppy && workflow.profile.contains('docker') || workflow.profile.contains('singularity') ) {
             container = 'nanozoo/guppy_cpu:4.2.2-1--416f83d'
         }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
