@@ -7,5 +7,6 @@ workflow genome_quality_wf {
     main:
         president(fasta.combine(reference))
     emit:   
-        president.out
+        president.out.valid
+        president.out.invalid
 }

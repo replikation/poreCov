@@ -186,7 +186,7 @@ workflow {
         determine_lineage_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
-        if (params.rki) { rki_report_wf(determine_lineage_wf.out, genome_quality_wf.out) }
+        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
 
 
     // 3. (optional) analyse genomes to references and build tree
