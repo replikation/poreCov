@@ -34,6 +34,7 @@ if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
+if ( params.rki ==~ "[0-9]+") {rki_true()} else if (params.rki) {rki()}
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -115,6 +116,12 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     }
 
 // fastq raw input direct from basecalling
+    if (params.fastq_raw && params.list && !workflow.profile.contains('test_fastq')) { 
+        fastq_dir_ch = Channel
+        .fromPath( params.fastq_raw, checkIfExists: true )
+        .splitCsv()
+        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true, type: 'dir')] }
+    }
     else if (params.fastq_raw && !workflow.profile.contains('test_fastq')) { 
         fastq_dir_ch = Channel
         .fromPath( params.fastq_raw, checkIfExists: true, type: 'dir')
@@ -178,14 +185,8 @@ workflow {
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
-        if (params.rki) { 
-            // prepare metadata table
-            rki_report_wf(determine_lineage_wf.out)
-            // collect a multifasta file
-            fasta_input_ch
-                .map { it -> it[1] } 
-                .collectFile(name: 'all_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/")
-        }
+
+        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
 
 
     // 3. (optional) analyse genomes to references and build tree
@@ -313,7 +314,6 @@ def defaultMSG(){
     log.info """
     SARS-CoV-2 - Workflow
 
-
     \u001B[32mProfile:             $workflow.profile\033[0m
     \033[2mCurrent User:        $workflow.userName
     Nextflow-version:    $nextflow.version
@@ -353,3 +353,20 @@ def basecalling() {
     """.stripIndent()
 }
 
+def rki() {
+    log.info """
+    RKI output activated:
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    DEMIS number (seq. lab) not provided [--rki]\u001B[0m
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
+
+def rki_true() {
+    log.info """
+    RKI output activated:
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    DEMIS number:        $params.rki [--rki]\u001B[0m
+    \u001B[1;30m______________________________________\033[0m
+    """.stripIndent()
+}
