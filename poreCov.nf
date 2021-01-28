@@ -134,6 +134,14 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.name, file) }
     }
 
+// ukj input 
+    if (params.ukj ) { ukj_input_ch = Channel
+        .fromPath( params.ukj, checkIfExists: true)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple ("${row._id}","${row.Status}")}
+        .view()
+    }
+
 /************************** 
 * MODULES
 **************************/
