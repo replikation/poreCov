@@ -358,6 +358,9 @@ def rki() {
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
     DEMIS number (seq. lab) not provided [--rki]\u001B[0m
+    Min Identity to NC_045512.2:   $params.threshold [--threshold]
+    Min Coverage:     20 [ no parameter]
+    Proportion cutoff N:     [ no parameter]
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }

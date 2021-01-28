@@ -27,6 +27,12 @@
     * e.g. was the PCR coverage on each position enough?
 * is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
 
+## Quality Metrics (default)
+
+* Regions with coverage of 20 or less are masked ("N")
+* Genomequality is compared to NC_045512.2
+    * `--rki` adds genome quality assessment based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+
 Table of Contents
 =================
 
@@ -48,10 +54,10 @@ Table of Contents
 * one of these:
 >   * docker
 >   * singularity
->   * conda (NOT YET IMPLEMENTED)
+>   * conda (conda install of singularity to run `-profile singularity`)
 
 * these:
->   * a local guppy installation or a docker with gpu support
+>   * a local guppy installation or a docker/singularity with gpu support
 >      * not needed if you use fastq or fasta as input
 >   * nextflow + java runtime 
 
@@ -63,6 +69,7 @@ Table of Contents
     * if you cant use docker
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
     * not natively integrated, you can do conda install singularity nextflow in a new environment and execute poreCov via `-profile local,singularity`
+    * not cluster compatible
 * Nextflow via: `curl -s https://get.nextflow.io | bash`
     * a java runtime is needed
     * move `nextflow` executable to a path location
@@ -74,16 +81,16 @@ Table of Contents
 ```bash
 # just do basecalling and assembly with QC / lineage:
 nextflow run replikation/poreCov --dir fast5/ \
-    --cores 32 -profile local,docker
+    --cores 32 -profile local,docker \
+    -- rki # provides RKI output based on current QC statments
 
 # use fastq files with workflow provided references for tree construction
 nextflow run replikation/poreCov  \
-    --fastq 'samples/samplenumber_*.fastq.gz' --metadata metadata.csv \
+    --fastq 'samples/samplenumber_*.fastq.gz' \
     --cores 32  -profile local,docker
 
-# build a tree by using your own references
-nextflow run replikation/poreCov --fasta 'nCov-genomes/*.fasta' \
-    --metadata metadata.csv --references references_multifasta.fa \
+# include a fastq_raw dir (from basecalling)
+nextflow run replikation/poreCov --fastq_raw 'guppy_out/' \
     --cores 32  -profile local,docker
 ```
 
@@ -101,17 +108,16 @@ nextflow run replikation/poreCov --help
 
 * poreCov was coded with "easy to use" in mind, while staying flexible
 * the default use case is fast5 raw-data to "results"
-* however by providing fastq or fasta instead poreCov skips over the corresponding steps
-* provide `--metadata` to start the tree construction
-* genomes with 3 or more `N's` are excluded (not ignoring the 70bp at N and C-terminal)
-  * can be modified via `--rm_N_genome`
+* however by providing fastq, fastq_raw (guppy output) or fasta instead, poreCov skips over the corresponding steps
 * primer schemes for ARTIC can be V1,V2,V3 or the 1200bp ones (see help)
 
 ![workflow](data/figures/workflow.png)
 
 # References and Metadata for tree construction
+* this was implemented for a "quick" check for your samples
+* we recommend in using nextstrain instead and GISAID sequences
 ## References
-* by default the nCov Workflow uses a few hundred nCov strains automatically to build the tree
+* by default the poreCov Workflow uses a few hundred nCov strains automatically to build the tree
     * these files are from ENA
     * metadata for this is automatically added
 * this behaviour can be "replaced" by providing a multifasta reference file via `--references`
