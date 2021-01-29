@@ -58,7 +58,7 @@ analysing_date_parsing() {
 }
 
 rki_valid_parsing() {
-    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')>> "$HASHID_INPUT"_mongodb_rephashId
+    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')>> "$HASHID_INPUT"_mongodb_report.json
     echo '    "RKI_Valid": "'"$RKI_VALID"'",' >> "$HASHID_INPUT"_mongodb_report.json
 }
 
