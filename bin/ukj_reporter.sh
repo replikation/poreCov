@@ -98,7 +98,7 @@ while getopts 'i:p:q:r:v:h' flag; do
       i) HASHID_INPUT="${OPTARG}" ;;
       p) PANGOLIN_INPUT="${OPTARG}" ;;
       q) PRESIDENT_INPUT="${OPTARG}" ;;
-      r) SEQU_LAB_ID='true' ;;
+      r) SEQU_LAB_ID="${OPTARG}" ;;
       v) PRIMER_INPUT="${OPTARG}" ;;
       h) usage;;
       *) usage
