@@ -156,6 +156,7 @@ include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 include { toytree_wf } from './workflows/toytree.nf'
+include { ukj_report } from './workflows/process'
 
 /************************** 
 * MAIN WORKFLOW
