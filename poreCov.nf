@@ -134,6 +134,11 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.name, file) }
     }
 
+// ukj-flag
+    if (params.ukj) { mongodb_input_ch = Channel
+        .fromPath( params.mongodb, checkIfExists: true; type: 'dir')
+    }
+
 /************************** 
 * MODULES
 **************************/
@@ -209,6 +214,10 @@ workflow {
             create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
                 newick = create_tree_wf.out
             toytree_wf(newick)
+        }
+
+        if (params.ukj) {
+            ukj_report()                                                                                        //needs the addition of the according channels
         }
 }
 

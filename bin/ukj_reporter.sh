@@ -11,7 +11,7 @@ usage()
     echo "Parser script for PoreCov-workflow to generate MongoDb-report"
     echo " "
     echo "Usage:    $SCRIPTNAME [-i hashId ] [-p pangolin_result_file.csv] [-q president_result_file.tsv]"
-    echo "          [-r seqeuncing_lab_id ] [-v primer-set] [-h help]"
+    echo "          [-r sequencing_lab_id ] [-v primer-set] [-h help]"
     echo "Inputs:"
     echo -e "          [-i]    HashID of the sample"
     echo -e "          [-p]    Path to pangolin-result-file; .csv"
