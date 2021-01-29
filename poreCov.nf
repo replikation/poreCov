@@ -134,11 +134,6 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.name, file) }
     }
 
-// ukj-flag
-    if (params.ukj) { mongodb_input_ch = Channel
-        .fromPath( params.mongodb, checkIfExists: true; type: 'dir')
-    }
-
 /************************** 
 * MODULES
 **************************/
@@ -161,7 +156,6 @@ include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 include { toytree_wf } from './workflows/toytree.nf'
-include { ukj_report } from './workflows/process'
 
 /************************** 
 * MAIN WORKFLOW
@@ -214,10 +208,6 @@ workflow {
             create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
                 newick = create_tree_wf.out
             toytree_wf(newick)
-        }
-
-        if (params.ukj) {
-            ukj_report()                                                                                        //needs the addition of the according channels
         }
 }
 
