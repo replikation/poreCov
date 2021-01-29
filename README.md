@@ -2,7 +2,7 @@
 **poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**   
 ===
 
-![](https://img.shields.io/badge/nextflow-20.07.0-brightgreen)
+![](https://img.shields.io/badge/nextflow-20.10.0-brightgreen)
 ![](https://img.shields.io/badge/uses-docker-blue.svg)
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)

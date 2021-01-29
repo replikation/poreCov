@@ -17,8 +17,8 @@ change below
 */
 
 XX = "20"
-YY = "07"
-ZZ = "1"
+YY = "10"
+ZZ = "0"
 
 if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
 println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
@@ -134,12 +134,11 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.name, file) }
     }
 
-// ukj input 
-    if (params.ukj ) { ukj_input_ch = Channel
-        .fromPath( params.ukj, checkIfExists: true)
+// samples input 
+    if (params.samples) { samples_input_ch = Channel
+        .fromPath( params.samples, checkIfExists: true)
         .splitCsv(header: true, sep: ',')
-        .map { row -> tuple ("${row._id}","${row.Status}")}
-        .view()
+        .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
 
 /************************** 
@@ -182,9 +181,13 @@ workflow {
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
-            if (params.fastq_raw && !params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch) }
-            if (!params.fastq_raw && params.fastq) { fastq_input_ch = fastq_file_ch }
-            if (params.fastq_raw && params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
+            if (params.fastq_raw && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
+            if (!params.fastq_raw && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
+            if (params.fastq_raw && params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
+
+            // raname barcodes bases on --samples input.csv
+                if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
@@ -195,9 +198,13 @@ workflow {
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
+    
+    // 3. JSON Summary per samples
+        /* if (params.samples) {
+            create_json_entries_wf(samples_input_ch,determine_lineage_wf,genome_quality_wf.out[0])
+        }*/
 
-
-    // 3. (optional) analyse genomes to references and build tree
+    // 4. (optional) analyse genomes to references and build tree
         if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
         // build tree 
             create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
@@ -256,6 +263,9 @@ def helpMSG() {
 
     ${c_yellow}Workflow control ${c_reset}
     --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
+    --samples       .csv input with header (_id,Status) to rename barcode numbers (Status) by sample ids (_id)
+                    _id = samplename (no spaces)
+                    Status = barcode01 or BC01 or 01 (last two digits are important)
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -364,11 +374,11 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output activated:
-    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    \033[2mOutput stored at:       $params.output/$params.rkidir  
     DEMIS number (seq. lab) not provided [--rki]\u001B[0m
     Min Identity to NC_045512.2:   $params.threshold [--threshold]
-    Min Coverage:     20 [ no parameter]
-    Proportion cutoff N:     [ no parameter]
+    Min Coverage:           20 [ no parameter]
+    Proportion cutoff N:    [ no parameter]
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
