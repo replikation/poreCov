@@ -27,7 +27,7 @@ json_file_opening() {
 
 hashid_parsing() {
     echo '    "_id": {' >> "$HASHID_INPUT"_mongodb_report.json
-    echo '        "$oid": "'"$HASHID_INPUT"'"' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "        \"\$oid\": \"$HASHID_INPUT\"" >> "$HASHID_INPUT"_mongodb_report.json
     echo '    },' >> "$HASHID_INPUT"_mongodb_report.json
 }
 
@@ -44,6 +44,7 @@ submitting_lab_parsing() {
     echo '    "Submitting_Lab": "",' >> "$HASHID_INPUT"_mongodb_report.json
 }
 
+# if true remove line; else print number
 sequ_lab_parsing() {
     echo '    "Sequencing_Lab": "'"$SEQU_LAB_ID"'",' >> "$HASHID_INPUT"_mongodb_report.json
 }
@@ -57,6 +58,7 @@ analysing_date_parsing() {
     echo "    \"Analysing_Date\": $ANALYSING_DATE," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
+# if True write true else false
 rki_valid_parsing() {
     RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')>> "$HASHID_INPUT"_mongodb_report.json
     echo '    "RKI_Valid": "'"$RKI_VALID"'",' >> "$HASHID_INPUT"_mongodb_report.json
