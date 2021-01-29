@@ -157,6 +157,7 @@ include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
+include { create_json_entries_wf } from './workflows/create_json_entries.nf'
 include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
@@ -186,7 +187,7 @@ workflow {
             if (params.fastq_raw && params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
 
             // raname barcodes bases on --samples input.csv
-                if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} }
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
@@ -200,9 +201,9 @@ workflow {
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
     
     // 3. JSON Summary per samples
-        /* if (params.samples) {
-            create_json_entries_wf(samples_input_ch,determine_lineage_wf,genome_quality_wf.out[0])
-        }*/
+        if (params.samples) {
+            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0])
+        }
 
     // 4. (optional) analyse genomes to references and build tree
         if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
@@ -375,10 +376,10 @@ def rki() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:       $params.output/$params.rkidir  
-    DEMIS number (seq. lab) not provided [--rki]\u001B[0m
+    DEMIS number (seq. lab) not provided [--rki]
     Min Identity to NC_045512.2:   $params.threshold [--threshold]
     Min Coverage:           20 [ no parameter]
-    Proportion cutoff N:    [ no parameter]
+    Proportion cutoff N:    [ no parameter]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }

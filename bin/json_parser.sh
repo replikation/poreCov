@@ -53,8 +53,8 @@ primer_parsing() {
 }
 
 analysing_date_parsing() {
-    ANALYSING_DATE=$(tail -n +2 $PRESIDENT_INPUT | cut -f 13 -d $'\t')
-    echo '    "Analysing_Date": "'"$ANALYSING_DATE"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    ANALYSING_DATE=$(date -I | tr -d "-")
+    echo "    \"Analysing_Date\": $ANALYSING_DATE," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 rki_valid_parsing() {
@@ -71,18 +71,18 @@ rki_submit_parsing() {
 nucleotide_identity_parsing() {
     ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 3 -d $'\t')
     ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 4 -d $'\t')
-    echo '    "ACGT_Nucleotide_Identity": "'"$ACGT_NUCLEOTIDE_IDENTITY"'",' >> "$HASHID_INPUT"_mongodb_report.json
-    echo '    "ACGT_Nucleotide_Identity_ignoring_Ns": "'"$ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 ambiguous_bases_parsing() {
     AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 6 -d $'\t')
-    echo '    "Ambiguous_Bases": "'"$AMBIGUOUS_BASES"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Ambiguous_Bases\": $AMBIGUOUS_BASES," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 query_length_parsing() {
     QUERY_LENGTH=$(tail -n +2 $PRESIDENT_INPUT | cut -f 7 -d $'\t')
-    echo '    "Query_Length": "'"$QUERY_LENGTH"'"' >> "$HASHID_INPUT"_mongodb_report.json  #removed "," here, because itś the last entry
+    echo "    \"Query_Length\": $QUERY_LENGTH" >> "$HASHID_INPUT"_mongodb_report.json  #removed "," here, because itś the last entry
 }
 
 json_file_closing() {
@@ -111,6 +111,8 @@ json_file_opening
 # inputfields
 hashid_parsing; status_parsing; lineage_parsing; submitting_lab_parsing; sequ_lab_parsing
 primer_parsing; analysing_date_parsing; rki_valid_parsing; rki_submit_parsing; nucleotide_identity_parsing
-ambiguous_bases_parsing; query_length_parsing
+ambiguous_bases_parsing; 
+# last entry no comma
+query_length_parsing
 # json closure
 json_file_closing
