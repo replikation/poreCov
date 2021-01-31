@@ -177,8 +177,14 @@ workflow {
 
     // 1. Reconstruct genomes
         // fast5
-        if (params.dir || workflow.profile.contains('test_fast5')) { 
-            fasta_input_ch = artic_ncov_wf(basecalling_wf(dir_input_ch))
+        if (params.dir || workflow.profile.contains('test_fast5')) {
+            basecalling_wf(dir_input_ch)
+            
+            // rename barcodes
+                if (params.samples) { fastq_from5_ch = basecalling_wf.out.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
+
+            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
