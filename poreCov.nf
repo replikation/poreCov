@@ -171,7 +171,7 @@ include { toytree_wf } from './workflows/toytree.nf'
 
 workflow {
     // 0. Test profile data
-        if ( workflow.profile.contains('test_fastq')) { fastq_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
 
