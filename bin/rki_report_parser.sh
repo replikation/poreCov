@@ -14,7 +14,7 @@ while IFS=$'\t' read -r -a Array; do
     SEQU_TYPE=$(echo "OXFORD_NANOPORE")
     SEQU_REASON=$(echo "X")
     SAMPLE_TYPE=$(echo "X")
-    OWN_FASTA_ID="${Array[24]}"
+    OWN_FASTA_ID="${Array[23]}"
     echo $IMS_ID","$SENDING_LAB","$DATE_DRAW","$SEQU_TYPE","$SEQU_REASON","$SAMPLE_TYPE","$OWN_FASTA_ID >> $OUTPUT_NAME
 done < ${INPUT_NAME}
 
