@@ -60,30 +60,30 @@ analysing_date_parsing() {
 
 # if True write true else false
 rki_valid_parsing() {
-    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')>> "$HASHID_INPUT"_mongodb_report.json
+    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t')>> "$HASHID_INPUT"_mongodb_report.json
     echo '    "RKI_Valid": "'"$RKI_VALID"'",' >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 rki_submit_parsing() {
     if [ $RKI_VALID == "False" ]; then
-        echo '    "RKI_Submit": "False",' >> "$HASHID_INPUT"_mongodb_report.json
+        echo '    "RKI_Submit": false,' >> "$HASHID_INPUT"_mongodb_report.json
     fi
 }
 
 nucleotide_identity_parsing() {
-    ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 3 -d $'\t')
-    ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 4 -d $'\t')
+    ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 1 -d $'\t')
+    ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')
     echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
     echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 ambiguous_bases_parsing() {
-    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 6 -d $'\t')
+    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 7 -d $'\t')
     echo "    \"Ambiguous_Bases\": $AMBIGUOUS_BASES," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 query_length_parsing() {
-    QUERY_LENGTH=$(tail -n +2 $PRESIDENT_INPUT | cut -f 7 -d $'\t')
+    QUERY_LENGTH=$(tail -n +2 $PRESIDENT_INPUT | cut -f 13 -d $'\t')
     echo "    \"Query_Length\": $QUERY_LENGTH" >> "$HASHID_INPUT"_mongodb_report.json  #removed "," here, because itś the last entry
 }
 
@@ -111,7 +111,7 @@ done
 # json head
 json_file_opening
 # inputfields
-hashid_parsing; status_parsing; lineage_parsing; submitting_lab_parsing; sequ_lab_parsing
+hashid_parsing; status_parsing; lineage_parsing; sequ_lab_parsing
 primer_parsing; analysing_date_parsing; rki_valid_parsing; rki_submit_parsing; nucleotide_identity_parsing
 ambiguous_bases_parsing; 
 # last entry no comma
