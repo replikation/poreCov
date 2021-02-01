@@ -60,20 +60,20 @@ analysing_date_parsing() {
 
 # if True write true else false
 rki_valid_parsing() {
-    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t' | tr '[:upper:]' '[:lower:]')
-    echo "    \"RKI_Valid\": $RKI_VALID," >> "$HASHID_INPUT"_mongodb_report.json
+    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t')
+    echo "    \"RKI_Valid\": \"$RKI_VALID\"," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 rki_submit_parsing() {
-    if [ $RKI_VALID == "false" ]; then
-        echo "    \"RKI_Submit\": false," >> "$HASHID_INPUT"_mongodb_report.json
+    if [ $RKI_VALID == "False" ]; then
+        echo "    \"RKI_Submit\": \"False\"," >> "$HASHID_INPUT"_mongodb_report.json
     fi
 }
 
 nucleotide_identity_parsing() {
     ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 1 -d $'\t')
     ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')
-    if [ $RKI_VALID == "true" ]; then
+    if [ $RKI_VALID == "True" ]; then
         echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
         echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
     fi
