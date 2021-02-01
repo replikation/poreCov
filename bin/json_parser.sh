@@ -26,31 +26,31 @@ json_file_opening() {
 }
 
 hashid_parsing() {
-    echo '    "_id": {' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"_id\": {" >> "$HASHID_INPUT"_mongodb_report.json
     echo "        \"\$oid\": \"$HASHID_INPUT\"" >> "$HASHID_INPUT"_mongodb_report.json
-    echo '    },' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    }," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 status_parsing() {
-    echo '    "Status": "analysed",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Status\": \"analysed\"," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 lineage_parsing() {
     LINEAGE=$(tail -n +2 $PANGOLIN_INPUT | rev | cut -f 5 -d "," |rev)
-    echo '    "Lineage": "'"$LINEAGE"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Lineage\": $LINEAGE," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 submitting_lab_parsing() {
-    echo '    "Submitting_Lab": "",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Submitting_Lab\": ," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 # if true remove line; else print number
 sequ_lab_parsing() {
-    echo '    "Sequencing_Lab": "'"$SEQU_LAB_ID"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Sequencing_Lab\": $SEQU_LAB_ID," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 primer_parsing() {
-    echo '    "Primer": "'"$PRIMER_INPUT"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Primer\": \"$PRIMER_INPUT\"," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 analysing_date_parsing() {
@@ -60,21 +60,23 @@ analysing_date_parsing() {
 
 # if True write true else false
 rki_valid_parsing() {
-    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t')>> "$HASHID_INPUT"_mongodb_report.json
-    echo '    "RKI_Valid": "'"$RKI_VALID"'",' >> "$HASHID_INPUT"_mongodb_report.json
+    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t' | tr '[:upper:]' '[:lower:]')
+    echo "    \"RKI_Valid\": $RKI_VALID," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 rki_submit_parsing() {
-    if [ $RKI_VALID == "False" ]; then
-        echo '    "RKI_Submit": false,' >> "$HASHID_INPUT"_mongodb_report.json
+    if [ $RKI_VALID == "false" ]; then
+        echo "    \"RKI_Submit\": false," >> "$HASHID_INPUT"_mongodb_report.json
     fi
 }
 
 nucleotide_identity_parsing() {
     ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 1 -d $'\t')
     ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')
-    echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
-    echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
+    if [ $RKI_VALID == "true" ]; then
+        echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
+        echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
+    fi
 }
 
 ambiguous_bases_parsing() {
