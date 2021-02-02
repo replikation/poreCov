@@ -286,6 +286,7 @@ def helpMSG() {
                         Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
+    --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
 
     ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
@@ -353,8 +354,10 @@ def defaultMSG(){
     \u001B[1;30m______________________________________\033[0m
     Parameters:
     \033[2mPrimerscheme:        $params.primerV [--primerV]
+    Medaka model:        $params.medaka_model [--medaka_model]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
+
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
