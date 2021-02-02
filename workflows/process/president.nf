@@ -10,15 +10,6 @@ process president {
     script:
         """
         president -r ${reference_fasta} -t ${task.cpus} -q ${fasta} -x ${params.threshold} -p output/${name}
-
-        ## workarounds for current president error on invalid fasta ##
-        if [ ! -f output/${name}_report.tsv ]; then
-            echo "ID	Valid	ACGT Nucleotide identity	ACGT Nucleotide identity (ignoring Ns)	ACGT Nucleotide identity (ignoring non-ACGTNs)	Ambiguous Bases	Query Length	Query #ACGT	Query #IUPAC-ACGT	Query #non-IUPAC:	aligned	passed_initial_qc	Date	reference_length	reference	query" > output/${name}_report.tsv
-            echo "False" >> output/${name}_report.tsv
-            cat ${fasta} > output/${name}_invalid.fasta
-            touch output/${name}_valid.fasta
-        fi
-        ## workaround end ##
         """
 }
 

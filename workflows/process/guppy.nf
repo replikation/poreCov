@@ -1,11 +1,11 @@
 process guppy_gpu {
         label 'guppy_gpu'
         if (!params.localguppy && workflow.profile.contains('docker')) {
-            container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
+            container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
             containerOptions '--gpus all'
         }
         if (!params.localguppy && workflow.profile.contains('singularity')) {
-            container = 'nanozoo/guppy_gpu:4.2.2-1--5fc71df'
+            container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
             containerOptions '--nv'
         }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
@@ -27,7 +27,7 @@ process guppy_gpu {
         else if (!params.single && !params.one_end)
         """
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq_tmp -x auto -r
-        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg"
+        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -38,7 +38,7 @@ process guppy_gpu {
         else if (!params.single && params.one_end)
         """
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq_tmp -x auto -r
-        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg"
+        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -72,7 +72,7 @@ process guppy_cpu {
         else if (!params.single && !params.one_end)
         """
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r
-        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg"
+        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -83,7 +83,7 @@ process guppy_cpu {
         else if (!params.single && params.one_end)
         """
         guppy_basecaller -c dna_r9.4.1_450bps_hac.cfg -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r
-        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg"
+        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
