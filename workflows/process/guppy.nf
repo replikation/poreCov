@@ -8,6 +8,11 @@ process guppy_gpu {
             container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
             containerOptions '--nv'
         }
+        if (workflow.profile.contains('ukj')) {
+            accelerator 2, type: 'nvidia-tesla-p100'
+            container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
+            containerOptions '--gpus all'
+        }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
         tuple val(name), path(dir)
