@@ -1,7 +1,7 @@
 process artic {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
-        //errorStrategy 'ignore'
+        errorStrategy 'ignore'
     input:
         tuple val(name), path(reads), path(external_scheme)
     output:
