@@ -8,7 +8,7 @@ process guppy_gpu {
             container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
             containerOptions '--nv'
         }
-        if (workflow.profile.contains('ukj')) {
+        if (workflow.profile.contains('ukj') || workflow.profile.contains('nanozoo')) {
             accelerator 2, type: 'nvidia-tesla-p100'
             container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
             containerOptions '--gpus all'
