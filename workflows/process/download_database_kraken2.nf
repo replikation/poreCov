@@ -1,10 +1,10 @@
 process download_database_kraken2 {
     label "ubuntu"
     if (params.cloudProcess) { 
-        publishDir "${params.databases}/references/", mode: 'copy' 
+        publishDir "${params.databases}/kraken2/", mode: 'copy' 
     }
     else { 
-        storeDir "${params.databases}/references/" 
+        storeDir "${params.databases}/kraken2/" 
     } 
     output:
         path("GRCh38.p13_GBcovid19-2020-05-22.tar.gz")
