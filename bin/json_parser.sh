@@ -37,7 +37,7 @@ status_parsing() {
 
 lineage_parsing() {
     LINEAGE=$(tail -n +2 $PANGOLIN_INPUT | rev | cut -f 5 -d "," |rev)
-    echo "    \"Lineage\": $LINEAGE," >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    \"Lineage\": \"$LINEAGE\"," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 submitting_lab_parsing() {
