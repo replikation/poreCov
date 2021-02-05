@@ -1,4 +1,4 @@
-include { pangolin } from './process/pangolin' 
+include { pangolin } from './process/pangolin'
 
 
 workflow determine_lineage_wf {

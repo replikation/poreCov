@@ -160,9 +160,10 @@ include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
 include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_qc_wf } from './workflows/read_qc.nf'
 include { read_classification_wf } from './workflows/read_classification'
+include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 include { toytree_wf } from './workflows/toytree.nf'
 
@@ -203,13 +204,14 @@ workflow {
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
 
-    // 2. Genome quality and lineages
+    // 2. Genome quality, lineages, clades and mutations
         determine_lineage_wf(fasta_input_ch)
+        determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
+    // 3. Specialised outputs (rki, json)
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
-    
-    // 3. JSON Summary per samples
+
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0])
         }
