@@ -1,5 +1,6 @@
 process filter_fastq_by_length {
         label 'ubuntu'
+        publishDir "${params.output}/${params.readsdir}/2.filtered_reads/", mode: 'copy', pattern: "${name}_filtered.fastq.gz"
     input:
         tuple val(name), path(reads) 
     output:

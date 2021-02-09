@@ -32,6 +32,9 @@
 * Regions with coverage of 20 or less are masked ("N")
 * Genomequality is compared to NC_045512.2
     * `--rki` adds genome quality assessment based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+* Pangolin lineages are determined
+* nextstrain clades are determined including mutation infos
+* reads are classified to human and SARS-CoV-2 to check for possible contamination and sample prep issues
 
 Table of Contents
 =================
@@ -160,3 +163,6 @@ For citing etc. check out these programs used for poreCov:
 * [toytree](https://github.com/eaton-lab/toytree)
 * [medaka](https://github.com/nanoporetech/medaka)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+* [nextclade](https://clades.nextstrain.org/)
+* [kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0)
+* [krona](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-385)

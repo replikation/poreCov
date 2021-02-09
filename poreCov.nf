@@ -160,7 +160,9 @@ include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
 include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
+include { read_classification_wf } from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 include { toytree_wf } from './workflows/toytree.nf'
@@ -184,6 +186,7 @@ workflow {
                 if (params.samples) { fastq_from5_ch = basecalling_wf.out.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
 
+            read_classification_wf(fastq_from5_ch)
             fasta_input_ch = artic_ncov_wf(fastq_from5_ch)
         }
         // fastq input via dir and or files
@@ -197,16 +200,18 @@ workflow {
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
+            read_classification_wf(fastq_input_ch)
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
 
-    // 2. Genome quality and lineages
+    // 2. Genome quality, lineages, clades and mutations
         determine_lineage_wf(fasta_input_ch)
+        determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
+    // 3. Specialised outputs (rki, json)
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
-    
-    // 3. JSON Summary per samples
+
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0])
         }
@@ -287,6 +292,7 @@ def helpMSG() {
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
+    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
 
     ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
@@ -376,7 +382,8 @@ def basecalling() {
     Basecalling options:
     \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
-    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]\u001B[0m
+    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
+    Basecalling modell:     $params.guppy_model [--guppy_model]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
