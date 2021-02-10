@@ -282,7 +282,8 @@ def helpMSG() {
     --memory        available memory [default: $params.memory]
     --output        name of the result folder [default: $params.output]
     --cachedir      defines the path where singularity images are cached
-                    [default: $params.cachedir] 
+                    [default: $params.cachedir]
+    --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
 
     ${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 

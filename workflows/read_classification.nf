@@ -8,7 +8,9 @@ workflow read_classification_wf {
     main: 
 
         // database download
-        preload = file("${params.databases}/kraken2/kraken.tar.gz")
+        if (params.krakendb) { preload = file("${params.krakendb}") }
+        else { preload = file("${params.databases}/kraken2/kraken.tar.gz") }
+        
         if (preload.exists()) { kraken_db = preload }
         else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
 
