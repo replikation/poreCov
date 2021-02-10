@@ -7,12 +7,12 @@ workflow read_classification_wf {
         fastq
     main: 
 
-        // local storage via storeDir
+        // database download
         preload = file("${params.databases}/kraken2/GRCh38.p13_GBcovid19-2020-05-22.tar.gz")
         if (preload.exists()) { kraken_db = preload }
         else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
 
-        // trimming primer away is missing here (samclip macht das mit softclipped bases, aber hard coded nicht nein. seqtk?)
+        // classification
         kraken2(fastq, kraken_db)
 
         // visuals
