@@ -8,7 +8,7 @@ workflow read_classification_wf {
     main: 
 
         // database download
-        preload = file("${params.databases}/kraken2/GRCh38.p13_GBcovid19-2020-05-22.tar.gz")
+        preload = file("${params.databases}/kraken2/kraken.tar.gz")
         if (preload.exists()) { kraken_db = preload }
         else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
 
