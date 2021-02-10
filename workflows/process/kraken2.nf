@@ -11,8 +11,20 @@ process kraken2 {
     mkdir -p kraken_db && tar xzf ${database} -C kraken_db --strip-components 1
 
     # mask possible primer regions
-    zcat ${reads} | sed '1b ; s/..............................\$/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' |\
-        sed '1b ; s/^............................../NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' > masked_reads.fastq
+    case "${reads}" in
+        *.gz) 
+            zcat ${reads} | sed '1b ; s/..............................\$/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' |\
+            sed '1b ; s/^............................../NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' > masked_reads.fastq
+            ;;
+        *.fastq)
+            cat ${reads} | sed '1b ; s/..............................\$/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' |\
+            sed '1b ; s/^............................../NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/ ; n ' > masked_reads.fastq
+            ;;
+        *)
+            echo "file format not supported...what the ...(.fastq .fastq.gz is supported)"
+            exit 1
+    esac
+
     kraken2 --db kraken_db --threads ${task.cpus} --output ${name}.kraken.out --report ${name}.kreport masked_reads.fastq
     """
   }

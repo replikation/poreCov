@@ -8,13 +8,9 @@ workflow read_classification_wf {
     main: 
 
         // local storage via storeDir
-        if (!params.cloudProcess) { download_database_kraken2(); kraken_db = download_database_kraken2.out }
-        // cloud storage via preload.exists()
-        if (params.cloudProcess) {
-            preload = file("${params.databases}/GRCh38.p13_GBcovid19-2020-05-22.tar.gz")
-            if (preload.exists()) { kraken_db = preload }
-            else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
-        }
+        preload = file("${params.databases}/kraken2/GRCh38.p13_GBcovid19-2020-05-22.tar.gz")
+        if (preload.exists()) { kraken_db = preload }
+        else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
 
         // trimming primer away is missing here (samclip macht das mit softclipped bases, aber hard coded nicht nein. seqtk?)
         kraken2(fastq, kraken_db)

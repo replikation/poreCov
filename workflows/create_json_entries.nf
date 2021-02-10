@@ -8,6 +8,10 @@ workflow create_json_entries_wf {
         merged_ch = pangolin.join(president.map { it -> tuple(it[0], it[1])})
 
         json_report(merged_ch)
+
+        if (params.fasta) {
+            // sample csv merge
+        }
         
 
 } 
