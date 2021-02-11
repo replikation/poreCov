@@ -1,7 +1,7 @@
 ![logo](data/logo/mobile_logo.png)
 **poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**   
 ===
-
+![](https://img.shields.io/github/v/release/replikation/poreCov)
 ![](https://img.shields.io/badge/nextflow-20.10.0-brightgreen)
 ![](https://img.shields.io/badge/uses-docker-blue.svg)
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
@@ -85,30 +85,30 @@ Table of Contents
 
 # Run poreCov
 
-* poreCov supports version control via `-r` this way you can run everything reproducable
-* poreCov relases are listed here: https://github.com/replikation/poreCov/releases/tag/0.6.0
+* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.6.1`)
+* poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.6.1 -profile test_fastq,local,singularity`
 ## Example commands
 
 ```bash
 # just do basecalling and assembly with QC / lineage:
-nextflow run replikation/poreCov --dir fast5/ \
+nextflow run replikation/poreCov --dir fast5/ -r 0.6.1 \
     --cores 32 -profile local,docker \
     -- rki 12345 # provides RKI output based on current QC statments 12345 = your demis number
 
 # use "combined" fastq.gz files (one sample per fastq.gz file)
-nextflow run replikation/poreCov  \
+nextflow run replikation/poreCov -r 0.6.1 \
     --fastq 'samples/samplenumber_*.fastq.gz' \
     --cores 32  -profile local,docker
 
 # use a "guppy output" via fastq_raw
 # this dir schould contain "barcode??/" dirs   e.g. guppy_out/barcode01/ guppy_out/barcode02/
-nextflow run replikation/poreCov --fastq_raw 'guppy_out/' \
+nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -r 0.6.1 \
     --cores 32  -profile local,docker
 
 # utilize and adjust parallel computing for local computing
 # on a 30 cores/processor machine this would spawn 5x 6 core processes in parallel
-nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker \
+nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker -r 0.6.1 \
     --cores 6 --max_cores 30 
 ```
 
