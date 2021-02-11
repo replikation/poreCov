@@ -70,7 +70,6 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
-    if (!params.metadata) { println "\033[0;33mNo [--metadata] file specified, skipping tree build\u001B[0m" }
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
@@ -212,7 +211,7 @@ workflow {
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
 
         if (params.samples) {
-            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0])
+            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
 }
 
@@ -253,9 +252,11 @@ def helpMSG() {
 
     ${c_yellow}Workflow control ${c_reset}
     --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
-    --samples       .csv input with header (_id,Status) to rename barcode numbers (Status) by sample ids (_id)
-                    _id = samplename (no spaces)
-                    Status = barcode01 or BC01 or 01 (last two digits are important)
+    --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
+                    example:
+                    _id,Status
+                    sample2011XY,barcode01
+                    thirdsample,BC02
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 

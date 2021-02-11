@@ -21,10 +21,12 @@
 
 ## What is this Repo?
 
-* poreCov is a general nCov analysis workflows using nanopore data with the ARTIC and Augur tools
-    * ARTIC protocol and reference from [here](https://artic.network/ncov-2019)
-* a few handy QC and plots are included to decrease post analytic "downtime"
-    * e.g. was the PCR coverage on each position enough?
+* poreCov is a general SARS-CoV-2 analysis workflow for nanopore data via the ARTIC protocol
+    * ARTIC lab protocols and reference are [available here](https://artic.network/ncov-2019)
+* QC, plots and overviews are included to decrease post analytic "downtime"
+    * was the PCR coverage on each position enough?
+    * is the quality of the genome good?
+    * what variant mutations are present?
 * is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
 
 ## Quality Metrics (default)
@@ -57,12 +59,16 @@ Table of Contents
 * one of these:
 >   * docker
 >   * singularity
->   * conda (conda install of singularity to run `-profile singularity`)
+>   * conda (install singularity + nextflow, usually not cluster compatible)
 
 * these:
->   * a local guppy installation or a docker/singularity with gpu support
->      * not needed if you use fastq or fasta as input
->   * nextflow + java runtime 
+>   * nextflow + java runtime
+
+* optional one of these if you want to start from basecalling (fast5)
+>   * local guppy installation (see oxford nanopore installation guide)
+>   * docker (with nvidia toolkit installed)
+>   * singularity (with --nv support)
+>   * dont have a gpu? all the above can be run with "cpu only" but takes ages
 
 **Installation links**
 
@@ -74,7 +80,7 @@ Table of Contents
     * not natively integrated, you can do conda install singularity nextflow in a new environment and execute poreCov via `-profile local,singularity`
     * not cluster compatible
 * Nextflow via: `curl -s https://get.nextflow.io | bash`
-    * a java runtime is needed
+    * a java runtime is needed (e.g. `sudo apt install -y default-jre`)
     * move `nextflow` executable to a path location
 
 # Run poreCov
@@ -99,6 +105,11 @@ nextflow run replikation/poreCov  \
 # this dir schould contain "barcode??/" dirs   e.g. guppy_out/barcode01/ guppy_out/barcode02/
 nextflow run replikation/poreCov --fastq_raw 'guppy_out/' \
     --cores 32  -profile local,docker
+
+# utilize and adjust parallel computing for local computing
+# on a 30 cores/processor machine this would spawn 5x 6 core processes in parallel
+nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker \
+    --cores 6 --max_cores 30 
 ```
 
 ## Help

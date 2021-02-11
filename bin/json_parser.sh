@@ -2,6 +2,7 @@
 
 SCRIPTNAME=$(basename -- "$0")
 
+unset HASHID_INPUT PANGOLIN_INPUT NEXTCLADE_INPUT PRESIDENT_INPUT SEQU_LAB_ID PRIMER_INPUT
 ###############
 ##  Modules  ##
 ###############
@@ -15,6 +16,7 @@ usage()
     echo "Inputs:"
     echo -e "          [-i]    HashID of the sample"
     echo -e "          [-p]    Path to pangolin-result-file; .csv"
+    echo -e "          [-n]    Path to nextclade-result-file; .tsv"
     echo -e "          [-q]    Path to president-result-file; .tsv"
     echo -e "          [-r]    ID of the sequencing-laboratory"
     echo -e "          [-v]    Used primer-set"
@@ -38,6 +40,22 @@ status_parsing() {
 lineage_parsing() {
     LINEAGE=$(tail -n +2 $PANGOLIN_INPUT | rev | cut -f 5 -d "," |rev)
     echo "    \"Lineage\": \"$LINEAGE\"," >> "$HASHID_INPUT"_mongodb_report.json
+}
+
+clade_parsing() {
+    # clade is in row number 2 ($2 in the awk)
+    CLADE=$(cat $NEXTCLADE_INPUT | awk -F "\t" '{print $2}' | grep -vw "clade")
+    echo "    \"Clade\": \"$CLADE\"," >> "$HASHID_INPUT"_mongodb_report.json
+}
+
+mutation_parsing() {
+    # AA mutations are in row number 17 ($17 in the awk)
+    AA_MUTATIONS=$(cat $NEXTCLADE_INPUT | awk -F "\t" '{print $17}' | grep -vw "aaSubstitutions" |\
+    tr "," "\n" | sed  's/$/": "true",/' | sed  's/^/        "/' | sed '$ s-.$--')
+
+    echo "    \"Mutations\": {" >> "$HASHID_INPUT"_mongodb_report.json
+    echo "$AA_MUTATIONS" >> "$HASHID_INPUT"_mongodb_report.json
+    echo "    }," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 submitting_lab_parsing() {
@@ -97,10 +115,11 @@ json_file_closing() {
 ###   Start of script    ####
 #############################
 
-while getopts 'i:p:q:r:v:h' flag; do
+while getopts 'i:p:n:q:r:v:h' flag; do
     case "${flag}" in
       i) HASHID_INPUT="${OPTARG}" ;;
       p) PANGOLIN_INPUT="${OPTARG}" ;;
+      n) NEXTCLADE_INPUT="${OPTARG}" ;;
       q) PRESIDENT_INPUT="${OPTARG}" ;;
       r) SEQU_LAB_ID="${OPTARG}" ;;
       v) PRIMER_INPUT="${OPTARG}" ;;
@@ -111,10 +130,12 @@ while getopts 'i:p:q:r:v:h' flag; do
 done
 
 # json head
-json_file_opening
+json_file_opening; hashid_parsing
 # inputfields
-hashid_parsing; status_parsing; lineage_parsing; sequ_lab_parsing
-primer_parsing; analysing_date_parsing; rki_valid_parsing; rki_submit_parsing; nucleotide_identity_parsing
+if [ ! -z "${SEQU_LAB_ID}" ]; then sequ_lab_parsing ; fi
+if [ ! -z "${PRIMER_INPUT}" ]; then primer_parsing ; fi
+status_parsing; lineage_parsing; clade_parsing; mutation_parsing;
+analysing_date_parsing; rki_valid_parsing; rki_submit_parsing; nucleotide_identity_parsing;
 ambiguous_bases_parsing; 
 # last entry no comma
 query_length_parsing
