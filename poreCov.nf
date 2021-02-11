@@ -71,7 +71,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
     if (!params.metadata) { println "\033[0;33mNo [--metadata] file specified, skipping tree build\u001B[0m" }
-if ( (params.cores.toInteger > params.max_cores.toInteger) && workflow.profile.contains('local')) {
+if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
 /************************** 
