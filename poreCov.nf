@@ -70,7 +70,8 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
-    if (!params.metadata) { println "\033[0;33mNo [--metadata] file specified, skipping tree build\u001B[0m" }
+if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
+        exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
 /************************** 
 * INPUTs
@@ -158,14 +159,12 @@ include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
-include { create_tree_wf } from './workflows/create_tree.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_classification_wf } from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
-include { toytree_wf } from './workflows/toytree.nf'
 
 /************************** 
 * MAIN WORKFLOW
@@ -193,7 +192,6 @@ workflow {
         if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
             if (params.fastq_raw && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
             if (!params.fastq_raw && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
-            if (params.fastq_raw && params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
 
             // raname barcodes bases on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} }
@@ -213,28 +211,7 @@ workflow {
         if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
 
         if (params.samples) {
-            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0])
-        }
-
-    // 4. (optional) analyse genomes to references and build tree
-        if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
-        // build tree 
-            create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
-                newick = create_tree_wf.out
-        }
-
-        else if (params.metadata && (params.fastq || params.fasta || params.dir)) {
-        // build database
-            build_database_wf()
-        // merge build_database_wf metadata with user metadata file
-            meta_merge_ch = build_database_wf.out[1].splitCsv(header: true, sep: '\t')
-                .mix(metadata_input_ch.splitCsv(header: true, sep: '\t'))
-                .collectFile(seed: 'strain\tcountry\tdate\n') { 
-                    row -> [ "metadata.tsv", row.strain + '\t' + row.country + '\t' + row.date + '\n' ]  }
-        // build tree
-            create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
-                newick = create_tree_wf.out
-            toytree_wf(newick)
+            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
 }
 
@@ -275,9 +252,11 @@ def helpMSG() {
 
     ${c_yellow}Workflow control ${c_reset}
     --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
-    --samples       .csv input with header (_id,Status) to rename barcode numbers (Status) by sample ids (_id)
-                    _id = samplename (no spaces)
-                    Status = barcode01 or BC01 or 01 (last two digits are important)
+    --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
+                    example:
+                    _id,Status
+                    sample2011XY,barcode01
+                    thirdsample,BC02
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -298,28 +277,14 @@ def helpMSG() {
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
     --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
 
-    ${c_yellow}Parameters - Tree construction:${c_reset}
-    Input is either: --fasta --fastq --dir
-
-    --references    multifasta file to compare against your input
-
-    --metadata      tsv file with 3 rows and header: strain country date   
-                    date in YYYY-MM-DD   strain is fasta header without >
-    
-    Optional:
-    --highlight     names containing this string are colored in the tree in red 
-                    [default: ${params.highlight}]
-    --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
-    --maskEnd       masks end of alignment [default: ${params.maskEnd}]
-    --rm_N_genome   removes genomes from tree with x amount of N's or more [default: ${params.rm_N_genome}]
-
     ${c_yellow}Options:${c_reset}
-    --cores         max cores for local use [default: $params.cores]
-    --max_cores     max cores used on the machine for local use [default: $params.max_cores]
+    --cores         amount of cores for a process (local use) [default: $params.cores]
+    --max_cores     max amount of cores for poreCov to use (local use) [default: $params.max_cores]
     --memory        available memory [default: $params.memory]
     --output        name of the result folder [default: $params.output]
     --cachedir      defines the path where singularity images are cached
-                    [default: $params.cachedir] 
+                    [default: $params.cachedir]
+    --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
 
     ${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
@@ -355,6 +320,8 @@ def defaultMSG(){
         $workflow.workDir
     Output dir [--output]: 
         $params.output
+    Databases location [--databases]:
+        $params.databases
     Singularity cache dir [--cachedir]: 
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m

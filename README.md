@@ -21,10 +21,12 @@
 
 ## What is this Repo?
 
-* poreCov is a general nCov analysis workflows using nanopore data with the ARTIC and Augur tools
-    * ARTIC protocol and reference from [here](https://artic.network/ncov-2019)
-* a few handy QC and plots are included to decrease post analytic "downtime"
-    * e.g. was the PCR coverage on each position enough?
+* poreCov is a general SARS-CoV-2 analysis workflow for nanopore data via the ARTIC protocol
+    * ARTIC lab protocols and reference are [available here](https://artic.network/ncov-2019)
+* QC, plots and overviews are included to decrease post analytic "downtime"
+    * was the PCR coverage on each position enough?
+    * is the quality of the genome good?
+    * what variant mutations are present?
 * is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
 
 ## Quality Metrics (default)
@@ -57,12 +59,16 @@ Table of Contents
 * one of these:
 >   * docker
 >   * singularity
->   * conda (conda install of singularity to run `-profile singularity`)
+>   * conda (install singularity + nextflow, usually not cluster compatible)
 
 * these:
->   * a local guppy installation or a docker/singularity with gpu support
->      * not needed if you use fastq or fasta as input
->   * nextflow + java runtime 
+>   * nextflow + java runtime
+
+* optional one of these if you want to start from basecalling (fast5)
+>   * local guppy installation (see oxford nanopore installation guide)
+>   * docker (with nvidia toolkit installed)
+>   * singularity (with --nv support)
+>   * dont have a gpu? all the above can be run with "cpu only" but takes ages
 
 **Installation links**
 
@@ -74,27 +80,36 @@ Table of Contents
     * not natively integrated, you can do conda install singularity nextflow in a new environment and execute poreCov via `-profile local,singularity`
     * not cluster compatible
 * Nextflow via: `curl -s https://get.nextflow.io | bash`
-    * a java runtime is needed
+    * a java runtime is needed (e.g. `sudo apt install -y default-jre`)
     * move `nextflow` executable to a path location
 
 # Run poreCov
 
+* poreCov supports version control via `-r` this way you can run everything reproducable
+* poreCov relases are listed here: https://github.com/replikation/poreCov/releases/tag/0.6.0
+* add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.6.1 -profile test_fastq,local,singularity`
 ## Example commands
 
 ```bash
 # just do basecalling and assembly with QC / lineage:
 nextflow run replikation/poreCov --dir fast5/ \
     --cores 32 -profile local,docker \
-    -- rki # provides RKI output based on current QC statments
+    -- rki 12345 # provides RKI output based on current QC statments 12345 = your demis number
 
-# use fastq files with workflow provided references for tree construction
+# use "combined" fastq.gz files (one sample per fastq.gz file)
 nextflow run replikation/poreCov  \
     --fastq 'samples/samplenumber_*.fastq.gz' \
     --cores 32  -profile local,docker
 
-# include a fastq_raw dir (from basecalling)
+# use a "guppy output" via fastq_raw
+# this dir schould contain "barcode??/" dirs   e.g. guppy_out/barcode01/ guppy_out/barcode02/
 nextflow run replikation/poreCov --fastq_raw 'guppy_out/' \
     --cores 32  -profile local,docker
+
+# utilize and adjust parallel computing for local computing
+# on a 30 cores/processor machine this would spawn 5x 6 core processes in parallel
+nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker \
+    --cores 6 --max_cores 30 
 ```
 
 ## Help
@@ -112,55 +127,16 @@ nextflow run replikation/poreCov --help
 * poreCov was coded with "easy to use" in mind, while staying flexible
 * the default use case is fast5 raw-data to "results"
 * however by providing fastq, fastq_raw (guppy output) or fasta instead, poreCov skips over the corresponding steps
-* primer schemes for ARTIC can be V1,V2,V3 or the 1200bp ones (see help)
+* primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
 
 ![workflow](data/figures/workflow.png)
 
-# References and Metadata for tree construction
-* this was implemented for a "quick" check for your samples
-* we recommend in using nextstrain instead and GISAID sequences
-## References
-* by default the poreCov Workflow uses a few hundred nCov strains automatically to build the tree
-    * these files are from ENA
-    * metadata for this is automatically added
-* this behaviour can be "replaced" by providing a multifasta reference file via `--references`
-* please make sure that these fastaheader dont contain "strange" symbols like `" '  | / \ : & $`
-    * this causes issues in some of the tools used here
-
-## Metadata
-* for tree constructions `--metadata file.tsv` is mandatory
-* style of the metadata: 
-    * tab separated: `\t`
-    * header: `strain   time    location`
-    * one sample per line
-    * **strain**: 
-        * name of the fastq file without any suffix (`--fastq`)
-        * barcode01 barcode02 etc. for fast5 data inside a directory (`--dir`)
-        * fasta header name (without >) for one genome (`--fasta`) or multiple references (`--reference`)
-    * **location** can be set to "unknown"
-    * **date** format is `YYYY-MM-DD` or `YYYY-MM` or `YYYY`
-* example:
-
-```csv
-strain	country	date
-LC528232-unknown-2020-02-10	unknown	2020-02-10
-LC528233-unknown-2020-02-10	unknown	2020-02-10
-LC534418-Japan-2020-02-14	Japan	2020-02-14
-LC534419-Japan-2020-03-09	Japan	2020-03-09
-MN908947-China-Dec-2019	China	2019-12
-barcode01   Germany 2020-01-01
-```
 
 # Literature / References to cite
 For citing etc. check out these programs used for poreCov:
 * [nextflow](https://www.nextflow.io/index.html)
 * [artic protocol](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
-* [augur](https://github.com/nextstrain/augur)
 * [pangolin](https://github.com/hCoV-2019/pangolin)
-    * [iqtree](http://www.iqtree.org/#download)
-    * [mafft](https://mafft.cbrc.jp/alignment/software/)
-    * [snakemake](https://snakemake.readthedocs.io/en/stable/index.html)
-* [toytree](https://github.com/eaton-lab/toytree)
 * [medaka](https://github.com/nanoporetech/medaka)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
 * [nextclade](https://clades.nextstrain.org/)
