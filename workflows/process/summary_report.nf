@@ -1,6 +1,7 @@
 process summary_report {
         publishDir "${params.output}/", mode: 'copy'
-        label 'ubuntu'
+        // re-use pangolin container for pandas dependency
+        label 'pangolin'
     input:
         tuple val(name), path(pangolin_result), path(president_result), path(nextclade_result)
     output:
