@@ -159,6 +159,7 @@ include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
+include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
@@ -213,6 +214,10 @@ workflow {
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
+
+    // Summary output
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
+
 }
 
 /*************  

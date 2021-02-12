@@ -43,7 +43,7 @@ class SummaryReport():
         self.validate_index(t_index)
 
 
-    def write_html_report(self, filename='Summary_report.html'):
+    def write_html_report(self, filename='summary_report.html'):
         '''Write the html report to a file'''
 
         htmlheader = '''<!DOCTYPE html><html><head>
@@ -118,8 +118,8 @@ class SummaryReport():
         with open(filename, 'w') as outfh:
             outfh.write(htmlheader)
 
-            outfh.write('''
-            <h1 class="header" id="main-header">poreCov Summary Report</h1>
+            outfh.write(f'''
+            <h1 class="header" id="main-header">poreCov Summary Report: {args.name}</h1>
             <h2 class="header" id="table-header">Sample overview</h2>
             ''')
             outfh.write(htmltable)
@@ -156,9 +156,12 @@ if __name__ == '__main__':
     log('Started summary_report.py ...')
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples poreCov')
-    parser.add_argument("-p", "--pangolin_results", help="Pangolin results")
-    parser.add_argument("-n", "--nextclade_results", help="Nextclade results")
+    parser.add_argument("-i", "--name", help="run name")
+    parser.add_argument("-p", "--pangolin_results", help="pangolin results")
+    parser.add_argument("-n", "--nextclade_results", help="nextclade results")
+    parser.add_argument("-q", "--president_results", help="president results")
     args = parser.parse_args()
+
 
     # build report
     report = SummaryReport()
@@ -170,6 +173,6 @@ if __name__ == '__main__':
     #     report.add_nextclade_results(args.nextclade_results)
 
     
-    report.write_html_report()
+    report.write_html_report(filename=f'{args.name}_summary_report.html')
 
 
