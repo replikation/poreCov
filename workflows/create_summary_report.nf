@@ -6,8 +6,10 @@ workflow create_summary_report_wf {
         president
         nextclade
     main:
-        merged_ch = pangolin.join(president.map { it -> tuple(it[0], it[1])}.join(nextclade))
+        pangolin_results = pangolin.map {it -> it[1]}.collectFile(name: 'pangolin_results.csv', skip: 1, keepHeader: true)
+        president_results = president.map {it -> it[1]}.collectFile(name: 'president_results.tsv', skip: 1, keepHeader: true)
+        nextclade_results = nextclade.map {it -> it[1]}.collectFile(name: 'nextclade_results.tsv', skip: 1, keepHeader: true)
 
-        summary_report(merged_ch)
+        summary_report(pangolin_results, president_results, nextclade_results)
 
 } 

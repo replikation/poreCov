@@ -6,6 +6,7 @@ process nextclade {
     output:
         tuple val(name), path("${name}_clade.tsv")
     """
-    nextclade --input-fasta ${consensus} --output-tsv ${name}_clade.tsv
+    nextclade --input-fasta ${consensus} --output-tsv tmp.tsv
+    cat tmp.tsv | tr -d "\r" > ${name}_clade.tsv
     """
 }
