@@ -359,11 +359,11 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output activated:
-    \033[2mOutput stored at:       $params.output/$params.rkidir  
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
     DEMIS number (seq. lab) not provided [--rki]
-    Min Identity to NC_045512.2:   $params.seq_threshold [--seq_threshold]
-    Min Coverage:           20 [ no parameter]
-    Proportion cutoff N:    $params.n_threshold [--n_threshold]\u001B[0m
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -372,7 +372,10 @@ def rki_true() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number:        $params.rki [--rki]\u001B[0m
+    DEMIS number:        $params.rki [--rki]
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
