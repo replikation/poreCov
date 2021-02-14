@@ -98,7 +98,7 @@ nucleotide_identity_parsing() {
 }
 
 ambiguous_bases_parsing() {
-    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 7 -d $'\t')
+    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 8 -d $'\t')
     echo "    \"Ambiguous_Bases\": $AMBIGUOUS_BASES," >> "$HASHID_INPUT"_mongodb_report.json
 }
 

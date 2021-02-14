@@ -275,7 +275,8 @@ def helpMSG() {
 
     ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
-    --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
+    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
+    --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
     ${c_yellow}Options:${c_reset}
     --cores         amount of cores for a process (local use) [default: $params.cores]
@@ -358,11 +359,11 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output activated:
-    \033[2mOutput stored at:       $params.output/$params.rkidir  
+    \033[2mOutput stored at:    $params.output/$params.rkidir  
     DEMIS number (seq. lab) not provided [--rki]
-    Min Identity to NC_045512.2:   $params.threshold [--threshold]
-    Min Coverage:           20 [ no parameter]
-    Proportion cutoff N:    [ no parameter]\u001B[0m
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -371,7 +372,10 @@ def rki_true() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number:        $params.rki [--rki]\u001B[0m
+    DEMIS number:        $params.rki [--rki]
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
