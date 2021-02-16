@@ -17,8 +17,8 @@ change below
 */
 
 XX = "20"
-YY = "07"
-ZZ = "1"
+YY = "10"
+ZZ = "0"
 
 if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
 println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
@@ -70,6 +70,8 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         exit 1, "input missing, use [--fasta] [--multifasta] [--fastq] [--fastq_raw] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
+if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
+        exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
 /************************** 
 * INPUTs
@@ -129,6 +131,13 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.name, file) }
     }
 
+// samples input 
+    if (params.samples) { samples_input_ch = Channel
+        .fromPath( params.samples, checkIfExists: true)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
+    }
+
 /************************** 
 * MODULES
 **************************/
@@ -146,12 +155,13 @@ include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
-include { create_tree_wf } from './workflows/create_tree.nf'
+include { create_json_entries_wf } from './workflows/create_json_entries.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
+include { read_classification_wf } from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
-include { toytree_wf } from './workflows/toytree.nf'
 
 /************************** 
 * MAIN WORKFLOW
@@ -159,53 +169,48 @@ include { toytree_wf } from './workflows/toytree.nf'
 
 workflow {
     // 0. Test profile data
-        if ( workflow.profile.contains('test_fastq')) { fastq_input_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
 
     // 1. Reconstruct genomes
         // fast5
-        if (params.dir || workflow.profile.contains('test_fast5')) { 
-            fasta_input_ch = artic_ncov_wf(basecalling_wf(dir_input_ch))
+        if (params.dir || workflow.profile.contains('test_fast5')) {
+            basecalling_wf(dir_input_ch)
+            
+            // rename barcodes
+                if (params.samples) { fastq_from5_ch = basecalling_wf.out.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
+
+            read_classification_wf(fastq_from5_ch)
+            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
-            if (params.fastq_raw && !params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch) }
-            if (!params.fastq_raw && params.fastq) { fastq_input_ch = fastq_file_ch }
-            if (params.fastq_raw && params.fastq) { fastq_input_ch = collect_fastq_wf(fastq_dir_ch).mix(fastq_file_ch) }
+            if (params.fastq_raw && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
+            if (!params.fastq_raw && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
+
+            // raname barcodes bases on --samples input.csv
+                if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} }
+                else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
+            read_classification_wf(fastq_input_ch)
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
         // mutlifasta preparation
         if (params.multifasta) { fasta_input_ch = split_multi_fasta(fasta_multi_ch).map { it -> it[1] }.flatten().map { it -> [ it.baseName, it ] } }
 
-    // 2. Genome quality and lineages
+    // 2. Genome quality, lineages, clades and mutations
         determine_lineage_wf(fasta_input_ch)
+        determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
-        if (params.rki) { rki_report_wf(determine_lineage_wf.out, genome_quality_wf.out) }
+    // 3. Specialised outputs (rki, json)
+        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
 
-
-    // 3. (optional) analyse genomes to references and build tree
-        if (params.references && params.metadata && (params.fastq || params.fasta || params.dir)) {
-        // build tree 
-            create_tree_wf (fasta_input_ch, reference_input_ch, metadata_input_ch) 
-                newick = create_tree_wf.out
-        }
-
-        else if (params.metadata && (params.fastq || params.fasta || params.dir)) {
-        // build database
-            build_database_wf()
-        // merge build_database_wf metadata with user metadata file
-            meta_merge_ch = build_database_wf.out[1].splitCsv(header: true, sep: '\t')
-                .mix(metadata_input_ch.splitCsv(header: true, sep: '\t'))
-                .collectFile(seed: 'strain\tcountry\tdate\n') { 
-                    row -> [ "metadata.tsv", row.strain + '\t' + row.country + '\t' + row.date + '\n' ]  }
-        // build tree
-            create_tree_wf (fasta_input_ch, build_database_wf.out[0], meta_merge_ch)
-                newick = create_tree_wf.out
-            toytree_wf(newick)
+        if (params.samples) {
+            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
 }
 
@@ -246,6 +251,11 @@ def helpMSG() {
 
     ${c_yellow}Workflow control ${c_reset}
     --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
+    --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
+                    example:
+                    _id,Status
+                    sample2011XY,barcode01
+                    thirdsample,BC02
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -259,33 +269,22 @@ def helpMSG() {
                         Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
+    --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
+    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
 
     ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
-    --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
-
-    ${c_yellow}Parameters - Tree construction:${c_reset}
-    Input is either: --fasta --fastq --dir
-
-    --references    multifasta file to compare against your input
-
-    --metadata      tsv file with 3 rows and header: strain country date   
-                    date in YYYY-MM-DD   strain is fasta header without >
-    
-    Optional:
-    --highlight     names containing this string are colored in the tree in red 
-                    [default: ${params.highlight}]
-    --maskBegin     masks beginning of alignment [default: ${params.maskBegin}]
-    --maskEnd       masks end of alignment [default: ${params.maskEnd}]
-    --rm_N_genome   removes genomes from tree with x amount of N's or more [default: ${params.rm_N_genome}]
+    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
+    --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
     ${c_yellow}Options:${c_reset}
-    --cores         max cores for local use [default: $params.cores]
-    --max_cores     max cores used on the machine for local use [default: $params.max_cores]
+    --cores         amount of cores for a process (local use) [default: $params.cores]
+    --max_cores     max amount of cores for poreCov to use (local use) [default: $params.max_cores]
     --memory        available memory [default: $params.memory]
     --output        name of the result folder [default: $params.output]
     --cachedir      defines the path where singularity images are cached
-                    [default: $params.cachedir] 
+                    [default: $params.cachedir]
+    --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
 
     ${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
@@ -321,13 +320,17 @@ def defaultMSG(){
         $workflow.workDir
     Output dir [--output]: 
         $params.output
+    Databases location [--databases]:
+        $params.databases
     Singularity cache dir [--cachedir]: 
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m
     Parameters:
     \033[2mPrimerscheme:        $params.primerV [--primerV]
+    Medaka model:        $params.medaka_model [--medaka_model]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
+
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -346,7 +349,8 @@ def basecalling() {
     Basecalling options:
     \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
-    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]\u001B[0m
+    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
+    Basecalling modell:     $params.guppy_model [--guppy_model]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -355,7 +359,10 @@ def rki() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number (seq. lab) not provided [--rki]\u001B[0m
+    DEMIS number (seq. lab) not provided [--rki]
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -364,7 +371,10 @@ def rki_true() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number:        $params.rki [--rki]\u001B[0m
+    DEMIS number:        $params.rki [--rki]
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
