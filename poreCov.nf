@@ -66,11 +66,10 @@ if ( params.rki ==~ "[0-9]+") {rki_true()} else if (params.rki) {rki()}
 
 // params help
 if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
-    if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw ) {
-        exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
+    if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw &&  !params.multifasta ) {
+        exit 1, "input missing, use [--fasta] [--multifasta] [--fastq] [--fastq_raw] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
         exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
-    if (!params.metadata) { println "\033[0;33mNo [--metadata] file specified, skipping tree build\u001B[0m" }
 }
 /************************** 
 * INPUTs
@@ -82,6 +81,12 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         .map { file -> tuple(file.simpleName, file) }
     }
 
+// multi_fasta input 
+    if (params.multifasta && !workflow.profile.contains('test_fasta')) { fasta_multi_ch = Channel
+        .fromPath( params.multifasta, checkIfExists: true)
+        .map { file -> tuple(file.simpleName, file) }
+    }
+
 // consensus qc reference input - auto using git default if not specified
     if (params.reference_for_qc) { 
         reference_for_qc_input_ch = Channel
@@ -90,16 +95,6 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     else if (!params.reference_for_qc) {
         reference_for_qc_input_ch = Channel
         .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
-    }
-
-// references input 
-    if (params.references) { reference_input_ch = Channel
-        .fromPath( params.references, checkIfExists: true)
-    }
-
-// metadata input 
-    if (params.metadata) { metadata_input_ch = Channel
-        .fromPath( params.metadata, checkIfExists: true)
     }
 
 // fastq input or via csv file
@@ -141,6 +136,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { get_fast5 } from './modules/get_fast5_test_data.nf'
+include { split_multi_fasta } from './modules/split_multi_fasta.nf'
 
 /************************** 
 * Workflows
@@ -181,6 +177,8 @@ workflow {
             read_qc_wf(fastq_input_ch)
             fasta_input_ch = artic_ncov_wf(fastq_input_ch)
         }
+        // mutlifasta preparation
+        if (params.multifasta) { fasta_input_ch = split_multi_fasta(fasta_multi_ch).map { it -> it[1] }.flatten().map { it -> [ it.baseName, it ] } }
 
     // 2. Genome quality and lineages
         determine_lineage_wf(fasta_input_ch)
