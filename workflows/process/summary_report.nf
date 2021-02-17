@@ -7,6 +7,7 @@ process summary_report {
         path(president_results)
         path(nextclade_results)
         path(kraken2_results)
+        path(version_config)
     output:
 	    path("poreCov_summary_report.html")
     shell:
@@ -19,6 +20,7 @@ process summary_report {
     done
     
     summary_report.py \
+        -v !{version_config} \
         -p !{pangolin_results} \
         -q !{president_results} \
         -n !{nextclade_results} \

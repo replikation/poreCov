@@ -27,6 +27,27 @@ class SummaryReport():
 
     tabledata = None
     col_descriptions = []
+    tool_versions = None
+
+
+    def parse_version_config(self, version_config_file):
+        
+        version_dict = {}
+        try:
+            with open(version_config_file) as infh:
+                for line in infh:
+                    lt = line.strip().replace(' ','')
+                    if lt.startswith('withLabel:'):
+                        tname, tinfo = lt.split(':',1)[1].split('{',1)
+                        tcontainer = tinfo.split("'")[1] if "'" in tinfo else tinfo.split('"')[1]
+                        tversion = tcontainer.split(':')[1].split('-')[0].lstrip('v')
+
+                        assert tname not in version_dict
+                        version_dict[tname] = tversion
+        except:
+            print(version_dict)
+            error(f'Failed to parse version config file: {version_config_file}')
+        self.tool_versions = version_dict
 
 
     def validate_index(self, t_index):
@@ -124,8 +145,6 @@ class SummaryReport():
         </body></html>
         '''
 
-        htmltable = self.tabledata.to_html(classes=['tablestyle'])
-
         log(f'Writing report to {filename} ...')
         with open(filename, 'w') as outfh:
             outfh.write(htmlheader)
@@ -135,7 +154,7 @@ class SummaryReport():
             Report created on: {time.asctime()}
             <h2 class="header" id="table-header">Sample overview</h2>
             ''')
-            outfh.write(htmltable)
+            outfh.write(self.tabledata.to_html(classes=['tablestyle'], float_format=lambda f: f'{f:.4f}'))
 
             self.write_column_descriptions(outfh)
 
@@ -155,7 +174,7 @@ class SummaryReport():
         res_data['lineage_prob'] = [f'{l} ({p})' for l,p in zip(res_data['lineage'], res_data['probability'])]
         self.tabledata['Lineage (probability)'] = res_data['lineage_prob']
 
-        self.add_col_description('Lineage and probability were determined with Pangolin.')
+        self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
             
 
     def add_president_results(self, president_results):
@@ -168,9 +187,13 @@ class SummaryReport():
         res_data = pd.read_csv(president_results, index_col=24, sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        self.tabledata['Nucleotide identity'] = res_data['ACGT Nucleotide identity']
+        res_data['identity_mismatches'] = [f'{i} ({m})' for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        self.tabledata['Nucleotide identity (mismatches)'] = res_data['identity_mismatches']
 
-        self.add_col_description('Nucleotide identity was determined with President.')
+        res_data['percentN_numN'] = [f'{nn/lr*100:.4f} ({nn})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
+        self.tabledata['%Ns (#Ns)'] = res_data['percentN_numN']
+
+        self.add_col_description(f'Nucleotide identity, mismatches and Ns were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -192,7 +215,7 @@ class SummaryReport():
         self.tabledata['Clade'] = res_data['clade']
         self.tabledata['Mutations'] = res_data['mutations_formatted']
 
-        self.add_col_description('Clade and mutations were determined with Nextclade.')
+        self.add_col_description(f'Clade and mutations were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
 
 
     def add_kraken2_results(self, kraken2_results):
@@ -204,10 +227,10 @@ class SummaryReport():
 
         res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
 
-        self.tabledata['%reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads']
-        self.tabledata['%reads human'] = res_data['num_human'] / res_data['total_reads']
+        self.tabledata['%reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads'] * 100.
+        self.tabledata['%reads human'] = res_data['num_human'] / res_data['total_reads'] * 100.
 
-        self.add_col_description('Read classification was determined with kraken2.')
+        self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
 
 ###
@@ -216,7 +239,8 @@ if __name__ == '__main__':
 
     log('Started summary_report.py ...')
 
-    parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples poreCov')
+    parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
+    parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
@@ -226,6 +250,8 @@ if __name__ == '__main__':
 
     # build report
     report = SummaryReport()
+
+    report.parse_version_config(args.version_config)
 
     # this determines the order of columns
     if args.kraken2_results:
