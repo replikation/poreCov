@@ -6,13 +6,22 @@ process summary_report {
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
+        path(kraken2_results)
     output:
 	    path("poreCov_summary_report.html")
-    script:
-    """
+    shell:
+    '''
+    echo '#sample,num_sarscov2,num_human' > kraken2_results.csv
+    for KF in !{kraken2_results}; do
+    echo -n "${KF%.kreport}," >> kraken2_results.csv
+    awk -v ORS= '$5=="2697049" {print $3 "," }' $KF >> kraken2_results.csv
+    awk '$5=="9606" {print $3}' $KF >> kraken2_results.csv
+    done
+    
     summary_report.py \
-        -p ${pangolin_results} \
-        -q ${president_results} \
-        -n ${nextclade_results}
-    """
+        -p !{pangolin_results} \
+        -q !{president_results} \
+        -n !{nextclade_results} \
+        -k kraken2_results.csv
+    '''
 }

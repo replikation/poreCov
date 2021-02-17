@@ -216,7 +216,7 @@ workflow {
         }
 
     // Summary output
-        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_wf.out)
 
 }
 

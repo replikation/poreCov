@@ -5,8 +5,8 @@ Generate a summary report for multiple samples
 '''
 # SK
 
-import os
 import sys
+import time
 import argparse
 import pandas as pd
 
@@ -26,6 +26,8 @@ def log(string, newline_before=False):
 class SummaryReport():
 
     tabledata = None
+    col_descriptions = []
+
 
     def validate_index(self, t_index):
         '''Assert that an index matches the tabledata index.'''
@@ -43,11 +45,21 @@ class SummaryReport():
         self.validate_index(t_index)
 
 
+    def add_col_description(self, desc):
+        self.col_descriptions.append(f'{desc}')
+
+
+    def write_column_descriptions(self, filehandle):
+
+        for desc in self.col_descriptions:
+            filehandle.write(f'{desc}<br>\n')
+
+
     def write_html_report(self, filename='poreCov_summary_report.html'):
         '''Write the html report to a file'''
 
         htmlheader = '''<!DOCTYPE html><html><head>
-        <title>sample01</title>
+        <title>poreCov Summary Report</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -56,14 +68,14 @@ class SummaryReport():
             font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif
         }
 
-        # .content {
-        # max-width: 1000px;
-        # margin: auto;
-        # }
+        .content {
+        max-width: 1600px;
+        margin: auto;
+        }
 
         table.tablestyle {
         background-color: #FFFFFF;
-        width: 1000px;
+        width: 1600px;
         text-align: center;
         border-collapse: collapse;
         }
@@ -120,9 +132,13 @@ class SummaryReport():
 
             outfh.write(f'''
             <h1 class="header" id="main-header">poreCov Summary Report</h1>
+            Report created on: {time.asctime()}
             <h2 class="header" id="table-header">Sample overview</h2>
             ''')
             outfh.write(htmltable)
+
+            self.write_column_descriptions(outfh)
+
             outfh.write(htmlfooter)
 
 
@@ -136,8 +152,10 @@ class SummaryReport():
         res_data = pd.read_csv(pangolin_results, index_col=0)
         self.check_and_init_tabledata(res_data.index)
 
-        self.tabledata['Lineage (Pangolin)'] = res_data['lineage']
-        self.tabledata['Pangolin probability'] = res_data['probability']
+        res_data['lineage_prob'] = [f'{l} ({p})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        self.tabledata['Lineage (probability)'] = res_data['lineage_prob']
+
+        self.add_col_description('Lineage and probability were determined with Pangolin.')
             
 
     def add_president_results(self, president_results):
@@ -151,6 +169,8 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         self.tabledata['Nucleotide identity'] = res_data['ACGT Nucleotide identity']
+
+        self.add_col_description('Nucleotide identity was determined with President.')
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -167,9 +187,27 @@ class SummaryReport():
         res_data = pd.read_csv(nextclade_results, index_col=0, sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        self.tabledata['Clade (nextclade)'] = res_data['clade']
-        self.tabledata['Mutations'] = res_data['aaSubstitutions']
+        res_data['mutations_formatted'] = [m.replace(',', ', ') for m in res_data['aaSubstitutions']]
 
+        self.tabledata['Clade'] = res_data['clade']
+        self.tabledata['Mutations'] = res_data['mutations_formatted']
+
+        self.add_col_description('Clade and mutations were determined with Nextclade.')
+
+
+    def add_kraken2_results(self, kraken2_results):
+        log(f'Adding Kraken2 results ...')
+        # column names:
+        #sample,num_sarscov2,num_human
+        res_data = pd.read_csv(kraken2_results, index_col=0)
+        self.check_and_init_tabledata(res_data.index)
+
+        res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
+
+        self.tabledata['%reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads']
+        self.tabledata['%reads human'] = res_data['num_human'] / res_data['total_reads']
+
+        self.add_col_description('Read classification was determined with kraken2.')
 
 
 ###
@@ -182,13 +220,16 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
+    parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
     args = parser.parse_args()
 
 
     # build report
     report = SummaryReport()
 
-
+    # this determines the order of columns
+    if args.kraken2_results:
+        report.add_kraken2_results(args.kraken2_results)
     if args.pangolin_results:
         report.add_pangolin_results(args.pangolin_results)
     if args.president_results:
