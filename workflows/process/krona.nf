@@ -9,6 +9,6 @@ process krona {
     """
     cat ${kreport} | cut -f 3,5 > file.krona
     ktImportTaxonomy file.krona -m 1
-    mv *.html ${name}.html
+    mv *.html ${name}_krona.html
     """
 }

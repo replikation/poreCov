@@ -76,10 +76,10 @@ class SummaryReport():
         color: #000000;
         }
         table.tablestyle tr:nth-child(even) {
-        background: #D6F5FF;
+        background: #E6F5FF;
         }
         table.tablestyle thead {
-        background: #D6F5FF;
+        background: #E6F5FF;
         }
         table.tablestyle thead th {
         font-size: 20px;
