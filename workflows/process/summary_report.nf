@@ -21,7 +21,7 @@ process summary_report {
     
     summary_report.py \
         -v !{version_config} \
-        --porecov_version !{workflow.revision} \
+        --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
         -p !{pangolin_results} \
         -q !{president_results} \
         -n !{nextclade_results} \

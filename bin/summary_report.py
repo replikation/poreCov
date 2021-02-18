@@ -48,7 +48,19 @@ class SummaryReport():
 
 
     def add_time_param(self):
-        self.add_param('Report created on', f'{time.strftime("%Y-%m-%d %H:%M:%S %Z", self.report_time)}')
+        self.add_param('Report created', f'{time.strftime("%Y-%m-%d %H:%M:%S %Z", self.report_time)}')
+
+
+    def add_version_param(self, porecov_version):
+        revision, commitID, scriptID = porecov_version.split(':')
+        if revision != 'null':
+            self.add_param('poreCov version', revision)
+        else:
+            if commitID != 'null':
+                self.add_param('poreCov version', commitID + ' (git commitID) - Warning: Not an official release version of poreCov. Use parameter -r to specify a release version.')
+            else:
+                self.add_param('poreCov version', scriptID + ' (local scriptID) - Warning: Not an official release version of poreCov. Use parameter -r to specify a release version.')
+
 
 
     def parse_version_config(self, version_config_file):
@@ -262,7 +274,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
-    parser.add_argument("--porecov_version", help="porecov_version")
+    parser.add_argument("--porecov_version", help="porecov_version", required=True)
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
@@ -275,8 +287,10 @@ if __name__ == '__main__':
 
     # params
     report.parse_version_config(args.version_config)
-    if args.porecov_version:
-        report.add_param('poreCov version', args.porecov_version)  
+
+    report.add_version_param(args.porecov_version)
+
+
     report.add_time_param()
 
 
