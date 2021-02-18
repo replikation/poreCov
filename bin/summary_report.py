@@ -25,13 +25,33 @@ def log(string, newline_before=False):
 
 class SummaryReport():
 
+    report_time = time.localtime()
+    report_name = f'poreCov_summary_report_{time.strftime("%Y-%m-%d--%H-%M-%S", report_time)}'
+    output_filename = report_name + '.html'
+    porecov_params = {}
+    tool_versions = {}
     tabledata = None
     col_descriptions = []
-    tool_versions = None
+
+
+    def init(self, report_name):
+        if report_name is not None:
+            self.report_name = report_name
+            self.output_filename = report_name + '.html'
+        log(f'Created report object: {self.report_name}')
+
+
+    def add_param(self, param_name, param_value):
+        assert param_name not in self.porecov_params, f'Duplicate parameter: {param_name}'
+        self.porecov_params[param_name] = param_value
+        log(f'Added porecov param: {param_name}: {param_value}')
+
+
+    def add_time_param(self):
+        self.add_param('Report created on', f'{time.strftime("%Y-%m-%d %H:%M:%S %Z", self.report_time)}')
 
 
     def parse_version_config(self, version_config_file):
-        
         version_dict = {}
         try:
             with open(version_config_file) as infh:
@@ -42,12 +62,13 @@ class SummaryReport():
                         tcontainer = tinfo.split("'")[1] if "'" in tinfo else tinfo.split('"')[1]
                         tversion = tcontainer.split(':')[1].split('-')[0].lstrip('v')
 
-                        assert tname not in version_dict
+                        assert tname not in version_dict, f'Duplicate tool in version config: {tname}'
                         version_dict[tname] = tversion
         except:
             print(version_dict)
             error(f'Failed to parse version config file: {version_config_file}')
         self.tool_versions = version_dict
+        log('Parsed version config file.')
 
 
     def validate_index(self, t_index):
@@ -71,16 +92,15 @@ class SummaryReport():
 
 
     def write_column_descriptions(self, filehandle):
-
         for desc in self.col_descriptions:
             filehandle.write(f'{desc}<br>\n')
 
 
-    def write_html_report(self, filename='poreCov_summary_report.html'):
+    def write_html_report(self):
         '''Write the html report to a file'''
 
         htmlheader = '''<!DOCTYPE html><html><head>
-        <title>poreCov Summary Report</title>
+        <title>''' + self.report_name + '''</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -145,21 +165,22 @@ class SummaryReport():
         </body></html>
         '''
 
-        log(f'Writing report to {filename} ...')
-        with open(filename, 'w') as outfh:
+        with open(self.output_filename, 'w') as outfh:
             outfh.write(htmlheader)
+            outfh.write('<h1 class="header" id="main-header">poreCov Summary Report</h1>\n')
 
-            outfh.write(f'''
-            <h1 class="header" id="main-header">poreCov Summary Report</h1>
-            Report created on: {time.asctime()}
-            <h2 class="header" id="table-header">Sample overview</h2>
-            ''')
+            # general params
+            outfh.write('<h2 class="header" id="params-header">Run information</h2>\n')
+            for param, value in self.porecov_params.items():
+                outfh.write(param + ': \t' + value + '<br>\n')
+
+            # results table
+            outfh.write('<h2 class="header" id="table-header">Sample results</h2>\n')
             outfh.write(self.tabledata.to_html(classes=['tablestyle'], float_format=lambda f: f'{f:.4f}'))
-
             self.write_column_descriptions(outfh)
 
             outfh.write(htmlfooter)
-
+        log(f'Wrote report to {self.output_filename}.')
 
 
     ### functions to add columns
@@ -241,6 +262,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
+    parser.add_argument("--porecov_version", help="porecov_version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
@@ -251,9 +273,14 @@ if __name__ == '__main__':
     # build report
     report = SummaryReport()
 
+    # params
     report.parse_version_config(args.version_config)
+    if args.porecov_version:
+        report.add_param('poreCov version', args.porecov_version)  
+    report.add_time_param()
 
-    # this determines the order of columns
+
+    # results table, this determines the order of columns
     if args.kraken2_results:
         report.add_kraken2_results(args.kraken2_results)
     if args.pangolin_results:

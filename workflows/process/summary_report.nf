@@ -9,7 +9,7 @@ process summary_report {
         path(kraken2_results)
         path(version_config)
     output:
-	    path("poreCov_summary_report.html")
+	    path("poreCov_summary_report_*.html")
     shell:
     '''
     echo '#sample,num_sarscov2,num_human' > kraken2_results.csv
@@ -21,6 +21,7 @@ process summary_report {
     
     summary_report.py \
         -v !{version_config} \
+        --porecov_version !{workflow.revision} \
         -p !{pangolin_results} \
         -q !{president_results} \
         -n !{nextclade_results} \
