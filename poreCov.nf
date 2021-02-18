@@ -69,7 +69,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw ) {
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
-        exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
+        exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
@@ -216,7 +216,12 @@ workflow {
         }
 
     // Summary output
-        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_wf.out)
+        if (params.fasta || workflow.profile.contains('test_fasta')) {
+            read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
+        } else {
+            read_classification_ch = read_classification_wf.out
+        }
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch)
 
 }
 
