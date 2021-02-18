@@ -31,6 +31,7 @@ class SummaryReport():
     porecov_params = {}
     tool_versions = {}
     tabledata = None
+    col_formatters = {}
     col_descriptions = []
 
 
@@ -39,6 +40,11 @@ class SummaryReport():
             self.report_name = report_name
             self.output_filename = report_name + '.html'
         log(f'Created report object: {self.report_name}')
+
+
+    def add_col_formatter(self, colname, colformatter):
+        assert colname not in self.col_formatters, f'Duplicate column formatter: {colname}'
+        self.col_formatters[colname] = colformatter
 
 
     def add_param(self, param_name, param_value):
@@ -52,15 +58,15 @@ class SummaryReport():
 
 
     def add_version_param(self, porecov_version):
+        warning_msg = 'Warning: Not an official release version of poreCov. Use parameter \'-r\' to specify a release version.'
         revision, commitID, scriptID = porecov_version.split(':')
         if revision != 'null':
             self.add_param('poreCov version', revision)
         else:
             if commitID != 'null':
-                self.add_param('poreCov version', commitID + ' (git commitID) - Warning: Not an official release version of poreCov. Use parameter -r to specify a release version.')
+                self.add_param('poreCov version', commitID + ' (git commitID) - ' + warning_msg)
             else:
-                self.add_param('poreCov version', scriptID + ' (local scriptID) - Warning: Not an official release version of poreCov. Use parameter -r to specify a release version.')
-
+                self.add_param('poreCov version', scriptID + ' (local scriptID) - ' + warning_msg)
 
 
     def parse_version_config(self, version_config_file):
@@ -106,6 +112,10 @@ class SummaryReport():
     def write_column_descriptions(self, filehandle):
         for desc in self.col_descriptions:
             filehandle.write(f'{desc}<br>\n')
+
+
+    def write_html_table(self, filehandle):
+        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
 
 
     def write_html_report(self):
@@ -188,7 +198,7 @@ class SummaryReport():
 
             # results table
             outfh.write('<h2 class="header" id="table-header">Sample results</h2>\n')
-            outfh.write(self.tabledata.to_html(classes=['tablestyle'], float_format=lambda f: f'{f:.4f}'))
+            self.write_html_table(outfh)
             self.write_column_descriptions(outfh)
 
             outfh.write(htmlfooter)
@@ -204,7 +214,7 @@ class SummaryReport():
         res_data = pd.read_csv(pangolin_results, index_col=0)
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['lineage_prob'] = [f'{l} ({p})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
         self.tabledata['Lineage (probability)'] = res_data['lineage_prob']
 
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
@@ -220,10 +230,10 @@ class SummaryReport():
         res_data = pd.read_csv(president_results, index_col=24, sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['identity_mismatches'] = [f'{i} ({m})' for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.tabledata['Nucleotide identity (mismatches)'] = res_data['identity_mismatches']
+        res_data['identity_mismatches'] = [f'{i*100:.2f} ({m})' for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        self.tabledata['% Nucleotide identity (mismatches)'] = res_data['identity_mismatches']
 
-        res_data['percentN_numN'] = [f'{nn/lr*100:.4f} ({nn})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
+        res_data['percentN_numN'] = [f'{nn/lr*100:.2f} ({nn})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
         self.tabledata['%Ns (#Ns)'] = res_data['percentN_numN']
 
         self.add_col_description(f'Nucleotide identity, mismatches and Ns were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
@@ -248,6 +258,17 @@ class SummaryReport():
         self.tabledata['Clade'] = res_data['clade']
         self.tabledata['Mutations'] = res_data['mutations_formatted']
 
+        def spike_markup(field):
+            muts = field.split(', ')
+            mumuts = []
+            for mut in muts:
+                if mut.split(':')[0] == 'S':
+                    mumuts.append('<font color="#C54747"><b>' + mut + '</b></font>')
+                else:
+                    mumuts.append(mut)
+            return ', '.join(mumuts)
+
+        self.add_col_formatter('Mutations', spike_markup)
         self.add_col_description(f'Clade and mutations were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
 
 
