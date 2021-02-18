@@ -215,7 +215,7 @@ workflow {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
 
-    // Summary output
+    // 4. Summary output
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
         } else {

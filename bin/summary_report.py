@@ -58,15 +58,16 @@ class SummaryReport():
 
 
     def add_version_param(self, porecov_version):
+        pc_param = '<a href="https://github.com/replikation/poreCov"><b>poreCov</b></a> version'
         warning_msg = 'Warning: Not an official release version of poreCov. Use parameter \'-r\' to specify a release version.'
         revision, commitID, scriptID = porecov_version.split(':')
         if revision != 'null':
-            self.add_param('poreCov version', revision)
+            self.add_param(pc_param, revision)
         else:
             if commitID != 'null':
-                self.add_param('poreCov version', commitID + ' (git commitID) - ' + warning_msg)
+                self.add_param(pc_param, commitID + ' (git commitID) - ' + warning_msg)
             else:
-                self.add_param('poreCov version', scriptID + ' (local scriptID) - ' + warning_msg)
+                self.add_param(pc_param, scriptID + ' (local scriptID) - ' + warning_msg)
 
 
     def parse_version_config(self, version_config_file):
@@ -295,7 +296,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
-    parser.add_argument("--porecov_version", help="porecov_version", required=True)
+    parser.add_argument("--porecov_version", help="porecov version", required=True)
+    parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
@@ -310,8 +312,9 @@ if __name__ == '__main__':
     report.parse_version_config(args.version_config)
 
     report.add_version_param(args.porecov_version)
-
-
+    if args.primer:
+        report.add_param('ARTIC version', report.tool_versions['artic'])
+        report.add_param('ARTIC Primer version', args.primer)
     report.add_time_param()
 
 
