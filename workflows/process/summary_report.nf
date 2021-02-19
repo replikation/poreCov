@@ -27,7 +27,7 @@ process summary_report {
         for KF in !{kraken2_results}; do
         echo -n "${KF%.kreport}," >> kraken2_results.csv
         NSARS=$(awk -v ORS= '$5=="2697049" {print $3 "," }' $KF)
-        echo ${NSARS:-0} >> kraken2_results.csv
+        echo -n ${NSARS:-0} >> kraken2_results.csv
         NHUM=$(awk '$5=="9606" {print $3}' $KF)
         echo ${NHUM:-0} >> kraken2_results.csv
         done
