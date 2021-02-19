@@ -123,7 +123,7 @@ class SummaryReport():
 
     def write_html_table(self, filehandle):
         filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, \
-            na_rep=f'<font color="{self.color_error_red}">N/A</font>', formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
+            na_rep=f'<font color="{self.color_error_red}">n/a</font>', formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
 
 
     def write_html_report(self):
