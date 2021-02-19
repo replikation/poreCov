@@ -34,6 +34,12 @@ class SummaryReport():
     col_formatters = {}
     col_descriptions = []
 
+    # colors
+    color_spike_markup = '#8a006d'
+    color_good_green = '#046907'
+    color_warn_orange = '#ac7800'
+    color_error_red = '#a50500'
+
 
     def init(self, report_name):
         if report_name is not None:
@@ -103,7 +109,7 @@ class SummaryReport():
         if self.tabledata is None:
             self.tabledata = pd.DataFrame(index=sorted(t_index))
             self.tabledata.columns.name = 'Sample'
-        self.validate_index(t_index)
+        # self.validate_index(t_index)
 
 
     def add_col_description(self, desc):
@@ -116,7 +122,8 @@ class SummaryReport():
 
 
     def write_html_table(self, filehandle):
-        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
+        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, \
+            na_rep=f'<font color="{self.color_error_red}">N/A</font>', formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
 
 
     def write_html_report(self):
@@ -231,11 +238,33 @@ class SummaryReport():
         res_data = pd.read_csv(president_results, index_col=24, sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['identity_mismatches'] = [f'{i*100:.2f} ({m})' for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.tabledata['% Nucleotide identity (mismatches)'] = res_data['identity_mismatches']
+        def identity_markup(value):
+            color = self.color_good_green
+            if value < 99.:
+                color = self.color_warn_orange
+            if value < 90.:
+                # RKI rule
+                color = self.color_error_red
+            return  f'<font color="{color}">{value:.2f}</font>'
 
-        res_data['percentN_numN'] = [f'{nn/lr*100:.2f} ({nn})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
-        self.tabledata['%Ns (#Ns)'] = res_data['percentN_numN']
+        res_data['identity_mismatches'] = [f'{identity_markup(i*100)} ({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        self.tabledata['% identity (mismatches)'] = res_data['identity_mismatches']
+
+        def numN_markup(value):
+            color = self.color_good_green
+            if value > 150:
+                # common values are ~120
+                color = self.color_warn_orange
+            if value > 1495:
+                # this is above 5% RKI rule
+                color = self.color_error_red
+            return  f'<font color="{color}">{value}</font>'
+
+        res_data['numN'] = [f'{numN_markup(nn)}' for nn in res_data['N_bases']]
+        self.tabledata['# Ns'] = res_data['numN']
+
+        # res_data['numN_percentN'] = [f'{numN_markup(nn)} ({nn/lr*100:.2f})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
+        # self.tabledata['#Ns (%Ns)'] = res_data['numN_percentN']
 
         self.add_col_description(f'Nucleotide identity, mismatches and Ns were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
@@ -259,16 +288,20 @@ class SummaryReport():
         self.tabledata['Clade'] = res_data['clade']
         self.tabledata['Mutations'] = res_data['mutations_formatted']
 
+        def clade_markup(field):
+            return f'<b>{field}</b>'
+
         def spike_markup(field):
             muts = field.split(', ')
             mumuts = []
             for mut in muts:
                 if mut.split(':')[0] == 'S':
-                    mumuts.append('<font color="#C54747"><b>' + mut + '</b></font>')
+                    mumuts.append(f'<font color="{self.color_spike_markup}"><b>' + mut + '</b></font>')
                 else:
                     mumuts.append(mut)
             return ', '.join(mumuts)
 
+        self.add_col_formatter('Clade', clade_markup)
         self.add_col_formatter('Mutations', spike_markup)
         self.add_col_description(f'Clade and mutations were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
 
@@ -282,8 +315,27 @@ class SummaryReport():
 
         res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
 
-        self.tabledata['%reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads'] * 100.
-        self.tabledata['%reads human'] = res_data['num_human'] / res_data['total_reads'] * 100.
+        self.tabledata['% reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads'] * 100.
+        self.tabledata['% reads human'] = res_data['num_human'] / res_data['total_reads'] * 100.
+
+        # colors
+        def sars_markup(value):
+            color = self.color_good_green
+            if value < 99.:
+                color = self.color_warn_orange
+            if value < 95.:
+                color = self.color_error_red
+            return  f'<font color="{color}">{value:.2f}</font>'
+        self.add_col_formatter('% reads SARS-CoV-2', sars_markup)
+
+        def human_markup(value):
+            color = self.color_good_green
+            if value > 1.:
+                color = self.color_warn_orange
+            if value > 5.:
+                color = self.color_error_red
+            return  f'<font color="{color}">{value:.2f}</font>'
+        self.add_col_formatter('% reads human', human_markup)
 
         self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
@@ -313,18 +365,21 @@ if __name__ == '__main__':
 
     report.add_version_param(args.porecov_version)
     if args.primer:
-        report.add_param('ARTIC version', report.tool_versions['artic'])
-        report.add_param('ARTIC Primer version', args.primer)
+        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
+        report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
+        report.add_param('ARTIC primer version', args.primer)
+    else:
+        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
     report.add_time_param()
 
 
     # results table, this determines the order of columns
     if args.kraken2_results:
         report.add_kraken2_results(args.kraken2_results)
-    if args.pangolin_results:
-        report.add_pangolin_results(args.pangolin_results)
     if args.president_results:
         report.add_president_results(args.president_results)
+    if args.pangolin_results:
+        report.add_pangolin_results(args.pangolin_results)
     if args.nextclade_results:
         report.add_nextclade_results(args.nextclade_results)
 
