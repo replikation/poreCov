@@ -34,7 +34,7 @@ if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ==~ "[0-9]+") {rki_true()} else if (params.rki) {rki()}
+if ( params.rki ) { rki() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -141,6 +141,19 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
+    // extended input
+    if (params.samples && params.extended) { 
+        extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
+        .splitCsv(header: true, sep: ',')
+        .collectFile() {
+                    row -> [ "extended.csv", row.'_id' + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 
+                    row.'Seq_Reason' + ',' + row.'Sample_Type' + '\n']
+                    }
+    }
+
+
+    else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
+
 
 /************************** 
 * MODULES
@@ -208,7 +221,7 @@ workflow {
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
-        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
+        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch) }
 
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
@@ -251,12 +264,15 @@ def helpMSG() {
                     ${c_dim}[Lineage determination, Quality control]${c_reset}
 
     ${c_yellow}Workflow control ${c_reset}
-    --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
+    --rki           activates RKI style summary for DESH upload
     --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
                     example:
                     _id,Status
                     sample2011XY,barcode01
                     thirdsample,BC02
+    --extended      poreCov looks in the --samples input for these additional headers:
+                    Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
+
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -360,19 +376,6 @@ def rki() {
     log.info """
     RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number (seq. lab) not provided [--rki]
-    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
-    Min Coverage:        20 [ no parameter]
-    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
-    """.stripIndent()
-}
-
-def rki_true() {
-    log.info """
-    RKI output activated:
-    \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number:        $params.rki [--rki]
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
     Min Coverage:        20 [ no parameter]
     Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
