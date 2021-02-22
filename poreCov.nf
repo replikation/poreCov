@@ -78,9 +78,8 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
 **************************/
 
 // fasta input 
-    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_ch = Channel
+    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_raw_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
-        .map { file -> tuple(file.simpleName, file) }
     }
 
 // consensus qc reference input - auto using git default if not specified
@@ -146,9 +145,10 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
 * MODULES
 **************************/
 
+include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
-include { get_fast5 } from './modules/get_fast5_test_data.nf'
+include { split_fasta } from './modules/split_fasta.nf'
 
 /************************** 
 * Workflows
@@ -172,9 +172,9 @@ include { rki_report_wf } from './workflows/provide_rki.nf'
 
 workflow {
     // 0. Test profile data
-        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
-        if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fasta')) { fasta_input_raw_ch =  get_fasta() }
 
     // 1. Reconstruct genomes
         // fast5
@@ -203,6 +203,12 @@ workflow {
         }
 
     // 2. Genome quality, lineages, clades and mutations
+
+        // fasta input
+        if ( params.fasta || workflow.profile.contains('test_fasta' ) ) {
+            fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
+        }
+
         determine_lineage_wf(fasta_input_ch)
         determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
