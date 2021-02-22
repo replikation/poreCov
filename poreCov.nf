@@ -92,16 +92,6 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
         .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
     }
 
-// references input 
-    if (params.references) { reference_input_ch = Channel
-        .fromPath( params.references, checkIfExists: true)
-    }
-
-// metadata input 
-    if (params.metadata) { metadata_input_ch = Channel
-        .fromPath( params.metadata, checkIfExists: true)
-    }
-
 // fastq input or via csv file
     if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { 
         fastq_file_ch = Channel
