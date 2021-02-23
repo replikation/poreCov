@@ -34,7 +34,7 @@ if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ==~ "[0-9]+") {rki_true()} else if (params.rki) {rki()}
+if ( params.rki ) { rki() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -78,9 +78,8 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
 **************************/
 
 // fasta input 
-    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_ch = Channel
+    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_raw_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
-        .map { file -> tuple(file.simpleName, file) }
     }
 
 // consensus qc reference input - auto using git default if not specified
@@ -91,16 +90,6 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
     else if (!params.reference_for_qc) {
         reference_for_qc_input_ch = Channel
         .fromPath(workflow.projectDir + "/data/reference_nCov19/NC_045512.2.fasta")
-    }
-
-// references input 
-    if (params.references) { reference_input_ch = Channel
-        .fromPath( params.references, checkIfExists: true)
-    }
-
-// metadata input 
-    if (params.metadata) { metadata_input_ch = Channel
-        .fromPath( params.metadata, checkIfExists: true)
     }
 
 // fastq input or via csv file
@@ -141,15 +130,29 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
+    // extended input
+    if (params.samples && params.extended) { 
+        extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
+        .splitCsv(header: true, sep: ',')
+        .collectFile() {
+                    row -> [ "extended.csv", row.'_id' + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 
+                    row.'Seq_Reason' + ',' + row.'Sample_Type' + '\n']
+                    }
+    }
+
+
+    else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
+
 
 /************************** 
 * MODULES
 **************************/
 
+include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
-include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
+include { split_fasta } from './modules/split_fasta.nf'
 
 /************************** 
 * Workflows
@@ -174,9 +177,9 @@ include { rki_report_wf } from './workflows/provide_rki.nf'
 
 workflow {
     // 0. Test profile data
-        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
-        if ( workflow.profile.contains('test_fasta')) { fasta_input_ch =  get_fasta().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
+        if ( workflow.profile.contains('test_fasta')) { fasta_input_raw_ch =  get_fasta() }
 
     // 1. Reconstruct genomes
         // fast5
@@ -205,12 +208,18 @@ workflow {
         }
 
     // 2. Genome quality, lineages, clades and mutations
+
+        // fasta input
+        if ( params.fasta || workflow.profile.contains('test_fasta' ) ) {
+            fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
+        }
+
         determine_lineage_wf(fasta_input_ch)
         determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
-        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1]) }
+        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch) }
 
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
@@ -265,12 +274,15 @@ def helpMSG() {
                     ${c_dim}[Lineage determination, Quality control]${c_reset}
 
     ${c_yellow}Workflow control ${c_reset}
-    --rki           5-digit DEMIS identifier of sending laboratory for RKI style summary
+    --rki           activates RKI style summary for DESH upload
     --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
                     example:
                     _id,Status
                     sample2011XY,barcode01
                     thirdsample,BC02
+    --extended      poreCov looks in the --samples input for these additional headers:
+                    Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
+
 
     ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
@@ -289,7 +301,8 @@ def helpMSG() {
 
     ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
-    --threshold             global pairwise sequence identity threshold [default: ${params.threshold}] 
+    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
+    --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
     ${c_yellow}Options:${c_reset}
     --cores         amount of cores for a process (local use) [default: $params.cores]
@@ -372,20 +385,10 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output activated:
-    \033[2mOutput stored at:       $params.output/$params.rkidir  
-    DEMIS number (seq. lab) not provided [--rki]
-    Min Identity to NC_045512.2:   $params.threshold [--threshold]
-    Min Coverage:           20 [ no parameter]
-    Proportion cutoff N:    [ no parameter]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
-    """.stripIndent()
-}
-
-def rki_true() {
-    log.info """
-    RKI output activated:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
-    DEMIS number:        $params.rki [--rki]\u001B[0m
+    Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
+    Min Coverage:        20 [ no parameter]
+    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
