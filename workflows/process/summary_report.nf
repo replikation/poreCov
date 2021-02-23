@@ -7,8 +7,7 @@ process summary_report {
         path(president_results)
         path(nextclade_results)
         file(kraken2_results)
-        file(alignment_files)
-        file(alignment_indexes)
+        file(coverage_plot)
     output:
 	    path("poreCov_summary_report_*.html")
 
@@ -32,8 +31,6 @@ process summary_report {
         NHUM=$(awk '$5=="9606" {print $3}' $KF)
         echo ${NHUM:-0} >> kraken2_results.csv
         done
-        
-        fastcov.py -l -o coverages.png !{alignment_files}
 
         summary_report.py \
             -v !{version_config} \

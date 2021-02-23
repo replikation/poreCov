@@ -218,7 +218,7 @@ class SummaryReport():
             self.write_column_descriptions(outfh)
 
             if self.coverage_plot_b64 is not None:
-                self.write_html_coverage_plot()
+                self.write_html_coverage_plot(outfh)
 
             outfh.write(htmlfooter)
         log(f'Wrote report to {self.output_filename}.')
@@ -386,7 +386,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
     parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
-    parser.add_argument("-c", "coverage_plot", help="coverage plot")
+    parser.add_argument("-c", "--coverage_plot", help="coverage plot")
     args = parser.parse_args()
 
 
