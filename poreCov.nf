@@ -149,6 +149,7 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { get_fast5 } from './modules/get_fast5_test_data.nf'
+include { align_to_reference } from './modules/align_to_reference.nf'
 
 /************************** 
 * Workflows
@@ -200,7 +201,7 @@ workflow {
 
             read_qc_wf(fastq_input_ch)
             read_classification_wf(fastq_input_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_input_ch)
+            fasta_input_ch = artic_ncov_wf(fastq_input_ch)[0]
         }
 
     // 2. Genome quality, lineages, clades and mutations
@@ -218,10 +219,13 @@ workflow {
     // 4. Summary output
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
+            alignments_ch = Channel.from( ['deactivated'] )
         } else {
             read_classification_ch = read_classification_wf.out
+            alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch))
         }
-        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch)
+
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch, alignments_ch)
 
 }
 

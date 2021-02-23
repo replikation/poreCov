@@ -7,6 +7,7 @@ Generate a summary report for multiple samples
 
 import sys
 import time
+import base64
 import argparse
 import pandas as pd
 
@@ -33,6 +34,9 @@ class SummaryReport():
     tabledata = None
     col_formatters = {}
     col_descriptions = []
+    coverage_plot_b64 = None
+    coverage_plot_filetype = None
+
 
     # colors
     color_spike_markup = '#8a006d'
@@ -213,6 +217,9 @@ class SummaryReport():
             self.write_html_table(outfh)
             self.write_column_descriptions(outfh)
 
+            if self.coverage_plot_b64 is not None:
+                self.write_html_coverage_plot()
+
             outfh.write(htmlfooter)
         log(f'Wrote report to {self.output_filename}.')
 
@@ -350,6 +357,21 @@ class SummaryReport():
         self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
 
+    def add_coverage_plot(self, coverage_plot, filetype='png'):
+        data = open(coverage_plot, 'rb').read() # read bytes from file
+        data_base64 = base64.b64encode(data)  # encode to base64 (bytes)
+        self.coverage_plot_b64 = data_base64.decode()
+        self.coverage_plot_filetype = filetype
+
+
+    def write_html_coverage_plot(self, filehandle):
+        if self.coverage_plot_b64 is None:
+            error('Coverage plot not added beforehand.')
+        filehandle.write(f'''<h2>Coverage plot</h2>
+        <img src="data:image/{self.coverage_plot_filetype};base64,{self.coverage_plot_b64}">
+        ''')
+
+
 ###
 
 if __name__ == '__main__':
@@ -364,6 +386,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
     parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
+    parser.add_argument("-c", "coverage_plot", help="coverage plot")
     args = parser.parse_args()
 
 
@@ -392,6 +415,8 @@ if __name__ == '__main__':
         report.add_pangolin_results(args.pangolin_results)
     if args.nextclade_results:
         report.add_nextclade_results(args.nextclade_results)
+    if args.coverage_plot:
+        report.add_coverage_plot(args.coverage_plot)
 
     
     report.write_html_report()

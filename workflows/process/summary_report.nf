@@ -1,13 +1,14 @@
 process summary_report {
         publishDir "${params.output}/", mode: 'copy'
-        // re-use pangolin container for pandas dependency
-        label 'pangolin'
+        label 'fastcov'
     input:
+        path(version_config)
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
         file(kraken2_results)
-        path(version_config)
+        file(alignment_files)
+        file(alignment_indexes)
     output:
 	    path("poreCov_summary_report_*.html")
 
@@ -32,6 +33,8 @@ process summary_report {
         echo ${NHUM:-0} >> kraken2_results.csv
         done
         
+        fastcov.py -l -o coverages.png !{alignment_files}
+
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
@@ -39,6 +42,7 @@ process summary_report {
             -p !{pangolin_results} \
             -q !{president_results} \
             -n !{nextclade_results} \
-            -k kraken2_results.csv
+            -k kraken2_results.csv \
+            -c coverages.png
         '''
 }
