@@ -105,11 +105,15 @@ class SummaryReport():
 
 
     def check_and_init_tabledata(self, t_index):
-        '''If tabledata is None, initialize it now, then assert that an index matches the tabledata index.'''
+        '''If tabledata is None, initialize it now. Then check if all new index values are in the existing table.
+        Thus adding the results with the most samples (kraken2) first is required.'''
         if self.tabledata is None:
             self.tabledata = pd.DataFrame(index=sorted(t_index))
             self.tabledata.columns.name = 'Sample'
-        # self.validate_index(t_index)
+            self.add_col_description(f'Missing values (\'<font color="{self.color_error_red}">n/a</font>\') denote cases where the respective program could not determine a result.')
+        else:
+            for item in t_index:
+                assert item in self.tabledata.index, f'Index not found in existing table: {item}'
 
 
     def add_col_description(self, desc):
@@ -263,10 +267,16 @@ class SummaryReport():
         res_data['numN'] = [f'{numN_markup(nn)}' for nn in res_data['N_bases']]
         self.tabledata['# Ns'] = res_data['numN']
 
-        # res_data['numN_percentN'] = [f'{numN_markup(nn)} ({nn/lr*100:.2f})' for lr, nn in zip(res_data['length_reference'], res_data['N_bases'])]
-        # self.tabledata['#Ns (%Ns)'] = res_data['numN_percentN']
+        self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
-        self.add_col_description(f'Nucleotide identity, mismatches and Ns were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
+        # QC pass column
+        for sample in self.tabledata.index:
+            if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
+                self.tabledata.loc[sample, 'QC pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+            else:
+                self.tabledata.loc[sample, 'QC pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+
+        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german)')
 
     
     def add_nextclade_results(self, nextclade_results):
