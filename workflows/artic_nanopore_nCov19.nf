@@ -21,4 +21,5 @@ workflow artic_ncov_wf {
 
     emit:   
         assembly
+        filter_fastq_by_length.out
 }

@@ -4,11 +4,11 @@ process krona {
     input:
         tuple val(name), path(kraken2), path(kreport)
   	output:
-    	tuple val(name), file("${name}.html")
+    	tuple val(name), file("${name}_krona.html")
   	script:
     """
     cat ${kreport} | cut -f 3,5 > file.krona
     ktImportTaxonomy file.krona -m 1
-    mv *.html ${name}.html
+    mv *.html ${name}_krona.html
     """
 }

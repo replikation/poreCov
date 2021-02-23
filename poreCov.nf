@@ -69,7 +69,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw ) {
         exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
     if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
-        exit 1, "To much inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
+        exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 }
@@ -151,6 +151,7 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
 include { get_fast5 } from './modules/get_fast5_test_data.nf'
 include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
+include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 
 /************************** 
@@ -162,6 +163,7 @@ include { basecalling_wf } from './workflows/basecalling.nf'
 include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
+include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
@@ -202,7 +204,7 @@ workflow {
 
             read_qc_wf(fastq_input_ch)
             read_classification_wf(fastq_input_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_input_ch)
+            fasta_input_ch = artic_ncov_wf(fastq_input_ch)[0]
         }
 
     // 2. Genome quality, lineages, clades and mutations
@@ -222,6 +224,18 @@ workflow {
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
         }
+
+    // 4. Summary output
+        if (params.fasta || workflow.profile.contains('test_fasta')) {
+            read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
+            alignments_ch = Channel.from( ['deactivated'] )
+        } else {
+            read_classification_ch = read_classification_wf.out
+            alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch))
+        }
+
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch, alignments_ch)
+
 }
 
 /*************  
