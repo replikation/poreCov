@@ -191,7 +191,7 @@ workflow {
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
 
             read_classification_wf(fastq_from5_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)
+            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0]
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
@@ -365,7 +365,7 @@ def defaultMSG(){
 def v1200_MSG() {
     log.info """
     1200 bp amplicon scheme is used [--primerV V1200]
-    \033[2m  --minLength set to 250bp
+    \033[2m  --minLength set to 900bp
       --maxLength set to 1500bp\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()

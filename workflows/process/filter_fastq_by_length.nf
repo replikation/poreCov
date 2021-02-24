@@ -10,11 +10,11 @@ process filter_fastq_by_length {
     """
     case "${reads}" in
         *.fastq.gz ) 
-            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 250' | sed 's/\\t/\\n/g' |\
+            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 900' | sed 's/\\t/\\n/g' |\
                 awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
         *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 250' | sed 's/\\t/\\n/g' |\
+            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 900' | sed 's/\\t/\\n/g' |\
             awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
     esac
