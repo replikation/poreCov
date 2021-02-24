@@ -230,7 +230,7 @@ class SummaryReport():
         log(f'Adding Pangolin results ...')
         # column names:
         # taxon,lineage,probability,pangoLEARN_version,status,note
-        res_data = pd.read_csv(pangolin_results, index_col=0)
+        res_data = pd.read_csv(pangolin_results, index_col='taxon')
         self.check_and_init_tabledata(res_data.index)
 
         res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
@@ -246,7 +246,7 @@ class SummaryReport():
         #	Date	Matches	Mismatches	N_bases	Ngap	acgt_bases	file_in_query	file_in_refiupac_bases	length_query
         #	length_reference	non_upac_bases	qc_all_valid	qc_post_align_pass_threshold	qc_post_aligned	qc_post_aligned_all_valid
         # 	qc_valid_length	qc_valid_nucleotides	qc_valid_number_n	query_description	query_index	query_name	reference_name
-        res_data = pd.read_csv(president_results, index_col=24, sep='\t')
+        res_data = pd.read_csv(president_results, index_col='query_name', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
         def identity_markup(value):
@@ -297,7 +297,7 @@ class SummaryReport():
         # 	qc.mixedSites.totalMixedSites	qc.privateMutations.cutoff	qc.privateMutations.excess	qc.privateMutations.score
         # 	qc.privateMutations.status	qc.privateMutations.total	qc.snpClusters.clusteredSNPs	qc.snpClust$rs.score
         # 	qc.snpClusters.status	qc.snpClusters.totalSNPs	errors
-        res_data = pd.read_csv(nextclade_results, index_col=0, sep='\t')
+        res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') for m in res_data['aaSubstitutions']]
