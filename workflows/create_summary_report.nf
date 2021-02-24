@@ -17,11 +17,13 @@ workflow create_summary_report_wf {
         kraken2_results = kraken2.map {it -> it[2]}.collect()
         alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
-            coverage_plot = Channel.from( ['deactivated'] )
+            coverage_plots = Channel.from( ['deactivated'] ).collect()
         } else {
-            coverage_plot = plot_coverages(alignments.map{it -> it[0]}.collect(), alignments.map{it -> it[1]}.collect())
+            // sort by sample name, group in lists of 6, collect the grouped plots
+            coverage_plots = plot_coverages(alignments.map{it -> it[0]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6), \
+                                            alignments.map{it -> it[1]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6)).collect()
         }
 
-        summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plot)
+        summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots)
 
 } 

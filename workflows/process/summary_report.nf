@@ -7,7 +7,7 @@ process summary_report {
         path(president_results)
         path(nextclade_results)
         file(kraken2_results)
-        file(coverage_plot)
+        file(coverage_plots)
     output:
 	    path("poreCov_summary_report_*.html")
 
@@ -40,6 +40,6 @@ process summary_report {
             -q !{president_results} \
             -n !{nextclade_results} \
             -k kraken2_results.csv \
-            -c coverages.png
+            -c $(echo !{coverage_plots} | tr ' ' ',')
         '''
 }

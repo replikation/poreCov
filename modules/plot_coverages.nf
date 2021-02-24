@@ -5,9 +5,9 @@ process plot_coverages {
         path(alignment_files)
 		path(index_files)
 	output:
-	    path('coverages.png')
-	script:
-	"""
-    fastcov.py -l -o coverages.png ${alignment_files}
-	"""
+	    path("coverages_*.png")
+	shell:
+	'''
+    fastcov.py -l -o coverages_$(echo !{alignment_files} | tr ' ' '_').png !{alignment_files}
+	'''
 }

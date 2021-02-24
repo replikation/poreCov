@@ -34,8 +34,8 @@ class SummaryReport():
     tabledata = None
     col_formatters = {}
     col_descriptions = []
-    coverage_plot_b64 = None
-    coverage_plot_filetype = None
+    coverage_plots_b64 = []
+    coverage_plots_filetype = []
 
 
     # colors
@@ -217,7 +217,7 @@ class SummaryReport():
             self.write_html_table(outfh)
             self.write_column_descriptions(outfh)
 
-            if self.coverage_plot_b64 is not None:
+            if self.coverage_plots_b64 is not []:
                 self.write_html_coverage_plot(outfh)
 
             outfh.write(htmlfooter)
@@ -357,19 +357,27 @@ class SummaryReport():
         self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
 
-    def add_coverage_plot(self, coverage_plot, filetype='png'):
-        data = open(coverage_plot, 'rb').read() # read bytes from file
-        data_base64 = base64.b64encode(data)  # encode to base64 (bytes)
-        self.coverage_plot_b64 = data_base64.decode()
-        self.coverage_plot_filetype = filetype
+    def add_coverage_plots(self, coverage_plots):
+        for coverage_plot in sorted(coverage_plots.split(',')):
+            data = open(coverage_plot, 'rb').read() # read bytes from file
+            data_base64 = base64.b64encode(data)  # encode to base64 (bytes)
+            self.coverage_plots_b64.append(data_base64.decode())
+            ftype = coverage_plot.rsplit('.',1)[-1]
+            if ftype not in ('png', 'jpg', 'jpeg', 'gif'):
+                log(f'WARNING: {coverage_plot} does not look like a good image filetype.')
+            self.coverage_plots_filetype.append(ftype)
 
 
     def write_html_coverage_plot(self, filehandle):
-        if self.coverage_plot_b64 is None:
-            error('Coverage plot not added beforehand.')
-        filehandle.write(f'''<h2>Coverage plot</h2>
-        <img src="data:image/{self.coverage_plot_filetype};base64,{self.coverage_plot_b64}">
+        if self.coverage_plots_b64 is []:
+            error('No coverage plot was added beforehand.')
+        filehandle.write('''<h2>Coverage plots</h2>
+        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2)<br>
         ''')
+        for plot, ftype in zip(self.coverage_plots_b64, self.coverage_plots_filetype):
+            filehandle.write(
+            f'''<img src="data:image/{ftype};base64,{plot}"><br>
+            ''')
 
 
 ###
@@ -386,7 +394,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
     parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
-    parser.add_argument("-c", "--coverage_plot", help="coverage plot")
+    parser.add_argument("-c", "--coverage_plots", help="coverage plots (comma separated)")
     args = parser.parse_args()
 
 
@@ -415,8 +423,8 @@ if __name__ == '__main__':
         report.add_pangolin_results(args.pangolin_results)
     if args.nextclade_results:
         report.add_nextclade_results(args.nextclade_results)
-    if args.coverage_plot:
-        report.add_coverage_plot(args.coverage_plot)
+    if args.coverage_plots:
+        report.add_coverage_plots(args.coverage_plots)
 
     
     report.write_html_report()
