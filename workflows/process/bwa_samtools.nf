@@ -9,7 +9,7 @@ process bwa_samtools {
     script:
         """
         bwa index ${fasta}
-        bwa mem ${fasta} ${reads} | samtools view -bS - | samtools sort -@ ${task.cpus} - > ${name}.sorted.bam
+        bwa mem -t ${task.cpus} ${fasta} ${reads} | samtools view -bS - | samtools sort -@ ${task.cpus} - > ${name}.sorted.bam
         samtools index -@ ${task.cpus} ${name}.sorted.bam
 
         samtools mpileup ${name}.sorted.bam | awk '{print \$1"\\t"\$2"\\t"\$4}' > coverage_info.txt
