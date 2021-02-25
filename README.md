@@ -94,7 +94,7 @@ Table of Contents
 # just do basecalling and assembly with QC / lineage:
 nextflow run replikation/poreCov --dir fast5/ -r 0.6.1 \
     --cores 32 -profile local,docker \
-    -- rki 12345 # provides RKI output based on current QC statments 12345 = your demis number
+    --rki 12345 # provides RKI output based on current QC statments 12345 = your demis number
 
 # use "combined" fastq.gz files (one sample per fastq.gz file)
 nextflow run replikation/poreCov -r 0.6.1 \
