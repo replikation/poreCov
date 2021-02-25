@@ -1,5 +1,5 @@
-
 process split_fasta {
+  	label 'fastcov'
 	input:
 		path(fastq_input_raw)
 	output:
