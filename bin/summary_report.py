@@ -300,7 +300,7 @@ class SummaryReport():
         res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['mutations_formatted'] = [m.replace(',', ', ') for m in res_data['aaSubstitutions']]
+        res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
 
         self.tabledata['Clade'] = res_data['clade']
         self.tabledata['Mutations'] = res_data['mutations_formatted']
