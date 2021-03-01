@@ -365,7 +365,7 @@ def defaultMSG(){
 def v1200_MSG() {
     log.info """
     1200 bp amplicon scheme is used [--primerV V1200]
-    \033[2m  --minLength set to 900bp
+    \033[2m  --minLength set to 500bp
       --maxLength set to 1500bp\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()

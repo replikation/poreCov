@@ -115,13 +115,12 @@ json_file_closing() {
 ###   Start of script    ####
 #############################
 
-while getopts 'i:p:n:q:r:v:h' flag; do
+while getopts 'i:p:n:q:v:h' flag; do
     case "${flag}" in
       i) HASHID_INPUT="${OPTARG}" ;;
       p) PANGOLIN_INPUT="${OPTARG}" ;;
       n) NEXTCLADE_INPUT="${OPTARG}" ;;
       q) PRESIDENT_INPUT="${OPTARG}" ;;
-      r) SEQU_LAB_ID="${OPTARG}" ;;
       v) PRIMER_INPUT="${OPTARG}" ;;
       h) usage;;
       *) usage
@@ -132,7 +131,6 @@ done
 # json head
 json_file_opening; hashid_parsing
 # inputfields
-if [ ! -z "${SEQU_LAB_ID}" ]; then sequ_lab_parsing ; fi
 if [ ! -z "${PRIMER_INPUT}" ]; then primer_parsing ; fi
 status_parsing; lineage_parsing; clade_parsing; mutation_parsing;
 analysing_date_parsing; rki_valid_parsing; rki_submit_parsing; nucleotide_identity_parsing;
