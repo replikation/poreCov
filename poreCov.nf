@@ -257,39 +257,35 @@ def helpMSG() {
 
     ${c_yellow}Inputs (choose one):${c_reset}
     --dir           one fast5 dir of a nanopore run containing multiple samples (barcoded);
-                    to run single sample (no barcodes) add [--single]
-                    ${c_dim}(not implemented yet) autorename barcodes via [--barcodeIDs rename.csv] 
-                        Per line: 01;samplename${c_reset}
-                    ${c_dim}[basecalling - demultiplexing - nCov genome reconstruction]${c_reset}
+                    to skip demultiplexing (no barcodes) add the flag [--single]
+                    ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
     --fastq         one fastq or fastq.gz file per sample or
                     multiple file-samples: --fastq 'sample_*.fasta.gz'
-                    ${c_dim}[nCov genome reconstruction]${c_reset}
-    --fastq_raw     raw directory from guppy with basecalled .fastq files
-                    --fastq_raw 'basecalls/'
-                    add --single flag if you dont have barcodes (single sample)
-                    ${c_dim}[nCov genome reconstruction]${c_reset}
+                    ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fasta         direct input of genomes, one file per genome
-                    ${c_dim}[Lineage determination, Quality control]${c_reset}
+    --fastq_raw     the fastq_pass dir from the (guppy) bascalling
+                    --fastq_raw 'fastq_pass/'
+                    to skip demultiplexing (no barcodes) add the flag [--single]
+                    ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
+
+    --fasta         direct input of genomes - supports multi-fasta file(s)
+                    ${c_dim}[Lineage + Reports]${c_reset}
 
     ${c_yellow}Workflow control ${c_reset}
     --rki           activates RKI style summary for DESH upload
-    --samples       .csv input (header: _id,Status) to rename barcodes (Status) by sample ids (_id)
-                    example:
-                    _id,Status
-                    sample2011XY,barcode01
-                    thirdsample,BC02
-    --extended      poreCov looks in the --samples input for these additional headers:
+    --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
+                    Status,_id,
+                    barcode01,sample2011XY
+                    BC02,thirdsample_run
+    --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
 
-
     ${c_yellow}Parameters - Basecalling${c_reset}
-    --localguppy    use a native guppy installation instead of a gpu-guppy-docker 
-                    native guppy installation is used by default for singularity or conda
-    --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
-                    try this if to many barcodes are unclassified (check the pycoQC report)
+    --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
     --guppy_cpu     use cpus instead of gpus for basecalling
+    --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
+                    try this if to many barcodes are unclassified (beware - results might not be trustworthy)
 
     ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -329,8 +325,6 @@ def helpMSG() {
        test_fasta
        test_fastq
        test_fast5
-
-    Alternatively provide your own configuration via -c ownconfig.config 
     """.stripIndent()
 }
 
