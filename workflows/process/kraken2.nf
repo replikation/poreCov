@@ -26,5 +26,8 @@ process kraken2 {
     esac
 
     kraken2 --db kraken_db --threads ${task.cpus} --output ${name}.kraken.out --report ${name}.kreport masked_reads.fastq
+    
+    # clean up unpacked database to save disk space on local execution
+    rm -r kraken_db
     """
   }
