@@ -217,7 +217,7 @@ class SummaryReport():
             self.write_html_table(outfh)
             self.write_column_descriptions(outfh)
 
-            if self.coverage_plots_b64 is not []:
+            if self.coverage_plots_b64 != []:
                 self.write_html_coverage_plot(outfh)
 
             outfh.write(htmlfooter)
@@ -291,7 +291,7 @@ class SummaryReport():
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
 
         self.tabledata['Clade'] = res_data['clade']
-        self.tabledata['Mutations'] = res_data['mutations_formatted']
+        self.tabledata[f'Mutations (<font color="{self.color_spike_markup}"><b>on spike</b></font>)'] = res_data['mutations_formatted']
 
         def clade_markup(field):
             return f'<b>{field}</b>'
