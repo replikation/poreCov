@@ -289,9 +289,11 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
+        res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
 
         self.tabledata['Clade'] = res_data['clade']
         self.tabledata[f'Mutations (<font color="{self.color_spike_markup}"><b>on spike</b></font>)'] = res_data['mutations_formatted']
+        self.tabledata[f'Deletions (<font color="{self.color_spike_markup}"><b>on spike</b></font>)'] = res_data['deletions_formatted']
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -308,7 +310,8 @@ class SummaryReport():
 
         self.add_col_formatter('Clade', clade_markup)
         self.add_col_formatter('Mutations', spike_markup)
-        self.add_col_description(f'Clade and mutations were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
+        self.add_col_formatter('Deletions', spike_markup)
+        self.add_col_description(f'Clade, mutations and deletions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
 
 
     def add_kraken2_results(self, kraken2_results):
