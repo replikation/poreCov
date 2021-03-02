@@ -52,6 +52,10 @@ class SummaryReport():
         log(f'Created report object: {self.report_name}')
 
 
+    def add_column(self, column_name, pandas_series):
+        self.tabledata[column_name] = pandas_series
+
+
     def add_col_formatter(self, colname, colformatter):
         assert colname not in self.col_formatters, f'Duplicate column formatter: {colname}'
         self.col_formatters[colname] = colformatter
@@ -234,8 +238,8 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
-        self.tabledata['Lineage<br>(probability)'] = res_data['lineage_prob']
 
+        self.add_column('Lineage<br>(probability)', res_data['lineage_prob'])
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
             
 
@@ -268,17 +272,18 @@ class SummaryReport():
             return f'<font color="{color}">{percN:.2f}</font> (<font color="{color}">{nn}</font>)'
 
         res_data['percN_numN'] = [percN_markup(nn, ql) for nn, ql in zip(res_data['N_bases'], res_data['length_query'])]
-        self.tabledata['%Ns<br>(#Ns)'] = res_data['percN_numN']
 
+        self.add_column('%Ns<br>(#Ns)', res_data['percN_numN'])
         self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
         # QC pass column
         for sample in self.tabledata.index:
             if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
-                self.tabledata.loc[sample, 'QC<br>pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+                res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
             else:
-                self.tabledata.loc[sample, 'QC<br>pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+                res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
 
+        self.add_column('QC<br>pass', res_data['QC_pass'])
         self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german)')
 
     
@@ -291,11 +296,11 @@ class SummaryReport():
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
 
-        self.tabledata['Clade'] = res_data['clade']
+        self.add_column('Clade', res_data['clade'])
         muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        self.tabledata[muts_colname] = res_data['mutations_formatted']
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        self.tabledata[dels_colname] = res_data['deletions_formatted']
+        self.add_column(muts_colname, res_data['mutations_formatted'])
+        self.add_column(dels_colname, res_data['deletions_formatted'])
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -351,10 +356,14 @@ class SummaryReport():
         res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
-        self.tabledata[perc_sarscov_colname] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
+        
+        res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
-        self.tabledata[perc_human_colname] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
+        res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
             for n_human, n_total in zip(res_data['num_human'], res_data['total_reads'])]
+
+        self.add_column(perc_sarscov_colname, res_data['n_sars'])
+        self.add_column(perc_human_colname, res_data['n_human'])
 
         self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
