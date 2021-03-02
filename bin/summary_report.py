@@ -217,7 +217,7 @@ class SummaryReport():
             self.write_html_table(outfh)
             self.write_column_descriptions(outfh)
 
-            if self.coverage_plots_b64 is not []:
+            if self.coverage_plots_b64 != []:
                 self.write_html_coverage_plot(outfh)
 
             outfh.write(htmlfooter)
@@ -234,18 +234,14 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
-        self.tabledata['Lineage (probability)'] = res_data['lineage_prob']
+        self.tabledata['Lineage<br>(probability)'] = res_data['lineage_prob']
 
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
             
 
     def add_president_results(self, president_results):
         log(f'Adding President results ...')
-        # column names:
-        # ACGT Nucleotide identity	ACGT Nucleotide identity (ignoring Ns)	ACGT Nucleotide identity (ignoring non-ACGTNs)
-        #	Date	Matches	Mismatches	N_bases	Ngap	acgt_bases	file_in_query	file_in_refiupac_bases	length_query
-        #	length_reference	non_upac_bases	qc_all_valid	qc_post_align_pass_threshold	qc_post_aligned	qc_post_aligned_all_valid
-        # 	qc_valid_length	qc_valid_nucleotides	qc_valid_number_n	query_description	query_index	query_name	reference_name
+
         res_data = pd.read_csv(president_results, index_col='query_name', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
@@ -259,51 +255,47 @@ class SummaryReport():
             return  f'<font color="{color}">{value:.2f}</font>'
 
         res_data['identity_mismatches'] = [f'{identity_markup(i*100)} ({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.tabledata['% identity (mismatches)'] = res_data['identity_mismatches']
+        self.tabledata['%identity<br>(mismatches)'] = res_data['identity_mismatches']
 
-        def numN_markup(value):
+        def percN_markup(nn, ql):
             color = self.color_good_green
-            if value > 150:
-                # common values are ~120
+            percN = nn/ql*100
+            if percN > 1.:
                 color = self.color_warn_orange
-            if value > 1495:
-                # this is above 5% RKI rule
+            if percN > 5.:
+                # 5% RKI rule
                 color = self.color_error_red
-            return  f'<font color="{color}">{value}</font>'
+            return f'<font color="{color}">{percN:.2f}</font> (<font color="{color}">{nn}</font>)'
 
-        res_data['numN'] = [f'{numN_markup(nn)}' for nn in res_data['N_bases']]
-        self.tabledata['# Ns'] = res_data['numN']
+        res_data['percN_numN'] = [percN_markup(nn, ql) for nn, ql in zip(res_data['N_bases'], res_data['length_query'])]
+        self.tabledata['%Ns<br>(#Ns)'] = res_data['percN_numN']
 
         self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
         # QC pass column
         for sample in self.tabledata.index:
             if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
-                self.tabledata.loc[sample, 'QC pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+                self.tabledata.loc[sample, 'QC<br>pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
             else:
-                self.tabledata.loc[sample, 'QC pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+                self.tabledata.loc[sample, 'QC<br>pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
 
         self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german)')
 
     
     def add_nextclade_results(self, nextclade_results):
         log(f'Adding Nextclade results ...')
-        # column names:
-        # seqName	clade	qc.overallScore	qc.overallStatus	totalGaps	totalInsertions	totalMissing	totalMutations
-        # 	totalNonACGTNs	totalPcrPrimerChanges	substitutions	deletions	insertions	missing	nonACGTNs	pcrPrimerChanges
-        # 	aaSubstitutions	totalAminoacidSubstitutions	aaDeletions	totalAminoacidDeletions	alignmentEnd	alignmentScore
-        # 	alignmentStart	qc.missingData.missingDataThreshold	qc.missingData.score	qc.missingData.status
-        # 	qc.missingData.totalMissing	qc.mixedSites.mixedSitesThreshold	qc.mixedSites.score	qc.mixedSites.status
-        # 	qc.mixedSites.totalMixedSites	qc.privateMutations.cutoff	qc.privateMutations.excess	qc.privateMutations.score
-        # 	qc.privateMutations.status	qc.privateMutations.total	qc.snpClusters.clusteredSNPs	qc.snpClust$rs.score
-        # 	qc.snpClusters.status	qc.snpClusters.totalSNPs	errors
+
         res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
+        res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
 
         self.tabledata['Clade'] = res_data['clade']
-        self.tabledata['Mutations'] = res_data['mutations_formatted']
+        muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        self.tabledata[muts_colname] = res_data['mutations_formatted']
+        dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        self.tabledata[dels_colname] = res_data['deletions_formatted']
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -319,8 +311,9 @@ class SummaryReport():
             return ', '.join(mumuts)
 
         self.add_col_formatter('Clade', clade_markup)
-        self.add_col_formatter('Mutations', spike_markup)
-        self.add_col_description(f'Clade and mutations were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
+        self.add_col_formatter(muts_colname, spike_markup)
+        self.add_col_formatter(dels_colname, spike_markup)
+        self.add_col_description(f'Clade, mutations and deletions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
 
 
     def add_kraken2_results(self, kraken2_results):
@@ -330,10 +323,13 @@ class SummaryReport():
         res_data = pd.read_csv(kraken2_results, index_col=0)
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
-
-        self.tabledata['% reads SARS-CoV-2'] = res_data['num_sarscov2'] / res_data['total_reads'] * 100.
-        self.tabledata['% reads human'] = res_data['num_human'] / res_data['total_reads'] * 100.
+        def readable_si_units(number):
+            e3steps = 0
+            units = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+            while number > 1e3 and e3steps < 8:
+                e3steps += 1
+                number /= 1e3
+            return f'{number:.1f}{units[e3steps]}' if e3steps > 0 else f'{number:.0f}'
 
         # colors
         def sars_markup(value):
@@ -343,7 +339,6 @@ class SummaryReport():
             if value < 95.:
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
-        self.add_col_formatter('% reads SARS-CoV-2', sars_markup)
 
         def human_markup(value):
             color = self.color_good_green
@@ -352,7 +347,14 @@ class SummaryReport():
             if value > 5.:
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
-        self.add_col_formatter('% reads human', human_markup)
+
+        res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
+        perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
+        perc_human_colname = '%reads<br>human<br>(#reads)'
+        self.tabledata[perc_sarscov_colname] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
+            for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
+        self.tabledata[perc_human_colname] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
+            for n_human, n_total in zip(res_data['num_human'], res_data['total_reads'])]
 
         self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
