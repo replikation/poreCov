@@ -87,29 +87,30 @@ Table of Contents
 
 * poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.6.1`)
 * poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
-* add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.6.1 -profile test_fastq,local,singularity`
+* add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.7.0 -profile test_fastq,local,singularity`
+* as nextflow manages the code you can update your "local poreCov" code via: `nextflow pull replikation/poreCov`
+
 ## Example commands
 
 ```bash
-# just do basecalling and assembly with QC / lineage:
-nextflow run replikation/poreCov --dir fast5/ -r 0.6.1 \
+# Start from basecalling:
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.0 \
     --cores 32 -profile local,docker \
-    --rki 12345 # provides RKI output based on current QC statments 12345 = your demis number
+    --rki
 
-# use "combined" fastq.gz files (one sample per fastq.gz file)
-nextflow run replikation/poreCov -r 0.6.1 \
+# add multiple "combined" fastq.gz files (one sample per .fastq.gz file)
+nextflow run replikation/poreCov -r 0.7.0 \
     --fastq 'samples/samplenumber_*.fastq.gz' \
     --cores 32  -profile local,docker
 
-# use a "guppy output" via fastq_raw
-# this dir schould contain "barcode??/" dirs   e.g. guppy_out/barcode01/ guppy_out/barcode02/
-nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -r 0.6.1 \
+# use the fastq_pass dir from "guppy/basecalling output"
+# this dir schould contain "barcode??/" dirs   e.g. fastq_pass/barcode01/ fastq_pass/barcode02/
+nextflow run replikation/poreCov --fastq_pass 'guppy_out/' -r 0.7.0 \
     --cores 32  -profile local,docker
 
-# utilize and adjust parallel computing for local computing
-# on a 30 cores/processor machine this would spawn 5x 6 core processes in parallel
-nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker -r 0.6.1 \
-    --cores 6 --max_cores 30 
+# rename barcodes automatically by providing an input file, also using another primer scheme
+nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
+    --extended --primerV V1200 --output results --rki -profile local,docker
 ```
 
 ## Help
@@ -117,7 +118,7 @@ nextflow run replikation/poreCov --fastq_raw 'guppy_out/' -profile local,docker 
 * workflows and inputs are described here:
 
 ```bash
-nextflow run replikation/poreCov --help
+nextflow run replikation/poreCov -r 0.7.0 --help
 # or git clone and
 ./poreCov.nf --help
 ```

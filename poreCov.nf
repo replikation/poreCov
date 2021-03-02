@@ -33,7 +33,7 @@ exit 1
 if ( params.help ) { exit 0, helpMSG() }
     defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
-if ( params.dir || workflow.profile.contains('test_fast5') ) { basecalling() }
+if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
 if ( params.rki ) { rki() }
 
 // profile helps
@@ -66,9 +66,9 @@ if ( params.rki ) { rki() }
 
 // params help
 if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
-    if (!params.fasta &&  !params.dir &&  !params.fastq &&  !params.fastq_raw ) {
-        exit 1, "input missing, use [--fasta] [--fastq] or [--dir]"}
-    if ((params.fasta && ( params.fastq || params.dir )) || ( params.fastq && params.dir )) {
+    if (!params.fasta &&  !params.fast5 &&  !params.fastq &&  !params.fastq_pass ) {
+        exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]"}
+    if ((params.fasta && ( params.fastq || params.fast5 )) || ( params.fastq && params.fast5 )) {
         exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
@@ -106,21 +106,21 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
     }
 
 // fastq raw input direct from basecalling
-    if (params.fastq_raw && params.list && !workflow.profile.contains('test_fastq')) { 
+    if (params.fastq_pass && params.list && !workflow.profile.contains('test_fastq')) { 
         fastq_dir_ch = Channel
-        .fromPath( params.fastq_raw, checkIfExists: true )
+        .fromPath( params.fastq_pass, checkIfExists: true )
         .splitCsv()
         .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true, type: 'dir')] }
     }
-    else if (params.fastq_raw && !workflow.profile.contains('test_fastq')) { 
+    else if (params.fastq_pass && !workflow.profile.contains('test_fastq')) { 
         fastq_dir_ch = Channel
-        .fromPath( params.fastq_raw, checkIfExists: true, type: 'dir')
+        .fromPath( params.fastq_pass, checkIfExists: true, type: 'dir')
         .map { file -> tuple(file.simpleName, file) }
     }
 
 // dir input
-    if (params.dir && !workflow.profile.contains('test_fast5')) { dir_input_ch = Channel
-        .fromPath( params.dir, checkIfExists: true, type: 'dir')
+    if (params.fast5 && !workflow.profile.contains('test_fast5')) { dir_input_ch = Channel
+        .fromPath( params.fast5, checkIfExists: true, type: 'dir')
         .map { file -> tuple(file.name, file) }
     }
 
@@ -183,7 +183,7 @@ workflow {
 
     // 1. Reconstruct genomes
         // fast5
-        if (params.dir || workflow.profile.contains('test_fast5')) {
+        if (params.fast5 || workflow.profile.contains('test_fast5')) {
             basecalling_wf(dir_input_ch)
             
             // rename barcodes
@@ -194,9 +194,9 @@ workflow {
             fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0]
         }
         // fastq input via dir and or files
-        if ( (params.fastq || params.fastq_raw) || workflow.profile.contains('test_fastq')) { 
-            if (params.fastq_raw && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
-            if (!params.fastq_raw && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
+        if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
+            if (params.fastq_pass && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
+            if (!params.fastq_pass && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
 
             // raname barcodes bases on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} }
@@ -256,7 +256,7 @@ def helpMSG() {
     nextflow run replikation/poreCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
 
     ${c_yellow}Inputs (choose one):${c_reset}
-    --dir           one fast5 dir of a nanopore run containing multiple samples (barcoded);
+    --fast5           one fast5 dir of a nanopore run containing multiple samples (barcoded);
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
@@ -264,8 +264,8 @@ def helpMSG() {
                     multiple file-samples: --fastq 'sample_*.fasta.gz'
                     ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fastq_raw     the fastq_pass dir from the (guppy) bascalling
-                    --fastq_raw 'fastq_pass/'
+    --fastq_pass    the fastq_pass dir from the (guppy) bascalling
+                    --fastq_pass 'fastq_pass/'
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
