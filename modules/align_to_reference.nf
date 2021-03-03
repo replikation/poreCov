@@ -1,5 +1,4 @@
 process align_to_reference {
-    publishDir "${params.output}/bams/", mode: 'copy'
     label 'minimap2'
     input:
         tuple(val(name), path(fastq_file), path(fasta_reference))
