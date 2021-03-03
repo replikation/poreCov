@@ -7,9 +7,9 @@ process align_to_reference {
         tuple(path("${name}.bam"), path("${name}.bam.bai"))
     script:
     """
-	set -o pipefail
+    set -o pipefail
 	
-    minimap2 -ax map-ont ${fasta_reference} ${fastq_file} | samtools view -hbF4 | samtools sort > ${name}.bam
+    minimap2 -t ${task.cpus} -ax map-ont ${fasta_reference} ${fastq_file} | samtools view -hbF4 | samtools sort -@ ${task.cpus} > ${name}.bam
 
     samtools index ${name}.bam
     """
