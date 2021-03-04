@@ -353,7 +353,7 @@ class SummaryReport():
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
 
-        res_data['total_reads'] = res_data['num_sarscov2'] + res_data['num_human']
+        res_data['total_reads'] = res_data['num_unclassified'] + res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
         

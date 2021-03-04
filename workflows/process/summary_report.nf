@@ -23,9 +23,11 @@ process summary_report {
         '''
     else
         '''
-        echo '#sample,num_sarscov2,num_human' > kraken2_results.csv
+        echo '#sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
         echo -n "${KF%.kreport}," >> kraken2_results.csv
+        NUNCLASS=$(awk -v ORS= '$5=="0" {print $3 "," }' $KF)
+        echo -n ${NUNCLASS:-0} >> kraken2_results.csv
         NSARS=$(awk -v ORS= '$5=="2697049" {print $3 "," }' $KF)
         echo -n ${NSARS:-0} >> kraken2_results.csv
         NHUM=$(awk '$5=="9606" {print $3}' $KF)
