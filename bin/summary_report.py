@@ -238,7 +238,7 @@ class SummaryReport():
         res_data = pd.read_csv(pangolin_results, index_col='taxon')
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
 
         self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
@@ -259,7 +259,7 @@ class SummaryReport():
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
 
-        res_data['identity_mismatches'] = [f'{identity_markup(i*100)} ({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        res_data['identity_mismatches'] = [f'{identity_markup(i*100)}<br>({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
         self.add_column('%ident.<br>(mis-<br>matches)', res_data['identity_mismatches'])
 
         def percN_markup(nn, ql):
@@ -270,7 +270,7 @@ class SummaryReport():
             if percN > 5.:
                 # 5% RKI rule
                 color = self.color_error_red
-            return f'<font color="{color}">{percN:.2f}</font> (<font color="{color}">{nn}</font>)'
+            return f'<font color="{color}">{percN:.2f}</font><br>(<font color="{color}">{nn}</font>)'
 
         res_data['percN_numN'] = [percN_markup(nn, ql) for nn, ql in zip(res_data['N_bases'], res_data['length_query'])]
 
@@ -373,11 +373,11 @@ class SummaryReport():
         perc_human_colname = '%reads<br>human<br>(#reads)'
         perc_unclass_colname = '%reads<br>unclass.<br>(#reads)'
         
-        res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
+        res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)}<br>({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
-        res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
+        res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)}<br>({readable_si_units(n_human)})" \
             for n_human, n_total in zip(res_data['num_human'], res_data['total_reads'])]
-        res_data['n_unclass'] = [f"{unclass_markup(n_unclass/n_total*100.)} ({readable_si_units(n_unclass)})" \
+        res_data['n_unclass'] = [f"{unclass_markup(n_unclass/n_total*100.)}<br>({readable_si_units(n_unclass)})" \
             for n_unclass, n_total in zip(res_data['num_unclassified'], res_data['total_reads'])]
 
         self.add_column(perc_sarscov_colname, res_data['n_sars'])
@@ -414,9 +414,9 @@ class SummaryReport():
         if self.all_QC_pass is None:
             error('all_QC_pass was not set before calling add_all_QC_pass_info().')
         if self.all_QC_pass:
-            self.add_param('Samples QC', f'<font color="{self.color_good_green}"><b>All samples passed QC criteria.</b></font><br>')
+            self.add_param('Assembly QC', f'<font color="{self.color_good_green}"><b>All samples passed QC criteria.</b></font><br>')
         else:
-            self.add_param('Samples QC', f'<font color="{self.color_error_red}"><b>At least one sample failed QC criteria.</b></font><br>')
+            self.add_param('Assembly QC', f'<font color="{self.color_error_red}"><b>At least one sample failed QC criteria.</b></font><br>')
 
 
 ###
