@@ -239,7 +239,7 @@ class SummaryReport():
 
         res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
 
-        self.add_column('Lineage<br>(probability)', res_data['lineage_prob'])
+        self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
             
 
@@ -259,7 +259,7 @@ class SummaryReport():
             return  f'<font color="{color}">{value:.2f}</font>'
 
         res_data['identity_mismatches'] = [f'{identity_markup(i*100)} ({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.tabledata['%identity<br>(mismatches)'] = res_data['identity_mismatches']
+        self.add_column('%ident.<br>(mis-<br>matches)', res_data['identity_mismatches'])
 
         def percN_markup(nn, ql):
             color = self.color_good_green
@@ -364,7 +364,7 @@ class SummaryReport():
         res_data['total_reads'] = res_data['num_unclassified'] + res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
-        perc_unclass_colname = '%reads<br>unclassified<br>(#reads)'
+        perc_unclass_colname = '%reads<br>unclass.d<br>(#reads)'
         
         res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
