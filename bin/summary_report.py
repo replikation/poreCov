@@ -250,16 +250,16 @@ class SummaryReport():
         res_data = pd.read_csv(president_results, index_col='query_name', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        def identity_markup(value):
+        def identity_markup(ident, mismatches):
             color = self.color_good_green
-            if value < 99.:
+            if ident < 99.:
                 color = self.color_warn_orange
-            if value < 90.:
+            if ident < 90.:
                 # RKI rule
                 color = self.color_error_red
-            return  f'<font color="{color}">{value:.2f}</font>'
+            return  f'<font color="{color}">{ident:.2f}</font><br>(<font color="{color}">{int(mismatches)}</font>)'
 
-        res_data['identity_mismatches'] = [f'{identity_markup(i*100)}<br>({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        res_data['identity_mismatches'] = [identity_markup(i*100, m) if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
         self.add_column('%ident.<br>(mis-<br>matches)', res_data['identity_mismatches'])
 
         def percN_markup(nn, ql):
@@ -401,8 +401,8 @@ class SummaryReport():
     def write_html_coverage_plot(self, filehandle):
         if self.coverage_plots_b64 is []:
             error('No coverage plot was added beforehand.')
-        filehandle.write('''<h2>Coverage plots</h2>
-        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2)<br>
+        filehandle.write(f'''<h2>Coverage plots</h2>
+        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2) determined with <a href="https://github.com/lh3/minimap2">minimap2</a> (v{self.tool_versions["fastcov"]}) and <a href="https://github.com/RaverJay/fastcov">fastcov</a> (v{self.tool_versions["fastcov"]}).<br>
         ''')
         for plot, ftype in zip(self.coverage_plots_b64, self.coverage_plots_filetype):
             filehandle.write(
