@@ -339,9 +339,9 @@ class SummaryReport():
         # colors
         def sars_markup(value):
             color = self.color_good_green
-            if value < 99.:
-                color = self.color_warn_orange
             if value < 95.:
+                color = self.color_warn_orange
+            if value < 90.:
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
 
