@@ -78,7 +78,7 @@ analysing_date_parsing() {
 
 # if True write true else false
 rki_valid_parsing() {
-    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 16 -d $'\t' | tr '[:upper:]' '[:lower:]')
+    RKI_VALID=$(tail -n +2 $PRESIDENT_INPUT | cut -f 8 -d $'\t' | tr '[:upper:]' '[:lower:]')
     echo "    \"RKI_Valid\": \"$RKI_VALID\"," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
@@ -89,8 +89,8 @@ rki_submit_parsing() {
 }
 
 nucleotide_identity_parsing() {
-    ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 1 -d $'\t')
-    ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 2 -d $'\t')
+    ACGT_NUCLEOTIDE_IDENTITY=$(tail -n +2 $PRESIDENT_INPUT | cut -f 5 -d $'\t')
+    ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS=$(tail -n +2 $PRESIDENT_INPUT | cut -f 6 -d $'\t')
     if [ $RKI_VALID == "true" ]; then
         echo "    \"ACGT_Nucleotide_Identity\": $ACGT_NUCLEOTIDE_IDENTITY," >> "$HASHID_INPUT"_mongodb_report.json
         echo "    \"ACGT_Nucleotide_Identity_ignoring_Ns\": $ACGT_NUCLEOTIDE_IDENTITY_IGNORING_NS," >> "$HASHID_INPUT"_mongodb_report.json
@@ -98,12 +98,12 @@ nucleotide_identity_parsing() {
 }
 
 ambiguous_bases_parsing() {
-    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 8 -d $'\t')
+    AMBIGUOUS_BASES=$(tail -n +2 $PRESIDENT_INPUT | cut -f 19 -d $'\t')
     echo "    \"Ambiguous_Bases\": $AMBIGUOUS_BASES," >> "$HASHID_INPUT"_mongodb_report.json
 }
 
 query_length_parsing() {
-    QUERY_LENGTH=$(tail -n +2 $PRESIDENT_INPUT | cut -f 13 -d $'\t')
+    QUERY_LENGTH=$(tail -n +2 $PRESIDENT_INPUT | cut -f 20 -d $'\t')
     echo "    \"Query_Length\": $QUERY_LENGTH" >> "$HASHID_INPUT"_mongodb_report.json  #removed "," here, because itś the last entry
 }
 
