@@ -36,6 +36,7 @@ class SummaryReport():
     col_descriptions = []
     coverage_plots_b64 = []
     coverage_plots_filetype = []
+    all_QC_pass = None
 
 
     # colors
@@ -71,7 +72,7 @@ class SummaryReport():
         self.add_param('Report created', f'{time.strftime("%Y-%m-%d %H:%M:%S %Z", self.report_time)}')
 
 
-    def add_version_param(self, porecov_version):
+    def add_poreCov_version_param(self, porecov_version):
         pc_param = '<a href="https://github.com/replikation/poreCov"><b>poreCov</b></a> version'
         warning_msg = 'Warning: Not an official release version of poreCov. Use parameter \'-r\' to specify a release version.'
         revision, commitID, scriptID = porecov_version.split(':')
@@ -134,7 +135,7 @@ class SummaryReport():
 
 
     def write_html_table(self, filehandle):
-        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, \
+        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, bold_rows=False, \
             na_rep=f'<font color="{self.color_error_red}">n/a</font>', formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
 
 
@@ -284,7 +285,13 @@ class SummaryReport():
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
 
         self.add_column('QC<br>pass', res_data['QC_pass'])
-        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german)')
+        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
+
+        # check if all samples passed QC
+        if res_data['qc_all_valid'].all():
+            self.all_QC_pass = True
+        else:
+            self.all_QC_pass = False
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -364,7 +371,7 @@ class SummaryReport():
         res_data['total_reads'] = res_data['num_unclassified'] + res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
-        perc_unclass_colname = '%reads<br>unclass.d<br>(#reads)'
+        perc_unclass_colname = '%reads<br>unclass.<br>(#reads)'
         
         res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
@@ -403,6 +410,15 @@ class SummaryReport():
             ''')
 
 
+    def add_all_QC_pass_info(self):
+        if self.all_QC_pass is None:
+            error('all_QC_pass was not set before calling add_all_QC_pass_info().')
+        if self.all_QC_pass:
+            self.add_param('Samples QC', f'<font color="{self.color_good_green}"><b>All samples passed QC criteria.</b></font><br>')
+        else:
+            self.add_param('Samples QC', f'<font color="{self.color_error_red}"><b>At least one sample failed QC criteria.</b></font><br>')
+
+
 ###
 
 if __name__ == '__main__':
@@ -421,20 +437,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    # build report
+    ### build report
     report = SummaryReport()
-
-    # params
     report.parse_version_config(args.version_config)
-
-    report.add_version_param(args.porecov_version)
-    if args.primer:
-        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
-        report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
-        report.add_param('ARTIC primer version', args.primer)
-    else:
-        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
-    report.add_time_param()
 
 
     # results table, this determines the order of columns
@@ -448,6 +453,26 @@ if __name__ == '__main__':
         report.add_nextclade_results(args.nextclade_results)
     if args.coverage_plots:
         report.add_coverage_plots(args.coverage_plots)
+
+    # metadata
+
+    # total QC status
+    report.add_all_QC_pass_info()
+
+    # params
+    report.add_poreCov_version_param(args.porecov_version)
+
+    # check run type
+    if args.primer:
+        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
+        report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
+        report.add_param('ARTIC primer version', args.primer)
+    else:
+        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
+    report.add_time_param()
+
+
+
 
     
     report.write_html_report()
