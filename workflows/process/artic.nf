@@ -1,6 +1,7 @@
 process artic {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
+        publishDir "${params.output}/${params.genomedir}/all_consensi/", mode: 'copy', pattern: "*.consensus.fasta"
         errorStrategy 'ignore'
     input:
         tuple val(name), path(reads), path(external_scheme)
