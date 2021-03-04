@@ -152,13 +152,13 @@ class SummaryReport():
         }
 
         .content {
-        max-width: 1600px;
+        max-width: 1700px;
         margin: auto;
         }
 
         table.tablestyle {
         background-color: #FFFFFF;
-        width: 1600px;
+        width: 1700px;
         text-align: center;
         border-collapse: collapse;
         }
@@ -353,19 +353,31 @@ class SummaryReport():
                 color = self.color_error_red
             return  f'<font color="{color}">{value:.2f}</font>'
 
+        def unclass_markup(value):
+            color = self.color_good_green
+            if value > 5.:
+                color = self.color_warn_orange
+            if value > 10.:
+                color = self.color_error_red
+            return  f'<font color="{color}">{value:.2f}</font>'
+
         res_data['total_reads'] = res_data['num_unclassified'] + res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
+        perc_unclass_colname = '%reads<br>unclassified<br>(#reads)'
         
         res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
         res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
             for n_human, n_total in zip(res_data['num_human'], res_data['total_reads'])]
+        res_data['n_unclass'] = [f"{unclass_markup(n_unclass/n_total*100.)} ({readable_si_units(n_unclass)})" \
+            for n_unclass, n_total in zip(res_data['num_unclassified'], res_data['total_reads'])]
 
         self.add_column(perc_sarscov_colname, res_data['n_sars'])
         self.add_column(perc_human_colname, res_data['n_human'])
+        self.add_column(perc_unclass_colname, res_data['n_unclass'])
 
-        self.add_col_description(f'Read classification was determined with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
+        self.add_col_description(f'Read classification was determined against a database containing only SARS-CoV-2 and human with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
 
     def add_coverage_plots(self, coverage_plots):
