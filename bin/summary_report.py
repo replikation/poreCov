@@ -223,10 +223,10 @@ class SummaryReport():
             # general
             outfh.write('<h2 class="header" id="params-header">Run information</h2>\n')
             for info, value in self.sample_QC_info.items():
-                outfh.write(info + ': \t' + value + '<br>\n')
+                outfh.write(value + '<br>\n')
             outfh.write('<br>\n')
             for param, value in self.porecov_params.items():
-                outfh.write(param + ': \t' + value + '<br>\n')
+                outfh.write(param + ': ' + value + '<br>\n')
 
             # results table
             outfh.write('<h2 class="header" id="table-header">Sample results</h2>\n')
@@ -446,19 +446,29 @@ class SummaryReport():
                 if status == 'pass':
                     n_passrealsamples += 1
 
+        # add status info
         if n_passrealsamples > 0:
-            self.add_QC_info('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples}/{n_realsamples} passed QC criteria.</b></font>')
+            self.add_QC_info('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples} / {n_realsamples} of samples passed QC criteria.</b></font>')
         if n_passrealsamples < n_realsamples:
-            self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples}/{n_realsamples} failed QC criteria.</b></font>')
+            self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples} / {n_realsamples} of samples failed QC criteria.</b></font>')
         if n_controls > 0:
             if n_passcontrols < n_controls:
-                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols}/{n_controls} of control samples failed QC criteria.</b></font>')
+                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples failed QC criteria.</b></font>')
             if n_passcontrols > 0:
-                self.add_QC_info('Failed controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols}/{n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
+                self.add_QC_info('Bad controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols} / {n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
+        else:
+            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>Could not automatically detect a negative control sample.</b></font>')
+        patterns = "'" + "', '".join(self.control_string_patterns) + "'"
+        self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
-            patterns = "'" + "' ,'".join(self.control_string_patterns) + "'"
-            self.add_QC_info('Note', f'Samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
+        # mark control samples
+        def mark_controls(sample_name):
+            if self.check_if_control(sample_name):
+                return sample_name + f'<br>(<font color="{self.color_spike_markup}">considered control</font>)'
+            else:
+                return sample_name
 
+        self.tabledata.index = [mark_controls(sn) for sn in self.tabledata.index]
 
 ###
 
