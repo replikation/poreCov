@@ -36,6 +36,9 @@ class SummaryReport():
     col_descriptions = []
     coverage_plots_b64 = []
     coverage_plots_filetype = []
+    sample_QC_status = None
+    sample_QC_info = {}
+    control_string_patterns = ['control', 'negative']
 
 
     # colors
@@ -67,11 +70,17 @@ class SummaryReport():
         log(f'Added porecov param: {param_name}: {param_value}')
 
 
+    def add_QC_info(self, info_name, info_value):
+        assert info_name not in self.sample_QC_info, f'Duplicate QC info: {info_name}'
+        self.sample_QC_info[info_name] = info_value
+        log(f'Added QC info: {info_name}: {info_value}')
+
+
     def add_time_param(self):
         self.add_param('Report created', f'{time.strftime("%Y-%m-%d %H:%M:%S %Z", self.report_time)}')
 
 
-    def add_version_param(self, porecov_version):
+    def add_poreCov_version_param(self, porecov_version):
         pc_param = '<a href="https://github.com/replikation/poreCov"><b>poreCov</b></a> version'
         warning_msg = 'Warning: Not an official release version of poreCov. Use parameter \'-r\' to specify a release version.'
         revision, commitID, scriptID = porecov_version.split(':')
@@ -134,7 +143,7 @@ class SummaryReport():
 
 
     def write_html_table(self, filehandle):
-        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, \
+        filehandle.write(self.tabledata.to_html(classes=['tablestyle'], escape=False, bold_rows=False, \
             na_rep=f'<font color="{self.color_error_red}">n/a</font>', formatters=self.col_formatters, float_format=lambda f: f'{f:.2f}'))
 
 
@@ -211,10 +220,13 @@ class SummaryReport():
             outfh.write(htmlheader)
             outfh.write('<h1 class="header" id="main-header">poreCov Summary Report</h1>\n')
 
-            # general params
+            # general
             outfh.write('<h2 class="header" id="params-header">Run information</h2>\n')
+            for info, value in self.sample_QC_info.items():
+                outfh.write(value + '<br>\n')
+            outfh.write('<br>\n')
             for param, value in self.porecov_params.items():
-                outfh.write(param + ': \t' + value + '<br>\n')
+                outfh.write(param + ': ' + value + '<br>\n')
 
             # results table
             outfh.write('<h2 class="header" id="table-header">Sample results</h2>\n')
@@ -237,9 +249,9 @@ class SummaryReport():
         res_data = pd.read_csv(pangolin_results, index_col='taxon')
         self.check_and_init_tabledata(res_data.index)
 
-        res_data['lineage_prob'] = [f'<b>{l}</b> ({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
 
-        self.add_column('Lineage<br>(probability)', res_data['lineage_prob'])
+        self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
         self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
             
 
@@ -249,17 +261,17 @@ class SummaryReport():
         res_data = pd.read_csv(president_results, index_col='query_name', sep='\t')
         self.check_and_init_tabledata(res_data.index)
 
-        def identity_markup(value):
+        def identity_markup(ident, mismatches):
             color = self.color_good_green
-            if value < 99.:
+            if ident < 99.:
                 color = self.color_warn_orange
-            if value < 90.:
+            if ident < 90.:
                 # RKI rule
                 color = self.color_error_red
-            return  f'<font color="{color}">{value:.2f}</font>'
+            return  f'<font color="{color}">{ident:.2f}</font><br>(<font color="{color}">{int(mismatches)}</font>)'
 
-        res_data['identity_mismatches'] = [f'{identity_markup(i*100)} ({int(m)})' if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.tabledata['%identity<br>(mismatches)'] = res_data['identity_mismatches']
+        res_data['identity_mismatches'] = [identity_markup(i*100, m) if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
+        self.add_column('%identity<br>(mis-<br>matches)', res_data['identity_mismatches'])
 
         def percN_markup(nn, ql):
             color = self.color_good_green
@@ -269,22 +281,28 @@ class SummaryReport():
             if percN > 5.:
                 # 5% RKI rule
                 color = self.color_error_red
-            return f'<font color="{color}">{percN:.2f}</font> (<font color="{color}">{nn}</font>)'
+            return f'<font color="{color}">{percN:.2f}</font><br>(<font color="{color}">{nn}</font>)'
 
         res_data['percN_numN'] = [percN_markup(nn, ql) for nn, ql in zip(res_data['N_bases'], res_data['length_query'])]
 
         self.add_column('%Ns<br>(#Ns)', res_data['percN_numN'])
         self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
-        # QC pass column
+        # QC pass column & save QC status
+        if self.sample_QC_status is not None:
+            error('sample_QC_status is already set when running add_president_results')
+        self.sample_QC_status = {}
+
         for sample in self.tabledata.index:
             if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+                self.sample_QC_status[sample] = 'pass'
             else:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+                self.sample_QC_status[sample] = 'fail'
 
         self.add_column('QC<br>pass', res_data['QC_pass'])
-        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german)')
+        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -364,13 +382,13 @@ class SummaryReport():
         res_data['total_reads'] = res_data['num_unclassified'] + res_data['num_sarscov2'] + res_data['num_human']
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
-        perc_unclass_colname = '%reads<br>unclassified<br>(#reads)'
+        perc_unclass_colname = '%reads<br>unclass.<br>(#reads)'
         
-        res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)} ({readable_si_units(n_sars)})" \
+        res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)}<br>({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
-        res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)} ({readable_si_units(n_human)})" \
+        res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)}<br>({readable_si_units(n_human)})" \
             for n_human, n_total in zip(res_data['num_human'], res_data['total_reads'])]
-        res_data['n_unclass'] = [f"{unclass_markup(n_unclass/n_total*100.)} ({readable_si_units(n_unclass)})" \
+        res_data['n_unclass'] = [f"{unclass_markup(n_unclass/n_total*100.)}<br>({readable_si_units(n_unclass)})" \
             for n_unclass, n_total in zip(res_data['num_unclassified'], res_data['total_reads'])]
 
         self.add_column(perc_sarscov_colname, res_data['n_sars'])
@@ -394,14 +412,63 @@ class SummaryReport():
     def write_html_coverage_plot(self, filehandle):
         if self.coverage_plots_b64 is []:
             error('No coverage plot was added beforehand.')
-        filehandle.write('''<h2>Coverage plots</h2>
-        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2)<br>
+        filehandle.write(f'''<h2>Coverage plots</h2>
+        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2) determined with <a href="https://github.com/lh3/minimap2">minimap2</a> (v{self.tool_versions["minimap2"]}) and <a href="https://github.com/RaverJay/fastcov">fastcov</a> (v{self.tool_versions["fastcov"]}).<br>
         ''')
         for plot, ftype in zip(self.coverage_plots_b64, self.coverage_plots_filetype):
             filehandle.write(
             f'''<img src="data:image/{ftype};base64,{plot}"><br>
             ''')
 
+
+    def check_if_control(self, sample_name):
+        for pattern in self.control_string_patterns:
+            if pattern in sample_name:
+                return True
+        return False
+
+
+    def add_QC_status_info(self):
+        if self.sample_QC_status is None:
+            error('sample_QC_status was not set before calling add_QC_status_info().')
+
+        n_realsamples = 0
+        n_controls = 0
+        n_passrealsamples = 0
+        n_passcontrols = 0
+        for sample, status in self.sample_QC_status.items():
+            if self.check_if_control(sample):
+                n_controls += 1
+                if status == 'pass':
+                    n_passcontrols += 1
+            else:
+                n_realsamples += 1
+                if status == 'pass':
+                    n_passrealsamples += 1
+
+        # add status info
+        if n_passrealsamples > 0:
+            self.add_QC_info('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples} / {n_realsamples} of samples passed QC criteria.</b></font>')
+        if n_passrealsamples < n_realsamples:
+            self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples} / {n_realsamples} of samples failed QC criteria.</b></font>')
+        if n_controls > 0:
+            if n_passcontrols < n_controls:
+                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples failed QC criteria.</b></font>')
+            if n_passcontrols > 0:
+                self.add_QC_info('Bad controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols} / {n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
+        else:
+            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>Could not automatically detect a negative control sample.</b></font>')
+        patterns = "'" + "', '".join(self.control_string_patterns) + "'"
+        self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
+
+        # mark control samples
+        def mark_controls(sample_name):
+            if self.check_if_control(sample_name):
+                return sample_name + f'<br>(<font color="{self.color_spike_markup}">considered control</font>)'
+            else:
+                return sample_name
+
+        self.tabledata.index = [mark_controls(sn) for sn in self.tabledata.index]
 
 ###
 
@@ -421,20 +488,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    # build report
+    ### build report
     report = SummaryReport()
-
-    # params
     report.parse_version_config(args.version_config)
-
-    report.add_version_param(args.porecov_version)
-    if args.primer:
-        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
-        report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
-        report.add_param('ARTIC primer version', args.primer)
-    else:
-        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
-    report.add_time_param()
 
 
     # results table, this determines the order of columns
@@ -448,6 +504,26 @@ if __name__ == '__main__':
         report.add_nextclade_results(args.nextclade_results)
     if args.coverage_plots:
         report.add_coverage_plots(args.coverage_plots)
+
+    # metadata
+
+    # total QC status
+    report.add_QC_status_info()
+
+    # params
+    report.add_poreCov_version_param(args.porecov_version)
+
+    # check run type
+    if args.primer:
+        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
+        report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
+        report.add_param('ARTIC primer version', args.primer)
+    else:
+        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
+    report.add_time_param()
+
+
+
 
     
     report.write_html_report()
