@@ -402,7 +402,7 @@ class SummaryReport():
         if self.coverage_plots_b64 is []:
             error('No coverage plot was added beforehand.')
         filehandle.write(f'''<h2>Coverage plots</h2>
-        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2) determined with <a href="https://github.com/lh3/minimap2">minimap2</a> (v{self.tool_versions["fastcov"]}) and <a href="https://github.com/RaverJay/fastcov">fastcov</a> (v{self.tool_versions["fastcov"]}).<br>
+        Coverage of all samples against the SARS-CoV-2 reference genome (NC_045512.2) determined with <a href="https://github.com/lh3/minimap2">minimap2</a> (v{self.tool_versions["minimap2"]}) and <a href="https://github.com/RaverJay/fastcov">fastcov</a> (v{self.tool_versions["fastcov"]}).<br>
         ''')
         for plot, ftype in zip(self.coverage_plots_b64, self.coverage_plots_filetype):
             filehandle.write(
