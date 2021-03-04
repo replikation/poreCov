@@ -36,7 +36,8 @@ class SummaryReport():
     col_descriptions = []
     coverage_plots_b64 = []
     coverage_plots_filetype = []
-    all_QC_pass = None
+    sample_QC_status = None
+    control_string_patterns = ['control', 'negative']
 
 
     # colors
@@ -277,21 +278,21 @@ class SummaryReport():
         self.add_column('%Ns<br>(#Ns)', res_data['percN_numN'])
         self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
-        # QC pass column
+        # QC pass column & save QC status
+        if self.sample_QC_status is not None:
+            error('sample_QC_status is already set when running add_president_results')
+        self.sample_QC_status = {}
+
         for sample in self.tabledata.index:
             if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+                self.sample_QC_status[sample] = 'pass'
             else:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+                self.sample_QC_status[sample] = 'fail'
 
         self.add_column('QC<br>pass', res_data['QC_pass'])
         self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
-
-        # check if all samples passed QC
-        if res_data['qc_all_valid'].all():
-            self.all_QC_pass = True
-        else:
-            self.all_QC_pass = False
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -410,13 +411,43 @@ class SummaryReport():
             ''')
 
 
-    def add_all_QC_pass_info(self):
-        if self.all_QC_pass is None:
-            error('all_QC_pass was not set before calling add_all_QC_pass_info().')
-        if self.all_QC_pass:
-            self.add_param('Assembly QC', f'<font color="{self.color_good_green}"><b>All samples passed QC criteria.</b></font><br>')
-        else:
-            self.add_param('Assembly QC', f'<font color="{self.color_error_red}"><b>At least one sample failed QC criteria.</b></font><br>')
+    def check_if_control(self, sample_name):
+        for pattern in self.control_string_patterns:
+            if pattern in sample_name:
+                return True
+        return False
+
+
+    def add_QC_status_info(self):
+        if self.sample_QC_status is None:
+            error('sample_QC_status was not set before calling add_QC_status_info().')
+
+        n_realsamples = 0
+        n_controls = 0
+        n_passrealsamples = 0
+        n_passcontrols = 0
+        for sample, status in self.sample_QC_status.items():
+            if self.check_if_control(sample):
+                n_controls += 1
+                if status == 'pass':
+                    n_passcontrols += 1
+            else:
+                n_realsamples += 1
+                if status == 'pass':
+                    n_passrealsamples += 1
+
+        if n_passrealsamples > 0:
+            self.add_param('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples}/{n_realsamples} passed QC criteria.</b></font>')
+        if n_passrealsamples < n_realsamples:
+            self.add_param('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples}/{n_realsamples} failed QC criteria.</b></font>')
+        if n_controls > 0:
+            if n_passcontrols < n_controls:
+                self.add_param('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols}/{n_controls} of control samples failed QC criteria.</b></font>')
+            if n_passcontrols > 0:
+                self.add_param('Failed controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols}/{n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
+
+            patterns = "'" + "' ,'".join(self.control_string_patterns) + "'"
+            self.add_param('Note', f'Samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
 
 ###
@@ -457,7 +488,7 @@ if __name__ == '__main__':
     # metadata
 
     # total QC status
-    report.add_all_QC_pass_info()
+    report.add_QC_status_info()
 
     # params
     report.add_poreCov_version_param(args.porecov_version)
