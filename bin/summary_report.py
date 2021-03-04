@@ -37,6 +37,7 @@ class SummaryReport():
     coverage_plots_b64 = []
     coverage_plots_filetype = []
     sample_QC_status = None
+    sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
 
 
@@ -67,6 +68,12 @@ class SummaryReport():
         assert param_name not in self.porecov_params, f'Duplicate parameter: {param_name}'
         self.porecov_params[param_name] = param_value
         log(f'Added porecov param: {param_name}: {param_value}')
+
+
+    def add_QC_info(self, info_name, info_value):
+        assert info_name not in self.sample_QC_info, f'Duplicate QC info: {info_name}'
+        self.sample_QC_info[info_name] = info_value
+        log(f'Added QC info: {info_name}: {info_value}')
 
 
     def add_time_param(self):
@@ -213,8 +220,11 @@ class SummaryReport():
             outfh.write(htmlheader)
             outfh.write('<h1 class="header" id="main-header">poreCov Summary Report</h1>\n')
 
-            # general params
+            # general
             outfh.write('<h2 class="header" id="params-header">Run information</h2>\n')
+            for info, value in self.sample_QC_info.items():
+                outfh.write(info + ': \t' + value + '<br>\n')
+            outfh.write('<br>\n')
             for param, value in self.porecov_params.items():
                 outfh.write(param + ': \t' + value + '<br>\n')
 
@@ -437,17 +447,17 @@ class SummaryReport():
                     n_passrealsamples += 1
 
         if n_passrealsamples > 0:
-            self.add_param('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples}/{n_realsamples} passed QC criteria.</b></font>')
+            self.add_QC_info('Passed samples', f'<font color="{self.color_good_green}"><b>{n_passrealsamples}/{n_realsamples} passed QC criteria.</b></font>')
         if n_passrealsamples < n_realsamples:
-            self.add_param('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples}/{n_realsamples} failed QC criteria.</b></font>')
+            self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples}/{n_realsamples} failed QC criteria.</b></font>')
         if n_controls > 0:
             if n_passcontrols < n_controls:
-                self.add_param('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols}/{n_controls} of control samples failed QC criteria.</b></font>')
+                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols}/{n_controls} of control samples failed QC criteria.</b></font>')
             if n_passcontrols > 0:
-                self.add_param('Failed controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols}/{n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
+                self.add_QC_info('Failed controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols}/{n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
 
             patterns = "'" + "' ,'".join(self.control_string_patterns) + "'"
-            self.add_param('Note', f'Samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
+            self.add_QC_info('Note', f'Samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
 
 ###
