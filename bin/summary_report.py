@@ -260,7 +260,7 @@ class SummaryReport():
             return  f'<font color="{color}">{ident:.2f}</font><br>(<font color="{color}">{int(mismatches)}</font>)'
 
         res_data['identity_mismatches'] = [identity_markup(i*100, m) if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.add_column('%ident.<br>(mis-<br>matches)', res_data['identity_mismatches'])
+        self.add_column('%identity<br>(mis-<br>matches)', res_data['identity_mismatches'])
 
         def percN_markup(nn, ql):
             color = self.color_good_green
