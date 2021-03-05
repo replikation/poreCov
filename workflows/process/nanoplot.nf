@@ -12,8 +12,6 @@ process nanoplot {
       tuple val(name), path("${name}_read_quality.txt"), path("*.png") optional true
     script:
       """
-      find . -name "${reads}" -type 'f' -size -1500k -delete
-
       NanoPlot -t ${task.cpus} --fastq ${reads} --title '${name}' --color darkslategrey --N50 --plots hex --loglength -f png --store
       NanoPlot -t ${task.cpus} --pickle NanoPlot-data.pickle --title '${name}' --color darkslategrey --N50 --plots hex --loglength -f pdf
       mv NanoPlot-report.html ${name}_read_quality_report.html
