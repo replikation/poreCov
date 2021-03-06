@@ -21,7 +21,7 @@
 
 ## What is this Repo?
 
-* poreCov is a general SARS-CoV-2 analysis workflow for nanopore data via the ARTIC protocol
+* poreCov is a SARS-CoV-2 analysis workflow for nanopore data (via the ARTIC protocol) or just SARS-CoV-2 genomes (fasta) in general
     * ARTIC lab protocols and reference are [available here](https://artic.network/ncov-2019)
 * QC, plots and overviews are included to decrease post analytic "downtime"
     * was the PCR coverage on each position enough?
@@ -85,7 +85,7 @@ Table of Contents
 
 # Run poreCov
 
-* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.6.1`)
+* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.7.2`)
 * poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.7.0 -profile test_fastq,local,singularity`
 * as nextflow manages the code you can update your "local poreCov" code via: `nextflow pull replikation/poreCov`
@@ -94,18 +94,18 @@ Table of Contents
 
 ```bash
 # Start from basecalling:
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.0 \
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.2 \
     --cores 32 -profile local,docker \
     --rki
 
 # add multiple "combined" fastq.gz files (one sample per .fastq.gz file)
-nextflow run replikation/poreCov -r 0.7.0 \
+nextflow run replikation/poreCov -r 0.7.2 \
     --fastq 'samples/samplenumber_*.fastq.gz' \
     --cores 32  -profile local,docker
 
 # use the fastq_pass dir from "guppy/basecalling output"
 # this dir schould contain "barcode??/" dirs   e.g. fastq_pass/barcode01/ fastq_pass/barcode02/
-nextflow run replikation/poreCov --fastq_pass 'guppy_out/' -r 0.7.0 \
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.7.2 \
     --cores 32  -profile local,docker
 
 # rename barcodes automatically by providing an input file, also using another primer scheme
@@ -118,7 +118,7 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 * workflows and inputs are described here:
 
 ```bash
-nextflow run replikation/poreCov -r 0.7.0 --help
+nextflow run replikation/poreCov -r 0.7.2 --help
 # or git clone and
 ./poreCov.nf --help
 ```
@@ -126,8 +126,8 @@ nextflow run replikation/poreCov -r 0.7.0 --help
 # Workflow
 
 * poreCov was coded with "easy to use" in mind, while staying flexible
-* the default use case is fast5 raw-data to "results"
-* however by providing fastq, fastq_raw (guppy output) or fasta instead, poreCov skips over the corresponding steps
+* therefor we provide a few input types which adjusts the workflow automatically (see image below)
+  * fast5 raw data, fastq files (one sample per file), fastq_pass (the basecalling output) or fasta (supports multifastas)
 * primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
 
 ![workflow](data/figures/workflow.png)
