@@ -7,7 +7,7 @@
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4585716.svg)](https://doi.org/10.5281/zenodo.4585716)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4153509.svg)](https://doi.org/10.5281/zenodo.4153509)
 
 ![](https://github.com/replikation/nCov/workflows/Syntax_check/badge.svg)
 
