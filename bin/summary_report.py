@@ -127,10 +127,11 @@ class SummaryReport():
         if self.tabledata is None:
             self.tabledata = pd.DataFrame(index=sorted(t_index))
             self.tabledata.columns.name = 'Sample'
+            self.force_index_dtype_string(self.tabledata)
             self.add_col_description(f'Missing values (\'<font color="{self.color_error_red}">n/a</font>\') denote cases where the respective program could not determine a result.')
         else:
             for item in t_index:
-                assert item in self.tabledata.index, f'Index not found in existing table: {item}'
+                assert item in self.tabledata.index, f'Index not found in existing table: {item}. Available: {self.tabledata.index}'
 
 
     def add_col_description(self, desc):
@@ -242,11 +243,15 @@ class SummaryReport():
 
     ### functions to add columns
 
+    def force_index_dtype_string(self, dataframe):
+        dataframe.index = dataframe.index.astype('string')
+
     def add_pangolin_results(self, pangolin_results):
         log(f'Adding Pangolin results ...')
         # column names:
         # taxon,lineage,probability,pangoLEARN_version,status,note
-        res_data = pd.read_csv(pangolin_results, index_col='taxon')
+        res_data = pd.read_csv(pangolin_results, index_col='taxon', dtype={'taxon': str})
+        self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
         res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
@@ -258,7 +263,8 @@ class SummaryReport():
     def add_president_results(self, president_results):
         log(f'Adding President results ...')
 
-        res_data = pd.read_csv(president_results, index_col='query_name', sep='\t')
+        res_data = pd.read_csv(president_results, index_col='query_name', sep='\t', dtype={'query_name': str})
+        self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
         def identity_markup(ident, mismatches):
@@ -308,7 +314,8 @@ class SummaryReport():
     def add_nextclade_results(self, nextclade_results):
         log(f'Adding Nextclade results ...')
 
-        res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t')
+        res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t', dtype={'seqName': str})
+        self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
@@ -342,8 +349,9 @@ class SummaryReport():
     def add_kraken2_results(self, kraken2_results):
         log(f'Adding Kraken2 results ...')
         # column names:
-        #sample,num_sarscov2,num_human
-        res_data = pd.read_csv(kraken2_results, index_col=0)
+        # sample,num_unclassified,num_sarscov2,num_human
+        res_data = pd.read_csv(kraken2_results, index_col='sample', dtype={'sample': str})
+        self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
         def readable_si_units(number):

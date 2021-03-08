@@ -23,7 +23,7 @@ process summary_report {
         '''
     else
         '''
-        echo '#sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
+        echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
         echo -n "${KF%.kreport}," >> kraken2_results.csv
         NUNCLASS=$(awk -v ORS= '$5=="0" {print $3 "," }' $KF)
