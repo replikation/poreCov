@@ -32,7 +32,7 @@
 ### Example report
 Available here:
 <p align="left">
-    <a href=" https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html">
+    <a href="https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html">
         <img src="data/figures/report_summary.png" width="500" title="Report file">
 </p>
 
