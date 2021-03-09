@@ -139,8 +139,6 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
                     row.'Seq_Reason' + ',' + row.'Sample_Type' + '\n']
                     }
     }
-
-
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
 
@@ -160,7 +158,6 @@ include { split_fasta } from './modules/split_fasta.nf'
 
 include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
-include { build_database_wf } from './workflows/databases.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
 include { create_summary_report_wf } from './workflows/create_summary_report.nf'

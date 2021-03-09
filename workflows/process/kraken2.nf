@@ -1,7 +1,6 @@
 process kraken2 {
         label 'kraken2'
         publishDir "${params.output}/${params.readqcdir}/1.read_classification", mode: 'copy'
-        scratch true
     input:
         tuple val(name), path(reads)
         path(database)
@@ -27,5 +26,8 @@ process kraken2 {
     esac
 
     kraken2 --db kraken_db --threads ${task.cpus} --output ${name}.kraken.out --report ${name}.kreport masked_reads.fastq
+
+    # cleanup to reduce footprint
+    rm -rf kraken_db/
     """
   }

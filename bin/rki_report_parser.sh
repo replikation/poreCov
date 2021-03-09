@@ -1,7 +1,7 @@
 #!/bin/bash
 #Info: Creates report.csv for RKI from all pangolin.csv-files in the actual working dir.
 
-INPUT_NAME=$1
+INPUT_NAME=$1 # fastaname (array0), true value(array1)
 OUTPUT_NAME=$2
 
 echo "SENDING_LAB;DATE_DRAW;SEQ_TYPE;SEQ_REASON;SAMPLE_TYPE;PUBLICATION_STATUS;OWN_FASTA_ID" > $OUTPUT_NAME
@@ -12,7 +12,7 @@ while IFS=$'\t' read -r -a Array; do
     SEQU_TYPE=$(echo "OXFORD_NANOPORE")
     SEQU_REASON=$(echo "X")
     SAMPLE_TYPE=$(echo "X")
-    OWN_FASTA_ID="${Array[1]}"
+    OWN_FASTA_ID="${Array[0]}"
     echo "${SENDING_LAB};${DATE_DRAW};${SEQU_TYPE};${SEQU_REASON};${SAMPLE_TYPE};N;${OWN_FASTA_ID}" >> $OUTPUT_NAME
 done < ${INPUT_NAME}
 

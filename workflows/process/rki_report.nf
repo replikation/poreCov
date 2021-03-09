@@ -10,7 +10,7 @@ process rki_report {
         path("${readme}"), emit: readme
     script:
         """
-        cat ${president_data} | sed '/(ignoring Ns)/d' | awk -F'\\t' '{print \$16 "\\t" \$26}' | sed '/\\False\\b/d' >> all.csv
+        cat ${president_data} | sed '/(ignoring Ns)/d' | awk -F'\\t' '{print \$1 "\\t" \$8}' | sed '/\\False\\b/d' >> all.csv
 
         if [ -s all.csv ]; then
             rki_report_parser.sh all.csv rki_valid_report.csv
@@ -33,7 +33,7 @@ process rki_report_extended {
         path("${readme}"), emit: readme
     script:
         """
-        cat ${president_data} | sed '/(ignoring Ns)/d' | awk -F'\\t' '{print \$16 "\\t" \$26}' | sed '/\\False\\b/d' >> all.csv
+        cat ${president_data} | sed '/(ignoring Ns)/d' | awk -F'\\t' '{print \$1 "\\t" \$8}' | sed '/\\False\\b/d' >> all.csv
 
         if [ -s all.csv ]; then
             rki_report_parser_extended.sh all.csv rki_valid_report.csv ${extended_table}
@@ -45,5 +45,6 @@ process rki_report_extended {
 
 /* 
 Adjust the awk if president changes:
-fasta name in field 26, all qc true in field 16
+        # awk field 1 = fastaname
+        # awk field 8 = all qc true
 */
