@@ -29,14 +29,11 @@
     * what variant mutations are present?
 * is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
 
-## Quality Metrics (default)
-
-* Regions with coverage of 20 or less are masked ("N")
-* Genomequality is compared to NC_045512.2
-    * `--rki` adds genome quality assessment based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
-* Pangolin lineages are determined
-* nextstrain clades are determined including mutation infos
-* reads are classified to human and SARS-CoV-2 to check for possible contamination and sample prep issues
+### Example report
+Available here:
+<p align="left">
+  <img src="data/figures/report_summary.png" width="500" title="Report file">
+</p>
 
 Table of Contents
 =================
@@ -45,12 +42,9 @@ Table of Contents
 * [Run poreCov](#Run-poreCov)
     * [Example commands](#Example-commands)
     * [Help](#Help)
+* [Quality Metrics (default)](#Quality-Metrics-(default))
 * [Workflow](#Workflow)
-* [References and Metadata for tree construction](#References-and-Metadata-for-tree-construction)
-    * [References](#References)
-    * [Metadata](#Metadata)
-* [Literature to cite](#Literature-to-cite)
-
+* [Literature / References to cite](#Literature-/-References-to-cite)
 
 # Installation
 
@@ -123,6 +117,17 @@ nextflow run replikation/poreCov -r 0.7.2 --help
 ./poreCov.nf --help
 ```
 
+# Quality Metrics (default)
+
+* Regions with coverage of 20 or less are masked ("N")
+* Genomequality is compared to NC_045512.2
+    * `--rki` adds genome quality assessment based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+        * also prepares csv and fasta for upload via DESH portal
+* Pangolin lineages are determined
+* nextstrain clades are determined including mutation infos
+* reads are classified to human and SARS-CoV-2 to check for possible contamination and sample prep issues
+
+
 # Workflow
 
 * poreCov was coded with "easy to use" in mind, while staying flexible
@@ -130,16 +135,19 @@ nextflow run replikation/poreCov -r 0.7.2 --help
   * fast5 raw data, fastq files (one sample per file), fastq_pass (the basecalling output) or fasta (supports multifastas)
 * primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
 
-![workflow](data/figures/workflow.png)
+<p align="left">
+  <img src="data/figures/workflow.png" width="700" title="Workflow">
+</p>
 
 
 # Literature / References to cite
 For citing etc. check out these programs used for poreCov:
-* [nextflow](https://www.nextflow.io/index.html)
 * [artic protocol](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
-* [pangolin](https://github.com/hCoV-2019/pangolin)
-* [medaka](https://github.com/nanoporetech/medaka)
-* [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
-* [nextclade](https://clades.nextstrain.org/)
 * [kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0)
 * [krona](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-385)
+* [medaka](https://github.com/nanoporetech/medaka)
+* [minimap2](https://github.com/lh3/minimap2)
+* [nextclade](https://clades.nextstrain.org/)
+* [nextflow](https://www.nextflow.io/index.html)
+* [pangolin](https://github.com/hCoV-2019/pangolin)
+* [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
