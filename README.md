@@ -1,4 +1,7 @@
-![logo](data/logo/mobile_logo.png)
+<p align="center">
+  <img src="data/logo/mobile_logo.png" width="800" title="Workflow">
+</p>
+
 **poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**   
 ===
 ![](https://img.shields.io/github/v/release/replikation/poreCov)
@@ -6,31 +9,20 @@
 ![](https://img.shields.io/badge/uses-docker-blue.svg)
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
+![](https://github.com/replikation/nCov/workflows/Syntax_check/badge.svg)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4153509.svg)](https://doi.org/10.5281/zenodo.4153509)
 
-![](https://github.com/replikation/nCov/workflows/Syntax_check/badge.svg)
-
-
 [![Twitter Follow](https://img.shields.io/twitter/follow/gcloudChris.svg?style=social)](https://twitter.com/gcloudChris) 
 
-* by Christian Brandt
 
 > **Featured here:**
 > Franziska Hufsky, Kevin Lamkiewicz, Alexandre Almeida, Abdel Aouacheria, Cecilia Arighi, Alex Bateman, Jan Baumbach, Niko Beerenwinkel, Christian Brandt, Marco Cacciabue, Sara Chuguransky, Oliver Drechsel, Robert D Finn, Adrian Fritz, Stephan Fuchs, Georges Hattab, Anne-Christin Hauschild, Dominik Heider, Marie Hoffmann, Martin Hölzer, Stefan Hoops, Lars Kaderali, Ioanna Kalvari, Max von Kleist, Renó Kmiecinski, Denise Kühnert, Gorka Lasso, Pieter Libin, Markus List, Hannah F Löchel, Maria J Martin, Roman Martin, Julian Matschinske, Alice C McHardy, Pedro Mendes, Jaina Mistry, Vincent Navratil, Eric P Nawrocki, Áine Niamh O’Toole, Nancy Ontiveros-Palacios, Anton I Petrov, Guillermo Rangel-Pineros, Nicole Redaschi, Susanne Reimering, Knut Reinert, Alejandro Reyes, Lorna Richardson, David L Robertson, Sepideh Sadegh, Joshua B Singer, Kristof Theys, Chris Upton, Marius Welzel, Lowri Williams, Manja Marz, Computational strategies to combat COVID-19: useful tools to accelerate SARS-CoV-2 and coronavirus research, Briefings in Bioinformatics, bbaa232, https://doi.org/10.1093/bib/bbaa232.
 
 ## What is this Repo?
 
-* poreCov is a SARS-CoV-2 analysis workflow for nanopore data (via the ARTIC protocol) or just SARS-CoV-2 genomes (fasta) in general
-    * ARTIC lab protocols and reference are [available here](https://artic.network/ncov-2019)
-* QC, plots and overviews are included to decrease post analytic "downtime"
-    * was the PCR coverage on each position enough?
-    * is the quality of the genome good?
-    * what variant mutations are present?
-* is nanopore sequencing accurate enough for SARS-CoV-2 sequencing? [yes](https://www.nature.com/articles/s41467-020-20075-6)
-
-### Example report
-Available here:
+* poreCov is a SARS-CoV-2 analysis workflow for nanopore data (via the [ARTIC protocol](https://artic.network/ncov-2019)) or SARS-CoV-2 genomes (fasta)
+* the workflow is pre configured to simplify [data anlysis](https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html): 
 <p align="left">
     <a href="https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html">
         <img src="data/figures/report_summary.png" width="500" title="Report file">
@@ -39,86 +31,105 @@ Available here:
 Table of Contents
 =================
 
-* [Installation](#Installation)
-* [Run poreCov](#Run-poreCov)
-    * [Example commands](#Example-commands)
-    * [Help](#Help)
-* [Quality Metrics (default)](#Quality-Metrics-(default))
-* [Workflow](#Workflow)
-* [Literature / References to cite](#Literature-/-References-to-cite)
+* [1. Quick Setup (ubuntu)](#1.-Quick-Setup-(ubuntu))
+    * [1.1 Nextflow](#1.1-Nextflow-(the-workflow-manager))
+    * [1.2 Container](#1.2-Container-(choose-one---they-manage-all-the-tools))
+    * [1.3 Basecalling (optional)](#1.3-Basecalling-(optional))
+* [2. run poreCov](#2.-run-poreCov)
+    * [2.1 test run](#2.1-test-run)
+    * [2.2 quick run examples](#2.2-quick-run-examples)
+    * [2.3 Extended Usage](#2.3-Extended-Usage)
+* [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
+* [4. Workflow](#4.-Workflow)
+* [5. Literature / References to cite](#5.-Literature-/-References-to-cite)
 
-# Installation
-
-**Dependencies**
-
-* one of these:
->   * docker
->   * singularity
->   * conda (install singularity + nextflow, usually not cluster compatible)
-
-* these:
->   * nextflow + java runtime
-
-* optional one of these if you want to start from basecalling (fast5)
->   * local guppy installation (see oxford nanopore installation guide)
->   * docker (with nvidia toolkit installed)
->   * singularity (with --nv support)
->   * dont have a gpu? all the above can be run with "cpu only" but takes ages
-
-**Installation links**
-
-* Docker installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce)
-    * add docker to your User group via `sudo usermod -a -G docker $USER`
+# 1. Quick Setup (ubuntu)
+## 1.1 Nextflow (the workflow manager)
+* poreCov needs [nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
+    * install java run time via:  `sudo apt install -y default-jre`
+    * install nextflow via:  `curl -s https://get.nextflow.io | bash && sudo mv nextflow /bin && sudo chmod 770 /bin/nextflow`
+## 1.2 Container (choose one - they manage all the tools)
+### Docker
+* installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce) (recommended), alternatively via: `sudo apt install -y docker`
+* add docker to the user: `sudo usermod -a -G docker $USER`
+### Singularity
 * Singularity installation [here](https://singularity.lbl.gov/install-linux)
-    * if you cant use docker
+* if you cant use docker
+### Conda (not recommended)
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
-    * not natively integrated, you can do conda install singularity nextflow in a new environment and execute poreCov via `-profile local,singularity`
-    * not cluster compatible
-* Nextflow via: `curl -s https://get.nextflow.io | bash`
-    * a java runtime is needed (e.g. `sudo apt install -y default-jre`)
-    * move `nextflow` executable to a path location
+* install nextflow and singularity via conda (not cluster compatible) - and use the singularity profile
+## 1.3 Basecalling (optional)
+* only important if you want to do basecalling via GPU with the workflow:
+    * local guppy installation (see oxford nanopore installation guide)
+    * or: install nvidia docker tool kit
+    * or: singularity (with --nv support)
 
-# Run poreCov
 
-* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.7.2`)
-* poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
-* add `-r <version>` e.g. `nextflow run replikation/poreCov -r 0.7.0 -profile test_fastq,local,singularity`
-* as nextflow manages the code you can update your "local poreCov" code via: `nextflow pull replikation/poreCov`
-
-## Example commands
+# 2. run poreCov
+## 2.1 test run
+* validate your installation via test data:
 
 ```bash
-# Start from basecalling:
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.2 \
-    --cores 32 -profile local,docker \
-    --rki
+# for a docker installation
+nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.7.5
 
-# add multiple "combined" fastq.gz files (one sample per .fastq.gz file)
-nextflow run replikation/poreCov -r 0.7.2 \
-    --fastq 'samples/samplenumber_*.fastq.gz' \
+# or for singularity or conda installation
+nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.7.5
+```
+
+## 2.2 quick run examples
+
+* poreCov with basecalling and docker
+    * `--rki` collects all genomes with a valid QC metrices (optional)
+    * `-r 0.7.5` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+```bash
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.5 \
+    --cores 6 -profile local,docker --rki 
+```
+
+* poreCov with a basecalled fastq directory 
+
+```bash
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.7.5 \
     --cores 32  -profile local,docker
+```
 
-# use the fastq_pass dir from "guppy/basecalling output"
-# this dir schould contain "barcode??/" dirs   e.g. fastq_pass/barcode01/ fastq_pass/barcode02/
-nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.7.2 \
-    --cores 32  -profile local,docker
+* poreCov with basecalling and renaming of barcodes based on `sample_names.csv`
 
+```bash
 # rename barcodes automatically by providing an input file, also using another primer scheme
 nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
-    --extended --primerV V1200 --output results --rki -profile local,docker
+   --primerV V1200 --output results --rki -profile local,docker
 ```
 
-## Help
+## 2.3 Extended Usage
+* see also `nextflow run replikation/poreCov --help -r 0.7.5`
+### Version control
+* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.7.5`)
+* poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
+* add `-r <version>` to a poreCoV run to activate this
+* run `nextflow pull replikation/poreCov` to install updates
 
-* workflows and inputs are described here:
+### Important input flags (choose on)
+* these are the flags to get "data" into the workflow
+   * `--fast5 fast5_dir/`  for fast5 directory input
+   * `--fastq_pass fastq_dir/`  directory with basecalled data (contains "barcode01" etc. directories)
+   * `--fastq "sample*.fastq.gz"` alternative fastq input (one sample per file)
+   * `--fasta "*genomes.fasta"`  SARS-CoV-2 genomes as fasta 
 
-```bash
-nextflow run replikation/poreCov -r 0.7.2 --help
-# or git clone and
-./poreCov.nf --help
+### Sample sheet
+* barcodes can be automatically renamed via `--samples sample_names.csv`
+* example comma separated file (dont replace the header)
+  * `_id` = sample name
+  * `Status` = barcode number which should be renamed
+
+```csv
+_id,Status
+Sample_2021,barcode01
+2ndSample,BC02
 ```
 
-# Quality Metrics (default)
+# 3. Quality Metrics (default)
 
 * Regions with coverage of 20 or less are masked ("N")
 * Genomequality is compared to NC_045512.2
@@ -129,10 +140,10 @@ nextflow run replikation/poreCov -r 0.7.2 --help
 * reads are classified to human and SARS-CoV-2 to check for possible contamination and sample prep issues
 
 
-# Workflow
+# 4. Workflow
 
 * poreCov was coded with "easy to use" in mind, while staying flexible
-* therefor we provide a few input types which adjusts the workflow automatically (see image below)
+* therefore we provide a few input types which adjusts the workflow automatically (see image below)
   * fast5 raw data, fastq files (one sample per file), fastq_pass (the basecalling output) or fasta (supports multifastas)
 * primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
 
@@ -141,7 +152,7 @@ nextflow run replikation/poreCov -r 0.7.2 --help
 </p>
 
 
-# Literature / References to cite
+# 5. Literature / References to cite
 For citing etc. check out these programs used for poreCov:
 * [artic protocol](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
 * [kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0)
