@@ -50,6 +50,7 @@ if ( params.rki ) { rki() }
     if (
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
+        workflow.profile.contains('slurm') ||
         workflow.profile.contains('local')
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
