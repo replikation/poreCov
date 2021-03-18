@@ -34,7 +34,7 @@ workflow rki_report_wf {
             .collectFile(name: 'invalid_genomes.fasta', storeDir: params.output + "/" + params.rkidir +"/invalid/")
 
         // store invalid genomes also as singletons
-        channel_tmp2 = president_invalid.filter({ !it[0].contains("negativ") }).map{it -> tuple(it[0], it[2])}
+        channel_tmp4 = president_invalid.filter({ !it[0].contains("negativ") }).map{it -> tuple(it[0], it[2])}
             .splitText(by:100000000)
             .collectFile(storeDir: params.output + "/" + params.rkidir +"/invalid/singletons/") { it ->
                 [ "${it[0]}.fasta", it[1] ]
