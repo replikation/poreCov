@@ -35,14 +35,10 @@ exit 1
 try to check for poreCov releases
 */
 
-
 def sout = new StringBuilder(), serr = new StringBuilder()
 def proc = 'curl --silent https://api.github.com/repos/replikation/poreCov/releases/latest'.execute()
 proc.consumeProcessOutput(sout, serr)
 proc.waitForOrKill(1000)
-//println "out> $sout\nerr> $serr"
-
-def porecovversion = sout =~ /tag_name/
 
 sout.eachLine {
     if (it =~ /tag_name/) {
