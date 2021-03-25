@@ -297,11 +297,12 @@ ${c_yellow}Inputs (choose one):${c_reset}
 ${c_yellow}Workflow control ${c_reset}
     --rki           activates RKI style summary for DESH upload
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
-                    Status,_id,
+                    Status,_id
                     barcode01,sample2011XY
                     BC02,thirdsample_run
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
+    --nanopolish    use nanopolish instead of medaka (only for --fast5)
 
 ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
