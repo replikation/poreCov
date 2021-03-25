@@ -156,7 +156,7 @@ include { split_fasta } from './modules/split_fasta.nf'
 * Workflows
 **************************/
 
-include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
+include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
@@ -184,11 +184,14 @@ workflow {
             basecalling_wf(dir_input_ch)
             
             // rename barcodes
-                if (params.samples) { fastq_from5_ch = basecalling_wf.out.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
-                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
+                if (params.samples) { fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
 
             read_classification_wf(fastq_from5_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0]
+
+            // use medaka or nanopolish artic reconstruction
+            if (params.nanopolish) { fasta_input_ch = artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])[0] }
+            else if (!params.nanopolish) { fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0] }
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
@@ -228,7 +231,8 @@ workflow {
             alignments_ch = Channel.from( ['deactivated'] )
         } else {
             read_classification_ch = read_classification_wf.out
-            alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch))
+            if (params.nanopolish) { alignments_ch = align_to_reference(artic_ncov_np_wf.out[1].combine(reference_for_qc_input_ch)) }
+            else { alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch)) }
         }
 
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch, alignments_ch)
