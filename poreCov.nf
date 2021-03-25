@@ -35,19 +35,14 @@ exit 1
 try to check for poreCov releases
 */
 
-def sout = new StringBuilder(), serr = new StringBuilder()
-def proc = 'curl --silent https://api.github.com/repos/replikation/poreCov/releases/latest'.execute()
-proc.consumeProcessOutput(sout, serr)
-proc.waitForOrKill(1000)
+def porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL()
+                        .text.split('"tag_name":"')[1].split('","target_commitish"')[0]
 
-sout.eachLine {
-    if (it =~ /tag_name/) {
-        println " "
-        println "  Latest available poreCov release: " + it.split('"')[3]
-        println "  If neccessary update via: nextflow pull replikation/poreCov"
-        println "____________________________________________________________________________________________"
-    }
-} 
+println " "
+println "  Latest available poreCov release: " + porecovrelease
+println "  If neccessary update via: nextflow pull replikation/poreCov"
+println "____________________________________________________________________________________________"
+
 
 // Log infos based on user inputs
 if ( params.help ) { exit 0, helpMSG() }
