@@ -36,7 +36,7 @@ try to check for poreCov releases
 */
 
 def porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL()
-                        .text.split('"tag_name":"')[1].split('","target_commitish"')[0]
+                        .text.split('"tag_name":"')[1].split('","')[0]
 
 println " "
 println "  Latest available poreCov release: " + porecovrelease
