@@ -478,6 +478,13 @@ class SummaryReport():
 
         self.tabledata.index = [mark_controls(sn) for sn in self.tabledata.index]
 
+
+    def write_table_output(self):
+        if self.tabledata is None:
+            error('Failed to write table data - no table data was added beforehand.')
+        self.tabledata.to_excel(self.report_name + '.xlsx' , sheet_name='poreCov')
+        self.tabledata.to_csv(self.report_name + '.csv')
+
 ###
 
 if __name__ == '__main__':
@@ -530,10 +537,6 @@ if __name__ == '__main__':
         report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
     report.add_time_param()
 
-
-
-
-    
     report.write_html_report()
-
+    report.write_table_output()
 
