@@ -37,7 +37,8 @@ workflow artic_ncov_np_wf {
                 filter_fastq_by_length(fastq)
                     .combine(external_primer_schemes)
                     .combine(fast5.map{it -> it[1]})
-                    .combine(sequence_summaries.map{it -> it[1]})
+                    .combine(sequence_summaries)
+                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5])}
             )
 
             assembly = artic_nanopolish.out.fasta
