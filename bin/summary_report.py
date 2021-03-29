@@ -32,6 +32,7 @@ class SummaryReport():
     porecov_params = {}
     tool_versions = {}
     tabledata = None
+    tabledataraw = None
     col_formatters = {}
     col_descriptions = []
     coverage_plots_b64 = []
@@ -57,6 +58,9 @@ class SummaryReport():
 
     def add_column(self, column_name, pandas_series):
         self.tabledata[column_name] = pandas_series
+
+    def add_column_raw(self, column_name, pandas_series):
+        self.tabledataraw[column_name] = pandas_series
 
 
     def add_col_formatter(self, colname, colformatter):
@@ -129,6 +133,7 @@ class SummaryReport():
             self.tabledata.columns.name = 'Sample'
             self.force_index_dtype_string(self.tabledata)
             self.add_col_description(f'Missing values (\'<font color="{self.color_error_red}">n/a</font>\') denote cases where the respective program could not determine a result.')
+            self.tabledataraw = self.tabledata.copy()
         else:
             for item in t_index:
                 assert item in self.tabledata.index, f'Index not found in existing table: {item}. Available: {self.tabledata.index}'
@@ -246,6 +251,7 @@ class SummaryReport():
     def force_index_dtype_string(self, dataframe):
         dataframe.index = dataframe.index.astype('string')
 
+
     def add_pangolin_results(self, pangolin_results):
         log(f'Adding Pangolin results ...')
         # column names:
@@ -253,6 +259,9 @@ class SummaryReport():
         res_data = pd.read_csv(pangolin_results, index_col='taxon', dtype={'taxon': str})
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
+
+        self.add_column_raw('pangolin_lineage', res_data['lineage'])
+        self.add_column_raw('pangolin_probability', res_data['probability'])
 
         res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
 
@@ -267,6 +276,11 @@ class SummaryReport():
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
+
+        # identity and mismatches
+        self.add_column_raw('president_identity', res_data['ACGT Nucleotide identity'])
+        self.add_column_raw('president_mismatches', res_data['Mismatches'])
+
         def identity_markup(ident, mismatches):
             color = self.color_good_green
             if ident < 99.:
@@ -278,6 +292,12 @@ class SummaryReport():
 
         res_data['identity_mismatches'] = [identity_markup(i*100, m) if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
         self.add_column('%identity<br>(mis-<br>matches)', res_data['identity_mismatches'])
+
+
+        # percent and number Ns
+        res_data['percN'] = res_data['N_bases']/res_data['length_query']*100
+        self.add_column_raw('president_percentN', res_data['percN'])
+        self.add_column_raw('president_numN', res_data['N_bases'])
 
         def percN_markup(nn, ql):
             color = self.color_good_green
@@ -294,6 +314,7 @@ class SummaryReport():
         self.add_column('%Ns<br>(#Ns)', res_data['percN_numN'])
         self.add_col_description(f'Nucleotide identity, mismatches, Ns and QC pass status were determined with <a href="https://gitlab.com/RKIBioinformaticsPipelines/president">PRESIDENT</a> (v{self.tool_versions["president"]}).')
 
+
         # QC pass column & save QC status
         if self.sample_QC_status is not None:
             error('sample_QC_status is already set when running add_president_results')
@@ -302,11 +323,14 @@ class SummaryReport():
         for sample in self.tabledata.index:
             if sample in res_data.index and res_data.loc[sample, 'qc_all_valid']:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_good_green}"><b>YES</b></font>'
+                res_data.loc[sample, 'QC_pass_raw'] = 'YES'
                 self.sample_QC_status[sample] = 'pass'
             else:
                 res_data.loc[sample, 'QC_pass'] = f'<font color="{self.color_error_red}"><b>NO</b></font>'
+                res_data.loc[sample, 'QC_pass_raw'] = 'NO'
                 self.sample_QC_status[sample] = 'fail'
 
+        self.add_column_raw('president_QC_pass', res_data['QC_pass_raw'])
         self.add_column('QC<br>pass', res_data['QC_pass'])
         self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
 
@@ -317,6 +341,10 @@ class SummaryReport():
         res_data = pd.read_csv(nextclade_results, index_col='seqName', sep='\t', dtype={'seqName': str})
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
+
+        self.add_column_raw('nextclade_clade', res_data['clade'])
+        self.add_column_raw('nextclade_mutations', res_data['aaSubstitutions'])
+        self.add_column_raw('nextclade_deletions', res_data['aaDeletions'])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
@@ -391,7 +419,12 @@ class SummaryReport():
         perc_sarscov_colname = '%reads<br>SARS-CoV-2<br>(#reads)'
         perc_human_colname = '%reads<br>human<br>(#reads)'
         perc_unclass_colname = '%reads<br>unclass.<br>(#reads)'
-        
+
+        self.add_column_raw('kraken2_numreads_sarscov2', res_data['num_sarscov2'])
+        self.add_column_raw('kraken2_numreads_human', res_data['num_human'])
+        self.add_column_raw('kraken2_numreads_unclassified', res_data['num_unclassified'])
+        self.add_column_raw('kraken2_numreads_total', res_data['total_reads'])
+
         res_data['n_sars'] = [f"{sars_markup(n_sars/n_total*100.)}<br>({readable_si_units(n_sars)})" \
             for n_sars, n_total in zip(res_data['num_sarscov2'], res_data['total_reads'])]
         res_data['n_human'] = [f"{human_markup(n_human/n_total*100.)}<br>({readable_si_units(n_human)})" \
@@ -478,6 +511,13 @@ class SummaryReport():
 
         self.tabledata.index = [mark_controls(sn) for sn in self.tabledata.index]
 
+
+    def write_table_output(self):
+        if self.tabledataraw is None:
+            error('Failed to write table data - no raw table data was added beforehand.')
+        self.tabledataraw.to_excel(self.report_name + '_datatable.xlsx' , sheet_name='poreCov', index_label='sample')
+        self.tabledataraw.to_csv(self.report_name + '_datatable.csv', index_label='sample')
+
 ###
 
 if __name__ == '__main__':
@@ -530,10 +570,6 @@ if __name__ == '__main__':
         report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
     report.add_time_param()
 
-
-
-
-    
     report.write_html_report()
-
+    report.write_table_output()
 
