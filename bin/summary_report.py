@@ -516,7 +516,7 @@ class SummaryReport():
         if self.tabledataraw is None:
             error('Failed to write table data - no raw table data was added beforehand.')
         self.tabledataraw.to_excel(self.report_name + '_datatable.xlsx' , sheet_name='poreCov', index_label='sample')
-        self.tabledataraw.to_csv(self.report_name + '_datatable.csv', index_label='sample')
+        self.tabledataraw.to_csv(self.report_name + '_datatable.tsv', index_label='sample', sep='\t')
 
 ###
 

@@ -11,7 +11,7 @@ process summary_report {
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
-        path("poreCov_summary_report_*.csv")
+        path("poreCov_summary_report_*.tsv")
 
     shell:
     if (params.fasta || workflow.profile.contains('test_fasta'))            

@@ -23,7 +23,8 @@ workflow artic_ncov_wf {
                 assembly.join(filter_fastq_by_length.out))[0])
 
         // error logging
-        noreadsatall = filter_fastq_by_length.out.ifEmpty("\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m").view()
+        noreadsatall = filter_fastq_by_length.out.ifEmpty("\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m")
+            .filter( "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" ).view()
 
     emit:   
         assembly
