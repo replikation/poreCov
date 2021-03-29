@@ -10,6 +10,8 @@ nextflow.enable.dsl=2
 * HELP messages & checks
 **************************/
 
+header()
+
 /* 
 Nextflow version check  
 Format is this: XX.YY.ZZ  (e.g. 20.07.1)
@@ -28,6 +30,19 @@ else if ( nextflow.version.toString().tokenize('.')[1].toInteger() == XX.toInteg
 println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
 exit 1
 }
+
+/* 
+try to check for poreCov releases
+*/
+
+def porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL()
+                        .text.split('"tag_name":"')[1].split('","')[0]
+
+println " "
+println "  Latest available poreCov release: " + porecovrelease
+println "  If neccessary update via: nextflow pull replikation/poreCov"
+println "____________________________________________________________________________________________"
+
 
 // Log infos based on user inputs
 if ( params.help ) { exit 0, helpMSG() }
@@ -156,7 +171,7 @@ include { split_fasta } from './modules/split_fasta.nf'
 * Workflows
 **************************/
 
-include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
+include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
@@ -184,11 +199,14 @@ workflow {
             basecalling_wf(dir_input_ch)
             
             // rename barcodes
-                if (params.samples) { fastq_from5_ch = basecalling_wf.out.join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
-                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out }
+                if (params.samples) { fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1])}.view() }
+                else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
 
             read_classification_wf(fastq_from5_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0]
+
+            // use medaka or nanopolish artic reconstruction
+            if (params.nanopolish) { fasta_input_ch = artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])[0] }
+            else if (!params.nanopolish) { fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0] }
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
@@ -228,7 +246,8 @@ workflow {
             alignments_ch = Channel.from( ['deactivated'] )
         } else {
             read_classification_ch = read_classification_wf.out
-            alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch))
+            if (params.nanopolish) { alignments_ch = align_to_reference(artic_ncov_np_wf.out[1].combine(reference_for_qc_input_ch)) }
+            else { alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch)) }
         }
 
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch, alignments_ch)
@@ -245,14 +264,11 @@ def helpMSG() {
     c_blue = "\033[0;34m";
     c_dim = "\033[2m";
     log.info """
-    ____________________________________________________________________________________________
-    
-    ${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 (nCov19) workflow for nanopore data
-    
-    ${c_yellow}Usage examples:${c_reset}
-    nextflow run replikation/poreCov --fastq 'sample_01.fasta.gz' --cores 14 -profile local,singularity
+    .    
+\033[0;33mUsage examples:${c_reset}
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.7.8 -profile local,singularity
 
-    ${c_yellow}Inputs (choose one):${c_reset}
+${c_yellow}Inputs (choose one):${c_reset}
     --fast5           one fast5 dir of a nanopore run containing multiple samples (barcoded);
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
@@ -269,22 +285,23 @@ def helpMSG() {
     --fasta         direct input of genomes - supports multi-fasta file(s)
                     ${c_dim}[Lineage + Reports]${c_reset}
 
-    ${c_yellow}Workflow control ${c_reset}
+${c_yellow}Workflow control ${c_reset}
     --rki           activates RKI style summary for DESH upload
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
-                    Status,_id,
+                    Status,_id
                     barcode01,sample2011XY
                     BC02,thirdsample_run
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
+    --nanopolish    use nanopolish instead of medaka (only for --fast5)
 
-    ${c_yellow}Parameters - Basecalling${c_reset}
+${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
 
-    ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
+${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
                         Supported: V1, V2, V3, V1200
     --minLength     min length filter raw reads [default: ${params.minLength}]
@@ -292,12 +309,12 @@ def helpMSG() {
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
     --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
 
-    ${c_yellow}Parameters - Genome quality control${c_reset}
+${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
     --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
     --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
-    ${c_yellow}Options:${c_reset}
+${c_yellow}Options:${c_reset}
     --cores         amount of cores for a process (local use) [default: $params.cores]
     --max_cores     max amount of cores for poreCov to use (local use) [default: $params.max_cores]
     --memory        available memory [default: $params.memory]
@@ -306,7 +323,7 @@ def helpMSG() {
                     [default: $params.cachedir]
     --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
 
-    ${c_yellow}Execution/Engine profiles:${c_reset}
+${c_yellow}Execution/Engine profiles:${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
     examples:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
@@ -325,13 +342,24 @@ def helpMSG() {
     """.stripIndent()
 }
 
+def header(){
+    c_green = "\033[0;32m";
+    c_reset = "\033[0m";
+    log.info """
+    ____________________________________________________________________________________________
+    
+${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 workflow for nanopore data
+
+    """
+}
+
 def defaultMSG(){
     log.info """
-    SARS-CoV-2 - Workflow
-
+    .
     \u001B[32mProfile:             $workflow.profile\033[0m
     \033[2mCurrent User:        $workflow.userName
     Nextflow-version:    $nextflow.version
+    poreCov-version:     $workflow.revision
     \u001B[0m
     Pathing:
     \033[2mWorkdir location [-work-Dir]:

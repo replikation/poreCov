@@ -31,4 +31,5 @@ workflow basecalling_wf {
 
     emit:
         fastq_channel
+        guppy_summary
 } 
