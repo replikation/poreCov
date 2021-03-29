@@ -202,8 +202,9 @@ workflow {
             
             // rename barcodes
                 if (params.samples) { fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1])}
-                reporterrorf5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty("Could not match barcode numbers from $params.samples to the read files, some typo?").view() }
+                reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty("\033[0;33mCould not match barcode numbers from $params.samples to the read files, some typo?\033[0m").view() }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
+
 
             read_classification_wf(fastq_from5_ch)
 
@@ -218,7 +219,7 @@ workflow {
 
             // raname barcodes bases on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} 
-                reporterrorfq = fastq_input_raw_ch.join(samples_input_ch).ifEmpty("Could not match barcode numbers from $params.samples to the read files, some typo?").view()}
+                reporterrorfastq = fastq_input_raw_ch.join(samples_input_ch).ifEmpty("\033[0;33mCould not match barcode numbers from $params.samples to the read files, some typo?\033[0m").view()}
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)

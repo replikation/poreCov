@@ -4,7 +4,8 @@ process nanoplot {
     publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy', pattern: "${name}_read_quality.txt"
     publishDir "${params.output}/${params.readqcdir}/${name}/figures", mode: 'copy', pattern: "*.png"
     publishDir "${params.output}/${params.readqcdir}/${name}/vector_figures", mode: 'copy', pattern: "*.pdf"
-    
+    // addet ignore here - to avoid pipeline breaking
+    errorStrategy 'ignore'
     input:
       tuple val(name), path(reads)
     output:

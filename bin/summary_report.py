@@ -523,7 +523,7 @@ if __name__ == '__main__':
 
     # check run type
     if args.primer:
-        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--dir', '--fastq' or '--fastq_raw')")
+        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--fast5', '--fastq' or '--fastq_raw')")
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
     else:

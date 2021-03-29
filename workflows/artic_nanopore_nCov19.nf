@@ -10,7 +10,10 @@ workflow artic_ncov_wf {
 
         // assembly
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-            artic_medaka(filter_fastq_by_length(fastq).combine(external_primer_schemes))
+            
+            filter_fastq_by_length(fastq)
+
+            artic_medaka(filter_fastq_by_length.out.combine(external_primer_schemes))
 
             assembly = artic_medaka.out.fasta
 
@@ -18,6 +21,9 @@ workflow artic_ncov_wf {
         coverage_plot(
             bwa_samtools(
                 assembly.join(filter_fastq_by_length.out))[0])
+
+        // error logging
+        noreadsatall = filter_fastq_by_length.out.ifEmpty("\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m").view()
 
     emit:   
         assembly
@@ -47,6 +53,9 @@ workflow artic_ncov_np_wf {
         coverage_plot(
             bwa_samtools(
                 assembly.join(filter_fastq_by_length.out))[0])
+
+        // error logging
+        noreadsatall = filter_fastq_by_length.out.ifEmpty("\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m").view()
 
     emit:   
         assembly
