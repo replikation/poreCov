@@ -82,12 +82,14 @@ if ( params.rki ) { rki() }
 // params help
 if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
     if (!params.fasta &&  !params.fast5 &&  !params.fastq &&  !params.fastq_pass ) {
-        exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]"}
+        exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]" }
     if ((params.fasta && ( params.fastq || params.fast5 )) || ( params.fastq && params.fast5 )) {
-        exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"} 
+        exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"}
+}
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
-}
+
+if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not supported for [--single]" }
 /************************** 
 * INPUTs
 **************************/
