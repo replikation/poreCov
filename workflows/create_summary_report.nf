@@ -8,6 +8,7 @@ workflow create_summary_report_wf {
         nextclade
         kraken2
         alignments
+        samples_list
     main:
         version_ch = Channel.fromPath(workflow.projectDir + "/configs/container.config")
 
@@ -24,6 +25,6 @@ workflow create_summary_report_wf {
                                             alignments.map{it -> it[1]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6)).collect()
         }
 
-        summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots)
+        summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_list)
 
 } 

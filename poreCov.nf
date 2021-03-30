@@ -147,6 +147,7 @@ if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not s
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
+
     // extended input
     if (params.samples && params.extended) { 
         extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
@@ -257,7 +258,13 @@ workflow {
             else { alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch)) }
         }
 
-        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out, read_classification_ch, alignments_ch)
+        if (params.samples) {
+            samples_list_ch = samples_input_ch.map{ it -> it[1] }.collectFile(name: 'samples_list.csv')
+        }
+        else { samples_list_ch = Channel.from( ['deactivated'] ) }
+
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
+                                read_classification_ch, alignments_ch, samples_list_ch)
 
 }
 
