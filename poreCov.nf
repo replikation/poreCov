@@ -314,6 +314,7 @@ ${c_yellow}Parameters - Basecalling${c_reset}
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
+    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
 
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -321,7 +322,6 @@ ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
-    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
 
 ${c_yellow}Parameters - Genome quality control${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
