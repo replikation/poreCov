@@ -134,7 +134,8 @@ class SummaryReport():
             s_list = [s.strip() for s in open(samples).readlines()]
             log(f'Samples: {s_list}')
 
-            s_table = pd.DataFrame(index=samples)
+            s_table = pd.DataFrame(index=s_list)
+            self.force_index_dtype_string(s_table)
             self.check_and_init_tabledata(s_table.index)
 
 

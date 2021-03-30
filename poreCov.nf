@@ -259,7 +259,7 @@ workflow {
         }
 
         if (params.samples) {
-            samples_list_ch = samples_input_ch.map{ it -> it[1] }.collectFile(name: 'samples_list.csv')
+            samples_list_ch = samples_input_ch.map{ it -> it[1] }.collectFile(name: 'samples_list.csv', newLine: true)
         }
         else { samples_list_ch = Channel.from( ['deactivated'] ) }
 
