@@ -117,17 +117,31 @@ class SummaryReport():
         log('Parsed version config file.')
 
 
-    def validate_index(self, t_index):
-        '''Assert that an index matches the tabledata index.'''
-        if self.tabledata is None:
-            error('Cannot validate_index when tabledata is None')
-        if not sorted(self.tabledata.index) == sorted(t_index):
-            error(f'Index mismatch: tabledata: {sorted(self.tabledata.index)} \n query: {sorted(t_index)}')
+    # UNUSED
+    # def validate_index(self, t_index):
+    #     '''Assert that an index matches the tabledata index.'''
+    #     if self.tabledata is None:
+    #         error('Cannot validate_index when tabledata is None')
+    #     if not sorted(self.tabledata.index) == sorted(t_index):
+    #         error(f'Index mismatch: tabledata: {sorted(self.tabledata.index)} \n query: {sorted(t_index)}')
+
+
+    def check_and_init_table_with_samples(self, samples):
+        if samples != 'samples_list.csv':
+            log('No sample list input.')
+        else:
+            log('Using samples input.')
+            s_list = [s.strip() for s in open(samples).readlines()]
+            log(f'Samples: {s_list}')
+
+            s_table = pd.DataFrame(index=s_list)
+            self.force_index_dtype_string(s_table)
+            self.check_and_init_tabledata(s_table.index)
 
 
     def check_and_init_tabledata(self, t_index):
         '''If tabledata is None, initialize it now. Then check if all new index values are in the existing table.
-        Thus adding the results with the most samples (kraken2) first is required.'''
+        Thus samples input or adding the results with the most samples (kraken2) first is required.'''
         if self.tabledata is None:
             self.tabledata = pd.DataFrame(index=sorted(t_index))
             self.tabledata.columns.name = 'Sample'
@@ -533,12 +547,18 @@ if __name__ == '__main__':
     parser.add_argument("-q", "--president_results", help="president results")
     parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
     parser.add_argument("-c", "--coverage_plots", help="coverage plots (comma separated)")
+    parser.add_argument("-s", "--samples", help="sample ids (comma separated)")
     args = parser.parse_args()
 
 
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
+
+
+    # check for samples input
+    if args.samples:
+        report.check_and_init_table_with_samples(args.samples)
 
 
     # results table, this determines the order of columns
