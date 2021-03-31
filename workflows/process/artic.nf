@@ -35,7 +35,7 @@ process artic_nanopolish {
             --scheme-directory ${external_scheme} \
             --read-file ${reads} \
             --fast5-directory ${fast5_dir} \
-            --sequencing-summary sequencing_summary.txt \
+            --sequencing-summary sequencing_summary*.txt \
             nCoV-2019/${params.primerV} ${name}
 
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
