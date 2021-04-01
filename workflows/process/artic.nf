@@ -10,7 +10,7 @@ process artic_medaka {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
     script:   
         """
-        artic minion --medaka --medaka-model ${params.medaka_model} --normalise 200 --threads ${task.cpus} --scheme-directory ${external_scheme} \
+        artic minion --medaka --medaka-model ${params.medaka_model} --normalise 500 --threads ${task.cpus} --scheme-directory ${external_scheme} \
             --read-file ${reads} nCoV-2019/${params.primerV} ${name}
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
 
@@ -30,7 +30,7 @@ process artic_nanopolish {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
     script:   
         """
-        artic minion --minimap2 --normalise 200 \
+        artic minion --minimap2 --normalise 500 \
             --threads ${task.cpus} \
             --scheme-directory ${external_scheme} \
             --read-file ${reads} \
