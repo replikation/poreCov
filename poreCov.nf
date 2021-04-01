@@ -81,15 +81,28 @@ if ( params.rki ) { rki() }
 
 // params help
 if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
-    if (!params.fasta &&  !params.fast5 &&  !params.fastq &&  !params.fastq_pass ) {
+    if (!params.fasta &&  !params.fast5 &&  !params.fastq && !params.fastq_pass ) {
         exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]" }
-    if ((params.fasta && ( params.fastq || params.fast5 )) || ( params.fastq && params.fast5 )) {
-        exit 1, "To many inputs: please us either: [--fasta], [--fastq] or [--dir]"}
+    if ( params.fastq && params.fastq_pass ) { exit 1, "Please use either: [--fastq] or [--fastq_pass]"}
+    if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
+    if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
+        exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
+
 }
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 
 if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not supported for [--single]" }
+
+// check that input params are used as such
+if (params.fasta == true) { exit 5, "Please provide a fasta file via [--fasta]" }
+if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sample) via [--fastq]" }
+if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
+if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
+if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
+if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]]" }
+
+
 /************************** 
 * INPUTs
 **************************/
@@ -198,21 +211,29 @@ workflow {
 
     // 1. Reconstruct genomes
         // fast5
-        if (params.fast5 || workflow.profile.contains('test_fast5')) {
+        if ( (params.fast5 && !params.fastq && !params.fastq_pass) || workflow.profile.contains('test_fast5')) {
             basecalling_wf(dir_input_ch)
             
             // rename barcodes
-                if (params.samples) { fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1]) }
-                reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
-                }
+                if (params.samples) { 
+                    fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1]) }
+                    reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
+                    }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
-
 
             read_classification_wf(fastq_from5_ch)
 
             // use medaka or nanopolish artic reconstruction
-            if (params.nanopolish) { fasta_input_ch = artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])[0] }
-            else if (!params.nanopolish) { fasta_input_ch = artic_ncov_wf(fastq_from5_ch)[0] }
+            if (params.nanopolish) { 
+                artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])
+                fasta_input_ch = artic_ncov_np_wf.out[0]
+                filtered_reads_ch = artic_ncov_np_wf.out[1] 
+                }
+            else if (!params.nanopolish) { 
+                artic_ncov_wf(fastq_from5_ch) 
+                fasta_input_ch = artic_ncov_wf.out[0] 
+                filtered_reads_ch = artic_ncov_wf.out[1] 
+                }
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
@@ -227,11 +248,27 @@ workflow {
 
             read_qc_wf(fastq_input_ch)
             read_classification_wf(fastq_input_ch)
-            fasta_input_ch = artic_ncov_wf(fastq_input_ch)[0]
+
+            // use medaka or nanopolish artic reconstruction
+            if (params.nanopolish && !params.fast5 ) { exit 3, "Please provide fast5 data for nanopolish via [--fast5]" }
+            else if (params.nanopolish && params.fast5 && (params.fastq_pass || params.fastq ) ) { 
+                // get sequence summary from nanopolish
+                sequence_summary_ch = Channel.fromPath( params.nanopolish, checkIfExists: true ).map { file -> tuple(file.name, file) }
+                
+                external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+
+                artic_ncov_np_wf(fastq_input_ch, dir_input_ch, sequence_summary_ch )
+                fasta_input_ch = artic_ncov_np_wf.out[0]
+                filtered_reads_ch = artic_ncov_np_wf.out[1]
+                }
+            else if (!params.nanopolish) { 
+                artic_ncov_wf(fastq_input_ch)
+                fasta_input_ch = artic_ncov_wf.out[0] 
+                filtered_reads_ch = artic_ncov_wf.out[1] 
+                }
         }
 
     // 2. Genome quality, lineages, clades and mutations
-
         // fasta input
         if ( params.fasta || workflow.profile.contains('test_fasta' ) ) {
             fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
@@ -254,8 +291,7 @@ workflow {
             alignments_ch = Channel.from( ['deactivated'] )
         } else {
             read_classification_ch = read_classification_wf.out
-            if (params.nanopolish) { alignments_ch = align_to_reference(artic_ncov_np_wf.out[1].combine(reference_for_qc_input_ch)) }
-            else { alignments_ch = align_to_reference(artic_ncov_wf.out[1].combine(reference_for_qc_input_ch)) }
+            alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
 
         if (params.samples) {
@@ -307,7 +343,10 @@ ${c_yellow}Workflow control ${c_reset}
                     BC02,thirdsample_run
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
-    --nanopolish    use nanopolish instead of medaka (only for --fast5)
+    --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
+                    to skip basecalling use --fastq or --fastq_pass and provide sequencing_summary.txt
+                    e.g --nanopolish sequencing_summary.txt
+                    
 
 ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 

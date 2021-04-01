@@ -3,7 +3,7 @@ process collect_fastq {
     input:
         tuple val(name), path(dir)
     output:
-        tuple val(name), path("*.fastq.gz"), emit: reads 
+        tuple val(name), path("*.fastq.gz"), emit: reads
     script:
         if (params.single)
         """
