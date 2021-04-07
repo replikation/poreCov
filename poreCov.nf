@@ -157,6 +157,7 @@ if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir f
 // samples input 
     if (params.samples) { samples_input_ch = Channel
         .fromPath( params.samples, checkIfExists: true)
+        .splitText(by: 100000) { it.replace( " ", "") }
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
@@ -164,6 +165,7 @@ if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir f
     // extended input
     if (params.samples && params.extended) { 
         extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
+        .splitText(by: 100000) { it.replace( " ", "") }
         .splitCsv(header: true, sep: ',')
         .collectFile() {
                     row -> [ "extended.csv", row.'_id' + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 
