@@ -35,8 +35,25 @@ exit 1
 try to check for poreCov releases
 */
 
-def porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL()
-                        .text.split('"tag_name":"')[1].split('","')[0]
+static boolean netIsAvailable() {
+    try {
+        final URL url = new URL("https://api.github.com/repos/replikation/poreCov/releases/latest");
+        final URLConnection conn = url.openConnection();
+        conn.connect();
+        conn.getInputStream().close();
+        return true;
+    } catch (MalformedURLException e) {
+        return false;
+    } catch (IOException e) {
+        return false;
+    }
+}
+
+def gitcheck = netIsAvailable()
+
+if ( gitcheck.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
+if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version info' } 
+
 
 println " "
 println "  Latest available poreCov release: " + porecovrelease
@@ -157,6 +174,7 @@ if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir f
 // samples input 
     if (params.samples) { samples_input_ch = Channel
         .fromPath( params.samples, checkIfExists: true)
+        .splitText(by: 100000) { it.replace( " ", "") }
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
     }
@@ -164,6 +182,7 @@ if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir f
     // extended input
     if (params.samples && params.extended) { 
         extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
+        .splitText(by: 100000) { it.replace( " ", "") }
         .splitCsv(header: true, sep: ',')
         .collectFile() {
                     row -> [ "extended.csv", row.'_id' + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 

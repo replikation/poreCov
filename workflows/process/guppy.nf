@@ -1,5 +1,5 @@
 process guppy_gpu {
-        label 'guppy_gpu'
+    label 'guppy_gpu'
         if (!params.localguppy) {
             if (workflow.profile.contains('docker')) {
                 container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
@@ -25,6 +25,11 @@ process guppy_gpu {
                 executor = "local"
             }
         }
+
+        errorStrategy { if ( task.exitStatus == 127) { 'retry' ; exit 1, "Could not find the guppy basecaller"  }
+                    else if (task.exitStatus == 255) { 'retry' ; exit 1, "nvidia docker toolkit not installed (correctly)?" }
+                    else if (task.exitStatus == 125) { 'retry' ; exit 1, "nvidia cuda driver not found" } }
+
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
         tuple val(name), path(dir)
