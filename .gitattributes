@@ -1,1 +1,2 @@
 data/* linguist-documentation=true
+*.html linguist-detectable=false
