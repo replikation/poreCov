@@ -117,8 +117,8 @@ if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sampl
 if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
 if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
 if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
-if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]]" }
-
+if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" }
+if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
 
 /************************** 
 * INPUTs
