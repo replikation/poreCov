@@ -36,7 +36,18 @@ process guppy_gpu {
     output:
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
-    script:
+    script:       
+        if ( params.kit.contains('RBK') ) {
+            guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
+            barcoding_option = '  '
+            }
+        else {
+            barcoding_option = '--require_barcodes_both_ends'
+            guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
+            }
+        if ( params.one_end ) {
+            barcoding_option = '  '
+            }
         if (params.single)
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq -x auto -r --trim_strategy dna -q 0
@@ -46,21 +57,10 @@ process guppy_gpu {
         mkdir -p fastq_tmp/
         cp fastq/*.txt fastq_tmp
         """
-        else if (!params.single && !params.one_end)
+        else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp -x auto -r
-        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
-
-        for barcodes in fastq/barcode??; do
-            find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
-        done
-
-        cp fastq/*.txt fastq_tmp
-        """
-        else if (!params.single && params.one_end)
-        """
-        guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp -x auto -r
-        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
+        guppy_barcoder -t ${task.cpus} ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -82,6 +82,17 @@ process guppy_cpu {
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:
+        if ( params.kit.contains('RBK') ) {
+            guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
+            barcoding_option = '  '
+            }
+        else {
+            barcoding_option = '--require_barcodes_both_ends'
+            guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
+            }
+        if ( params.one_end ) {
+            barcoding_option = '  '
+            }
         if (params.single)
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r --trim_strategy dna -q 0
@@ -91,21 +102,10 @@ process guppy_cpu {
         mkdir -p fastq_tmp/
         cp fastq/*.txt fastq_tmp
         """
-        else if (!params.single && !params.one_end)
+        else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r
-        guppy_barcoder -t ${task.cpus} --require_barcodes_both_ends -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
-
-        for barcodes in fastq/barcode??; do
-            find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
-        done
-
-        cp fastq/*.txt fastq_tmp
-        """
-        else if (!params.single && params.one_end)
-        """
-        guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r
-        guppy_barcoder -t ${task.cpus} -i fastq_tmp -s fastq --arrangements_files "barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg"
+        guppy_barcoder -t ${task.cpus} ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz

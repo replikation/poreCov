@@ -63,10 +63,10 @@ println "_______________________________________________________________________
 
 // Log infos based on user inputs
 if ( params.help ) { exit 0, helpMSG() }
-    defaultMSG()
-if ( params.primerV.matches('V1200') ) { v1200_MSG() }
-if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ) { rki() }
+//    defaultMSG()
+// if ( params.primerV.matches('V1200') ) { v1200_MSG() }
+// if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
+// if ( params.rki ) { rki() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -110,6 +110,7 @@ if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profi
         exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 
 if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not supported for [--single]" }
+if ( !params.kit == true && !params.kit.contains('LSK' || 'RBK') ) { exit 1, "Unsupported kit" }
 
 // check that input params are used as such
 if (params.fasta == true) { exit 5, "Please provide a fasta file via [--fasta]" }
@@ -117,8 +118,8 @@ if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sampl
 if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
 if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
 if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
-if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]]" }
-
+if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" }
+if (params.kit == true) { exit 5, "Please provide a kit-name via [--kit]" }
 
 /************************** 
 * INPUTs
@@ -191,6 +192,14 @@ if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir f
     }
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
+/************************** 
+* Log-infos
+**************************/
+
+defaultMSG()
+if ( params.primerV.matches('V1200') ) { v1200_MSG() }
+if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
+if ( params.rki ) { rki() }
 
 /************************** 
 * MODULES
@@ -259,7 +268,7 @@ workflow {
             if (params.fastq_pass && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
             if (!params.fastq_pass && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
 
-            // raname barcodes bases on --samples input.csv
+            // rename barcodes based on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} 
                 reporterrorfastq = fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                 }
@@ -377,6 +386,8 @@ ${c_yellow}Parameters - Basecalling${c_reset}
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
                         Supported: V1, V2, V3, V1200
+    --kit           sequencing-kit [default: ${params.kit}]
+                        Supported: SQK-LSKXXX, SQK-RBK004
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
@@ -468,7 +479,9 @@ def basecalling() {
     \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
     CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
-    Basecalling modell:     $params.guppy_model [--guppy_model]\u001B[0m
+    Basecalling modell:     $params.guppy_model [--guppy_model]
+    Sequencing-kit:         $params.kit [--kit]
+    \u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
