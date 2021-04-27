@@ -42,6 +42,7 @@ Table of Contents
 * [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
 * [4. Workflow](#4.-Workflow)
 * [5. Literature / References to cite](#5.-Literature-/-References-to-cite)
+* [6. Troubleshooting](#6.-Troubleshooting)
 
 # 1. Quick Setup (ubuntu)
 ## 1.1 Nextflow (the workflow manager)
@@ -163,3 +164,9 @@ For citing etc. check out these programs used for poreCov:
 * [nextflow](https://www.nextflow.io/index.html)
 * [pangolin](https://github.com/hCoV-2019/pangolin)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+
+# 6. Troubleshooting
+* Collection of some helpful infos
+
+## Singularity
+* Singularity needs additional option flags to run like `--userns` [Solution on how to pass singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)

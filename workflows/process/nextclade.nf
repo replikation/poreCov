@@ -5,6 +5,7 @@ process nextclade {
         tuple val(name), path(consensus)
     output:
         tuple val(name), path("${name}_clade.tsv")
+    script:
     """
     nextclade --input-fasta ${consensus} --output-tsv tmp.tsv
     cat tmp.tsv | tr -d "\r" > ${name}_clade.tsv
