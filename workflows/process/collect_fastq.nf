@@ -19,6 +19,7 @@ process collect_fastq {
         if (params.single)
         """
         find -L ${dir} -name '*.fastq' -exec cat {} +  | gzip > ${name}.fastq.gz
+        find -L ${dir} -name '*.fastq.gz' -exec zcat {} + | gzip >> ${name}.fastq.gz
         """
         else if (!params.single)
         """
