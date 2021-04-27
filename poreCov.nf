@@ -387,7 +387,7 @@ ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
                         Supported: V1, V2, V3, V1200
     --kit           sequencing-kit [default: ${params.kit}]
-                        Supported: SQK-LSKXXX, SQK-RBK004
+                        Supported: EXP-NBD104 up to EXP-NBD196, SQK-RBK004
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
@@ -480,8 +480,7 @@ def basecalling() {
     One end demultiplexing? $params.one_end [--one_end]
     CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
     Basecalling modell:     $params.guppy_model [--guppy_model]
-    Sequencing-kit:         $params.kit [--kit]
-    \u001B[0m
+    Sequencing-kit:         $params.kit [--kit]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }

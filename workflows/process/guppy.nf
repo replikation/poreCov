@@ -37,13 +37,13 @@ process guppy_gpu {
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:       
-        if ( params.kit.contains('RBK') ) {
+        if ( params.kit.toLowerCase().contains('RBK'.toLowerCase()) ) {
             guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
             barcoding_option = '  '
             }
         else {
-            barcoding_option = '--require_barcodes_both_ends'
             guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
+            barcoding_option = '--require_barcodes_both_ends'
             }
         if ( params.one_end ) {
             barcoding_option = '  '
@@ -82,13 +82,13 @@ process guppy_cpu {
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:
-        if ( params.kit.contains('RBK') ) {
+        if ( params.kit.toLowerCase().contains('RBK'.toLowerCase()) ) {
             guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
             barcoding_option = '  '
             }
         else {
-            barcoding_option = '--require_barcodes_both_ends'
             guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
+            barcoding_option = '--require_barcodes_both_ends'
             }
         if ( params.one_end ) {
             barcoding_option = '  '
