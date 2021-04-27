@@ -31,6 +31,8 @@ class SummaryReport():
     output_filename = report_name + '.html'
     porecov_params = {}
     tool_versions = {}
+    pangolin_version = None
+    pangolearn_version = None
     tabledata = None
     tabledataraw = None
     col_formatters = {}
@@ -115,6 +117,11 @@ class SummaryReport():
             error(f'Failed to parse version config file: {version_config_file}')
         self.tool_versions = version_dict
         log('Parsed version config file.')
+
+
+    def parse_pangolin_version(self, pangolin_docker):
+        # e.g. nanozoo/pangolin:2.3.8--2021-04-21
+        self.pangolin_version, self.pangolearn_version = pangolin_docker.lsplit(':',1)[-1].split('--')
 
 
     # UNUSED
@@ -280,7 +287,9 @@ class SummaryReport():
         res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
 
         self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
-        self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
+        if self.pangolin_version is None or self.pangolearn_version is None:
+            error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
+        self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
             
 
     def add_president_results(self, president_results):
@@ -541,6 +550,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--porecov_version", help="porecov version", required=True)
+    parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
@@ -554,6 +564,7 @@ if __name__ == '__main__':
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
+    report.parse_pangolin_version(args.pangolin_docker)
 
 
     # check for samples input
