@@ -37,7 +37,7 @@ process guppy_gpu {
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:       
-        if ( params.kit.toLowerCase().contains('RBK'.toLowerCase()) ) {
+        if (params.rapid) {
             guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
             barcoding_option = '  '
             }
@@ -45,7 +45,7 @@ process guppy_gpu {
             guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
             barcoding_option = '--require_barcodes_both_ends'
             }
-        if ( params.one_end ) {
+        if (params.one_end) {
             barcoding_option = '  '
             }
         if (params.single)
@@ -60,7 +60,7 @@ process guppy_gpu {
         else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp -x auto -r
-        guppy_barcoder -t ${task.cpus} ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
+        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -82,7 +82,7 @@ process guppy_cpu {
         tuple val(name), path("*.fastq.gz"), emit: reads
         tuple val(name), path("fastq_tmp/*.txt"), emit: summary
     script:
-        if ( params.kit.toLowerCase().contains('RBK'.toLowerCase()) ) {
+        if (params.rapid) {
             guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
             barcoding_option = '  '
             }
@@ -90,7 +90,7 @@ process guppy_cpu {
             guppy_arrangement_files = 'barcode_arrs_nb12.cfg barcode_arrs_nb24.cfg barcode_arrs_nb96.cfg'
             barcoding_option = '--require_barcodes_both_ends'
             }
-        if ( params.one_end ) {
+        if (params.one_end) {
             barcoding_option = '  '
             }
         if (params.single)
@@ -105,7 +105,7 @@ process guppy_cpu {
         else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r
-        guppy_barcoder -t ${task.cpus} ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
+        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}"
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
