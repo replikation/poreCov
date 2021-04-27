@@ -27,6 +27,7 @@ process summary_report {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+	    --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
