@@ -63,10 +63,6 @@ println "_______________________________________________________________________
 
 // Log infos based on user inputs
 if ( params.help ) { exit 0, helpMSG() }
-//    defaultMSG()
-// if ( params.primerV.matches('V1200') ) { v1200_MSG() }
-// if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-// if ( params.rki ) { rki() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }

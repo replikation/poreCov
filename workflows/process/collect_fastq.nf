@@ -6,7 +6,7 @@ process collect_fastq {
         tuple val(name), path("*.fastq.gz"), emit: reads
     script:
         if (params.rapid) {
-            guppy_arrangement_files = 'barcode_arrs_rbk4.cfg'
+            guppy_arrangement_files = 'barcode_arrs_rbk4.cfg barcode_arrs_rbk096.cfg'
             barcoding_option = '  '
             }
         else {
