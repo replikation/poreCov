@@ -121,7 +121,7 @@ class SummaryReport():
 
     def parse_pangolin_version(self, pangolin_docker):
         # e.g. nanozoo/pangolin:2.3.8--2021-04-21
-        self.pangolin_version, self.pangolearn_version = pangolin_docker.lsplit(':',1)[-1].split('--')
+        self.pangolin_version, self.pangolearn_version = pangolin_docker.split(':',1)[-1].split('--')
 
 
     # UNUSED
