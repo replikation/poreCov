@@ -191,6 +191,32 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
     }
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
+/************************** 
+* Automatic Pangolin version updates, with fail save
+**************************/
+
+static boolean DockernetIsAvailable() {
+    try {
+        final URL url = new URL("https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/");
+        final URLConnection conn = url.openConnection();
+        conn.connect();
+        conn.getInputStream().close();
+        return true;
+    } catch (MalformedURLException e) {
+        return false;
+    } catch (IOException e) {
+        return false;
+    }
+}
+
+def pangocheck = DockernetIsAvailable()
+
+if ( pangocheck.toString() == "true" ) { 
+    tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+    params.pangolindocker = "nanozoo/pangolin:" + tagname } 
+if ( pangocheck.toString() == "false" ) { params.pangolindocker = "nanozoo/pangolin:2.3.8--2021-04-21" } 
+
+println "using container:" + params.pangolindocker
 
 /************************** 
 * MODULES
