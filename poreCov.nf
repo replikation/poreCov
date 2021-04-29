@@ -63,10 +63,6 @@ println "_______________________________________________________________________
 
 // Log infos based on user inputs
 if ( params.help ) { exit 0, helpMSG() }
-    defaultMSG()
-if ( params.primerV.matches('V1200') ) { v1200_MSG() }
-if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ) { rki() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -191,6 +187,14 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
     }
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
+/************************** 
+* Log-infos
+**************************/
+
+defaultMSG()
+if ( params.primerV.matches('V1200') ) { v1200_MSG() }
+if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
+if ( params.rki ) { rki() }
 
 /************************** 
 * MODULES
@@ -259,7 +263,7 @@ workflow {
             if (params.fastq_pass && !params.fastq) { fastq_input_raw_ch = collect_fastq_wf(fastq_dir_ch) }
             if (!params.fastq_pass && params.fastq) { fastq_input_raw_ch = fastq_file_ch }
 
-            // raname barcodes bases on --samples input.csv
+            // rename barcodes based on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} 
                 reporterrorfastq = fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                 }
@@ -377,6 +381,7 @@ ${c_yellow}Parameters - Basecalling${c_reset}
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
                         Supported: V1, V2, V3, V1200
+    --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: ${params.minLength}]
     --maxLength     max length filter raw reads [default: ${params.maxLength}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
@@ -468,7 +473,8 @@ def basecalling() {
     \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
     CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
-    Basecalling modell:     $params.guppy_model [--guppy_model]\u001B[0m
+    Basecalling modell:     $params.guppy_model [--guppy_model]
+    Rapid-barcode-kit:      $params.rapid [--rapid]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
