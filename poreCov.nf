@@ -213,10 +213,11 @@ def pangocheck = DockernetIsAvailable()
 
 if ( pangocheck.toString() == "true" ) { 
     tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-    params.pangolindocker = "nanozoo/pangolin:" + tagname } 
+    params.pangolindocker = "nanozoo/pangolin:" + tagname 
+    println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
 if ( pangocheck.toString() == "false" ) { params.pangolindocker = "nanozoo/pangolin:2.3.8--2021-04-21" } 
 
-println "using container:" + params.pangolindocker
+
 
 /************************** 
 * MODULES
