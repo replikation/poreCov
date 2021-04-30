@@ -517,11 +517,11 @@ class SummaryReport():
             self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples} / {n_realsamples} of samples failed QC criteria.</b></font>')
         if n_controls > 0:
             if n_passcontrols < n_controls:
-                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples failed QC criteria.</b></font>')
+                self.add_QC_info('Negative controls', f'<font color="{self.color_good_green}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples correctly did not produce an assembly that passed QC criteria.</b></font>')
             if n_passcontrols > 0:
                 self.add_QC_info('Bad controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols} / {n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
         else:
-            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>Could not automatically detect a negative control sample.</b></font>')
+            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>No negative control samples were found by automatic detection.</b></font>')
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
