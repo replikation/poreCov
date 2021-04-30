@@ -9,9 +9,9 @@ workflow determine_lineage_wf {
         // collect lineage also to a summary     
         channel_tmp = pangolin.out.map {it -> it[1]}
                 .splitCsv(header: true, sep: ',')
-                .collectFile(seed: 'sequence_name,lineage,probability,pangoLEARN_version,status,note\n', 
+                .collectFile(seed: 'sequence_name,lineage,conflict,pangoLEARN_version,status,note\n', 
                             storeDir: params.output + "/" + params.lineagedir + "/") {
-                            row -> [ "metadata.csv", row.taxon + ',' + row.lineage + ',' + row.probability + ',' + 
+                            row -> [ "metadata.csv", row.taxon + ',' + row.lineage + ',' + row.conflict + ',' + 
                             row.'pangoLEARN_version' + ',' + row.status + ',' + row.note + '\n']
                             }
     emit:

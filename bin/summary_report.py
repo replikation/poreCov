@@ -282,14 +282,14 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
-        self.add_column_raw('pangolin_probability', res_data['probability'])
+        self.add_column_raw('pangolin_conflict', res_data['conflict'])
 
-        res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
 
         self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
         if self.pangolin_version is None or self.pangolearn_version is None:
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
+        self.add_col_description(f'Lineage and conflict were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
             
 
     def add_president_results(self, president_results):
