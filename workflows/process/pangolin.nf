@@ -15,3 +15,14 @@ process pangolin {
     find . -name "*.csv" -size  0 -print -delete
     """
   }
+
+process install_pangolin_failsave {
+    label 'pangolin'
+    container = params.failsavepangolin
+  output:
+    path("results.txt")
+  script:
+    """
+    pangolin -v > results.txt
+    """
+  }

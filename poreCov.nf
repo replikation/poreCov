@@ -58,7 +58,7 @@ if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version 
 println " "
 println "  Latest available poreCov release: " + porecovrelease
 println "  If neccessary update via: nextflow pull replikation/poreCov"
-println "____________________________________________________________________________________________"
+println "________________________________________________________________________________"
 
 
 // Log infos based on user inputs
@@ -207,12 +207,17 @@ static boolean DockernetIsAvailable() {
 
 def pangocheck = DockernetIsAvailable()
 
-if ( pangocheck.toString() == "true" ) { 
-    tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-    params.pangolindocker = "nanozoo/pangolin:" + tagname 
-    println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
-if ( pangocheck.toString() == "false" ) { params.pangolindocker = "nanozoo/pangolin:2.4--2021-04-28" } 
-
+if (!params.no_auto) {
+    if ( pangocheck.toString() == "true" ) { 
+        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+        params.pangolindocker = "nanozoo/pangolin:" + tagname 
+        println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
+    if ( pangocheck.toString() == "false" ) { 
+        println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.failsavepangolin + "\033[0m"
+        params.pangolindocker = params.failsavepangolin 
+        } 
+}
+else { params.pangolindocker = params.failsavepangolin }
 
 /************************** 
 * Log-infos
@@ -221,7 +226,8 @@ if ( pangocheck.toString() == "false" ) { params.pangolindocker = "nanozoo/pango
 defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ) { rki() }
+
+    rki()
 
 /************************** 
 * MODULES
@@ -329,7 +335,7 @@ workflow {
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
-        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch) }
+        rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
 
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
@@ -386,7 +392,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control ${c_reset}
-    --rki           activates RKI style summary for DESH upload
+    --no_auto       dont auto use the latest pangolin docker for lineage determination
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                     Status,_id
                     barcode01,sample2011XY
@@ -450,7 +456,7 @@ def header(){
     c_green = "\033[0;32m";
     c_reset = "\033[0m";
     log.info """
-____________________________________________________________________________________________
+________________________________________________________________________________
     
 ${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 workflow for nanopore data
     """
@@ -507,7 +513,7 @@ def basecalling() {
 
 def rki() {
     log.info """
-    RKI output activated:
+    RKI output for german DESH upload:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
     Min Coverage:        20 [ no parameter]
