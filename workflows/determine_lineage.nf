@@ -1,12 +1,10 @@
-include { pangolin; install_pangolin_failsave } from './process/pangolin' 
+include { pangolin } from './process/pangolin' 
 
 workflow determine_lineage_wf {
     take: 
         fasta  
     main:
         pangolin(fasta)
-
-        if (workflow.profile.contains('local')) { install_pangolin_failsave() }
         
         // collect lineage also to a summary     
         channel_tmp = pangolin.out.map {it -> it[1]}
