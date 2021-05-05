@@ -1,7 +1,8 @@
 process artic_medaka {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
-        publishDir "${params.output}/${params.genomedir}/all_consensi/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+
     input:
         tuple val(name), path(reads), path(external_scheme)
     output:
@@ -20,7 +21,8 @@ process artic_medaka {
 process artic_nanopolish {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
-        publishDir "${params.output}/${params.genomedir}/all_consensi/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files)
     output:

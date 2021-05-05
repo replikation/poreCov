@@ -9,7 +9,7 @@
 ![](https://img.shields.io/badge/uses-docker-blue.svg)
 ![](https://img.shields.io/badge/uses-singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
-![](https://github.com/replikation/nCov/workflows/Syntax_check/badge.svg)
+![](https://github.com/replikation/poreCov/actions/workflows/nextflow-test.yml/badge.svg)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4153509.svg)](https://doi.org/10.5281/zenodo.4153509)
 
