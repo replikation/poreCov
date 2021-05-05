@@ -373,10 +373,10 @@ def helpMSG() {
     log.info """
     .    
 \033[0;33mUsage examples:${c_reset}
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.7.8 -profile local,singularity
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.8.0 -profile local,singularity
 
 ${c_yellow}Inputs (choose one):${c_reset}
-    --fast5           one fast5 dir of a nanopore run containing multiple samples (barcoded);
+    --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
@@ -393,7 +393,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control ${c_reset}
-    --update   Always try to use latest pangolin lineage release
+    --update        Always try to use latest pangolin lineage release [default: $params.update]
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                     Status,_id
                     barcode01,sample2011XY
@@ -401,9 +401,8 @@ ${c_yellow}Workflow control ${c_reset}
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
     --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
-                    to skip basecalling use --fastq or --fastq_pass and provide sequencing_summary.txt
-                    e.g --nanopolish sequencing_summary.txt
-                    
+                    to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt
+                    e.g --nanopolish sequencing_summary.txt                 
 
 ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
