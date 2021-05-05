@@ -18,8 +18,8 @@ Format is this: XX.YY.ZZ  (e.g. 20.07.1)
 change below
 */
 
-XX = "20"
-YY = "10"
+XX = "21"
+YY = "04"
 ZZ = "0"
 
 if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
