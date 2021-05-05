@@ -208,7 +208,7 @@ static boolean DockernetIsAvailable() {
 def pangocheck = DockernetIsAvailable()
 
 if (params.update) {
-println "\033[0;33mWarning: Using the most recent pangolin version might not be poreCov compatible\033[0m"
+println "\033[0;33mWarning: Most recent pangolin version might not be poreCov compatible!\033[0m"
     if ( pangocheck.toString() == "true" ) { 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
         params.pangolindocker = "nanozoo/pangolin:" + tagname 
@@ -484,6 +484,7 @@ def defaultMSG(){
     Parameters:
     \033[2mPrimerscheme:        $params.primerV [--primerV]
     Medaka model:        $params.medaka_model [--medaka_model]
+    Update Pangolin?:    $params.update [--update]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
@@ -502,11 +503,11 @@ def v1200_MSG() {
 def basecalling() {
     log.info """
     Basecalling options:
-    \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
+    \033[2mUse local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
-    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
+    Basecalling via CPUs?   $params.guppy_cpu [--guppy_cpu]
     Basecalling modell:     $params.guppy_model [--guppy_model]
-    Rapid-barcode-kit:      $params.rapid [--rapid]\u001B[0m
+    Rapid-barcode-kit?:     $params.rapid [--rapid]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
