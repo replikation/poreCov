@@ -207,17 +207,18 @@ static boolean DockernetIsAvailable() {
 
 def pangocheck = DockernetIsAvailable()
 
-if (!params.no_auto) {
+if (params.update) {
+println "\033[0;33mWarning: Using the most recent pangolin version might not be poreCov compatible\033[0m"
     if ( pangocheck.toString() == "true" ) { 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
         params.pangolindocker = "nanozoo/pangolin:" + tagname 
         println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
     if ( pangocheck.toString() == "false" ) { 
-        println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.failsavepangolin + "\033[0m"
-        params.pangolindocker = params.failsavepangolin 
+        println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.defaultpangolin + "\033[0m"
+        params.pangolindocker = params.defaultpangolin 
         } 
 }
-else { params.pangolindocker = params.failsavepangolin }
+else { params.pangolindocker = params.defaultpangolin }
 
 /************************** 
 * Log-infos
@@ -392,7 +393,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control ${c_reset}
-    --no_auto       dont auto use the latest pangolin docker for lineage determination
+    --update   Always try to use latest pangolin lineage release
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                     Status,_id
                     barcode01,sample2011XY
@@ -409,7 +410,7 @@ ${c_yellow}Parameters - Basecalling${c_reset}
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
-    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
+    --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
 
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -485,7 +486,6 @@ def defaultMSG(){
     Medaka model:        $params.medaka_model [--medaka_model]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
-
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
