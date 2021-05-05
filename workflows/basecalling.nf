@@ -21,6 +21,8 @@ workflow basecalling_wf {
         // nanopore sequencing summary
         pycoqc(guppy_summary)
 
+         if (!params.single) { guppy_gpu.out.reads.ifEmpty{ log.info "\033[0;33 Could not retrieve reads for any barcode!\033[0m" } }
+
         // adjust channels to a clean val(name), path(reads) channel
         if (params.single) { fastq_channel = guppy_basecalls }
         else { fastq_channel = guppy_basecalls
