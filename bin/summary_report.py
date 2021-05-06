@@ -31,6 +31,8 @@ class SummaryReport():
     output_filename = report_name + '.html'
     porecov_params = {}
     tool_versions = {}
+    pangolin_version = None
+    pangolearn_version = None
     tabledata = None
     tabledataraw = None
     col_formatters = {}
@@ -115,6 +117,11 @@ class SummaryReport():
             error(f'Failed to parse version config file: {version_config_file}')
         self.tool_versions = version_dict
         log('Parsed version config file.')
+
+
+    def parse_pangolin_version(self, pangolin_docker):
+        # e.g. nanozoo/pangolin:2.3.8--2021-04-21
+        self.pangolin_version, self.pangolearn_version = pangolin_docker.split(':',1)[-1].split('--')
 
 
     # UNUSED
@@ -275,12 +282,14 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
-        self.add_column_raw('pangolin_probability', res_data['probability'])
+        self.add_column_raw('pangolin_conflict', res_data['conflict'])
 
-        res_data['lineage_prob'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['probability'])]
+        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
 
-        self.add_column('Lineage<br>(probab.)', res_data['lineage_prob'])
-        self.add_col_description(f'Lineage and probability were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.tool_versions["pangolin"]}).')
+        self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
+        if self.pangolin_version is None or self.pangolearn_version is None:
+            error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
+        self.add_col_description(f'Lineage and tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
             
 
     def add_president_results(self, president_results):
@@ -508,11 +517,11 @@ class SummaryReport():
             self.add_QC_info('Failed samples', f'<font color="{self.color_error_red}"><b>{n_realsamples-n_passrealsamples} / {n_realsamples} of samples failed QC criteria.</b></font>')
         if n_controls > 0:
             if n_passcontrols < n_controls:
-                self.add_QC_info('Negative controls', f'<font color="{self.color_warn_orange}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples failed QC criteria.</b></font>')
+                self.add_QC_info('Negative controls', f'<font color="{self.color_good_green}"><b>{n_controls-n_passcontrols} / {n_controls} of control samples correctly did not produce an assembly that passed QC criteria.</b></font>')
             if n_passcontrols > 0:
                 self.add_QC_info('Bad controls', f'<font color="{self.color_error_red}"><b>{n_passcontrols} / {n_controls} of control samples wrongly produced an assembly that passed QC criteria.</b></font>')
         else:
-            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>Could not automatically detect a negative control sample.</b></font>')
+            self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>No negative control samples were found by automatic detection.</b></font>')
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
@@ -541,6 +550,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--porecov_version", help="porecov version", required=True)
+    parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
@@ -554,6 +564,7 @@ if __name__ == '__main__':
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
+    report.parse_pangolin_version(args.pangolin_docker)
 
 
     # check for samples input

@@ -27,6 +27,7 @@ process summary_report {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+	    --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -65,6 +66,7 @@ process summary_report_default {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+            --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -92,6 +94,7 @@ process summary_report_fasta {
         summary_report.py \
             -v ${version_config} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
+            --pangolin_docker ${params.pangolindocker} \
             -p ${pangolin_results} \
             -q ${president_results} \
             -n ${nextclade_results} \

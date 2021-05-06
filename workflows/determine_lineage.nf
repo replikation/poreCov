@@ -1,19 +1,18 @@
-include { pangolin } from './process/pangolin'
-
+include { pangolin } from './process/pangolin' 
 
 workflow determine_lineage_wf {
     take: 
         fasta  
     main:
         pangolin(fasta)
-
+        
         // collect lineage also to a summary     
         channel_tmp = pangolin.out.map {it -> it[1]}
                 .splitCsv(header: true, sep: ',')
-                .collectFile(seed: 'sequence_name,lineage,probability,pangoLEARN_version,status,note\n', 
+                .collectFile(seed: 'taxon,lineage,conflict,pangolin_version,pangoLEARN_version,pango_version,status,note\n', 
                             storeDir: params.output + "/" + params.lineagedir + "/") {
-                            row -> [ "metadata.csv", row.taxon + ',' + row.lineage + ',' + row.probability + ',' + 
-                            row.'pangoLEARN_version' + ',' + row.status + ',' + row.note + '\n']
+                            row -> [ "metadata.csv", row.taxon + ',' + row.lineage + ',' + row.conflict + ',' + row.'pangolin_version' + ',' +
+                            row.'pangoLEARN_version' + ',' + row.'pango_version' + ',' + row.status + ',' + row.note + '\n']
                             }
     emit:
         pangolin.out

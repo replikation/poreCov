@@ -18,8 +18,8 @@ Format is this: XX.YY.ZZ  (e.g. 20.07.1)
 change below
 */
 
-XX = "20"
-YY = "10"
+XX = "21"
+YY = "04"
 ZZ = "0"
 
 if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
@@ -58,7 +58,7 @@ if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version 
 println " "
 println "  Latest available poreCov release: " + porecovrelease
 println "  If neccessary update via: nextflow pull replikation/poreCov"
-println "____________________________________________________________________________________________"
+println "________________________________________________________________________________"
 
 
 // Log infos based on user inputs
@@ -78,7 +78,8 @@ if ( params.help ) { exit 0, helpMSG() }
     if (
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
-        workflow.profile.contains('local')
+        workflow.profile.contains('local') ||
+        workflow.profile.contains('slurm')
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
 
@@ -188,13 +189,47 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
 /************************** 
+* Automatic Pangolin version updates, with fail save
+**************************/
+
+static boolean DockernetIsAvailable() {
+    try {
+        final URL url = new URL("https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/");
+        final URLConnection conn = url.openConnection();
+        conn.connect();
+        conn.getInputStream().close();
+        return true;
+    } catch (MalformedURLException e) {
+        return false;
+    } catch (IOException e) {
+        return false;
+    }
+}
+
+def pangocheck = DockernetIsAvailable()
+
+if (params.update) {
+println "\033[0;33mWarning: Most recent pangolin version might not be poreCov compatible!\033[0m"
+    if ( pangocheck.toString() == "true" ) { 
+        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+        params.pangolindocker = "nanozoo/pangolin:" + tagname 
+        println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
+    if ( pangocheck.toString() == "false" ) { 
+        println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.defaultpangolin + "\033[0m"
+        params.pangolindocker = params.defaultpangolin 
+        } 
+}
+else { params.pangolindocker = params.defaultpangolin }
+
+/************************** 
 * Log-infos
 **************************/
 
 defaultMSG()
 if ( params.primerV.matches('V1200') ) { v1200_MSG() }
 if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if ( params.rki ) { rki() }
+
+    rki()
 
 /************************** 
 * MODULES
@@ -302,7 +337,7 @@ workflow {
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
-        if (params.rki) { rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch) }
+        rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
 
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
@@ -339,10 +374,10 @@ def helpMSG() {
     log.info """
     .    
 \033[0;33mUsage examples:${c_reset}
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.7.8 -profile local,singularity
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.8.0 -profile local,singularity
 
 ${c_yellow}Inputs (choose one):${c_reset}
-    --fast5           one fast5 dir of a nanopore run containing multiple samples (barcoded);
+    --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
@@ -359,7 +394,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control ${c_reset}
-    --rki           activates RKI style summary for DESH upload
+    --update        Always try to use latest pangolin lineage release [default: $params.update]
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                     Status,_id
                     barcode01,sample2011XY
@@ -367,16 +402,15 @@ ${c_yellow}Workflow control ${c_reset}
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
     --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
-                    to skip basecalling use --fastq or --fastq_pass and provide sequencing_summary.txt
-                    e.g --nanopolish sequencing_summary.txt
-                    
+                    to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt
+                    e.g --nanopolish sequencing_summary.txt                 
 
 ${c_yellow}Parameters - Basecalling${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
-    --guppy_model   guppy basecalling modell [default: ${params.guppy_model}]
+    --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
 
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -423,10 +457,9 @@ def header(){
     c_green = "\033[0;32m";
     c_reset = "\033[0m";
     log.info """
-    ____________________________________________________________________________________________
+________________________________________________________________________________
     
 ${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 workflow for nanopore data
-
     """
 }
 
@@ -451,9 +484,9 @@ def defaultMSG(){
     Parameters:
     \033[2mPrimerscheme:        $params.primerV [--primerV]
     Medaka model:        $params.medaka_model [--medaka_model]
+    Update Pangolin?:    $params.update [--update]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
-
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -470,18 +503,18 @@ def v1200_MSG() {
 def basecalling() {
     log.info """
     Basecalling options:
-    \033[2mUsing local guppy?      $params.localguppy [--localguppy]  
+    \033[2mUse local guppy?      $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
-    CPUs for basecalling?   $params.guppy_cpu [--guppy_cpu]
+    Basecalling via CPUs?   $params.guppy_cpu [--guppy_cpu]
     Basecalling modell:     $params.guppy_model [--guppy_model]
-    Rapid-barcode-kit:      $params.rapid [--rapid]\u001B[0m
+    Rapid-barcode-kit?:     $params.rapid [--rapid]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
 
 def rki() {
     log.info """
-    RKI output activated:
+    RKI output for german DESH upload:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
     Min Coverage:        20 [ no parameter]

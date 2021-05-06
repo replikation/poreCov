@@ -72,26 +72,26 @@ Table of Contents
 
 ```bash
 # for a docker installation
-nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.7.9
+nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.8.0
 
 # or for singularity or conda installation
-nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.7.9
+nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.8.0
 ```
 
 ## 2.2 quick run examples
 
 * poreCov with basecalling and docker
-    * `--rki` collects all genomes with a valid QC metrices (optional)
-    * `-r 0.7.9` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+    * `--update` tryies to force the most recent lineage release version (optional)
+    * `-r 0.8.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
 ```bash
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.7.9 \
-    --cores 6 -profile local,docker --rki 
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.8.0 \
+    --cores 6 -profile local,docker --update 
 ```
 
 * poreCov with a basecalled fastq directory 
 
 ```bash
-nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.7.9 \
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.8.0 \
     --cores 32  -profile local,docker
 ```
 
@@ -100,13 +100,13 @@ nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.7.9 \
 ```bash
 # rename barcodes automatically by providing an input file, also using another primer scheme
 nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
-   --primerV V1200 --output results --rki -profile local,docker
+   --primerV V1200 --output results -profile local,docker
 ```
 
 ## 2.3 Extended Usage
-* see also `nextflow run replikation/poreCov --help -r 0.7.9`
+* see also `nextflow run replikation/poreCov --help -r 0.8.0`
 ### Version control
-* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.7.9`)
+* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.8.0`)
 * poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
@@ -134,7 +134,7 @@ Sample_2021,barcode01
 
 * Regions with coverage of 20 or less are masked ("N")
 * Genomequality is compared to NC_045512.2
-    * `--rki` adds genome quality assessment based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+    * Genome quality assessment is based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
         * also prepares csv and fasta for upload via DESH portal
 * Pangolin lineages are determined
 * nextstrain clades are determined including mutation infos
