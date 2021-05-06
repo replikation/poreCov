@@ -110,6 +110,8 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 * poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
+   * if you have issues during update try `rm -rf ~/.nextflow` and then `nextflow pull replikation/poreCov`
+   * this removes old files and downloads everything new
 
 ### Important input flags (choose on)
 * these are the flags to get "data" into the workflow
