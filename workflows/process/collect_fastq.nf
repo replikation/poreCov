@@ -33,7 +33,7 @@ process collect_fastq {
             done
         else
             for barcodes in \${BARCODE_DIRS}; do
-                find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
+                find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip >> \${barcodes##*/}.fastq.gz
                 find -L \${barcodes} -name '*.fastq.gz' -exec zcat {} + | gzip >> \${barcodes##*/}.fastq.gz
             done
         fi
