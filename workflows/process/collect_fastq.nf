@@ -29,7 +29,7 @@ process collect_fastq {
             guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i ${dir} -s fastq_porecov --arrangements_files "${guppy_arrangement_files}"
 
             for barcodes in fastq_porecov/barcode??; do
-                find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
+                find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip >> \${barcodes##*/}.fastq.gz
             done
         else
             for barcodes in \${BARCODE_DIRS}; do
