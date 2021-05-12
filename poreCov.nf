@@ -122,8 +122,15 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
 **************************/
 
 // fasta input 
-    if (params.fasta && !workflow.profile.contains('test_fasta')) { fasta_input_raw_ch = Channel
+    if (!params.list && params.fasta && !workflow.profile.contains('test_fasta')) { 
+        fasta_input_raw_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
+    }
+    else if (params.list && params.fasta && !workflow.profile.contains('test_fasta')) { 
+        fasta_input_raw_ch = Channel
+        .fromPath( params.fasta, checkIfExists: true )
+        .splitCsv()
+        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
     }
 
 // consensus qc reference input - auto using git default if not specified
