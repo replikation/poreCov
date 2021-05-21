@@ -6,61 +6,33 @@ process filter_fastq_by_length {
     output:
 	    tuple val(name), path("${name}_filtered.fastq.gz") optional true
     script:
+    read_min_length = params.minLength
+    read_max_length = params.maxLength
+
+    if ( params.primerV.matches('V1200')) {
+        if ( !params.minLength ) { read_min_length = 500 }
+        if ( !params.maxLength ) { read_max_length = 1500 }
+    }
+    else ( params.primerV.matches("V[1-3]")) {
+        if ( !params.minLength ) { read_min_length = 350 }
+        if ( !params.maxLength ) { read_max_length = 700 }
+    }
+    
     // we skip cleanup if samples are provided as the join channel removes unused barcodes
-    if ( params.primerV.matches('V1200') && params.samples )
     """
     case "${reads}" in
         *.fastq.gz ) 
-            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 500' |\
-                awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${read_min_length}' |\
+                awk -F"\\t" 'length(\$2)  <= ${read_max_length}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
         *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 500' |\
-            awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${read_min_length}' |\
+            awk -F"\\t" 'length(\$2)  <= ${read_max_length}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
         ;;
     esac
-    """
-    else if ( params.primerV.matches('V1200') && !params.samples )
-    """
-    case "${reads}" in
-        *.fastq.gz ) 
-            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 500' |\
-                awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-        *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= 500' |\
-            awk -F"\\t" 'length(\$2)  <= 1500' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-    esac
-
-    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
-    """
-    else if ( params.samples )
-    """
-    case "${reads}" in
-        *.fastq.gz ) 
-            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' |\
-                awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-        *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' \
-            awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-    esac
-    """
-    else
-    """
-    case "${reads}" in
-        *.fastq.gz ) 
-            zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' |\
-                awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-        *.fastq)
-            cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${params.minLength}' |\
-            awk -F"\\t" 'length(\$2)  <= ${params.maxLength}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
-        ;;
-    esac
-
-    find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
+    
+    if [ ${params.samples} == false ]; then
+        find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
+    fi
     """
 }
