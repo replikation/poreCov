@@ -13,7 +13,7 @@ process filter_fastq_by_length {
         if ( !params.minLength ) { read_min_length = 500 }
         if ( !params.maxLength ) { read_max_length = 1500 }
     }
-    else ( params.primerV.matches("V[1-3]")) {
+    else {
         if ( !params.minLength ) { read_min_length = 350 }
         if ( !params.maxLength ) { read_max_length = 700 }
     }

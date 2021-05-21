@@ -113,8 +113,8 @@ if (params.fasta == true) { exit 5, "Please provide a fasta file via [--fasta]" 
 if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sample) via [--fastq]" }
 if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
 if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
-if (params.minLength.isInteger()) { exit 5, "Please provide an integer number as minimal read length via [--minLength]"}
-if (params.maxLength.isInteger()) { exit 5, "Please provide an integer number as maximum read length via [--maxLength]"}
+if (!params.minLength == false && !params.minLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as minimal read length via [--minLength]" }
+if (!params.maxLength == false && !params.maxLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as maximum read length via [--maxLength]" }
 if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
 if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" }
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
@@ -229,8 +229,8 @@ else { params.pangolindocker = params.defaultpangolin }
 
 defaultMSG()
 if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-
-    rki()
+read_length()
+rki()
 
 /************************** 
 * MODULES
@@ -516,19 +516,23 @@ def rki() {
 }
 
 def read_length() {
+    log_msg_read_min_length = params.minLength
+    log_msg_read_max_length = params.maxLength
+
     if ( params.primerV.matches('V1200')) {
-        if ( !params.minLength ) { log_mssg_read_min_length = 500 }
-        if ( !params.maxLength ) { log_mssg_read_max_length = 1500 }
+        if ( !params.minLength ) { log_msg_read_min_length = 500 }
+        if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
     }
-    else ( params.primerV.matches("V[1-3]")) {
-        if ( !params.minLength ) { log_mssg_read_min_length = 350 }
-        if ( !params.maxLength ) { log_mssg_read_max_length = 700 }
+    else {
+        if ( !params.minLength ) { log_msg_read_min_length = 350 }
+        if ( !params.maxLength ) { log_msg_read_max_length = 700 }
     }
+    if (log_msg_read_max_length < log_msg_read_min_length) {exit 5, "Please choose [--maxLength] of [${log_msg_read_max_length}] greater than the [--minlength] of [${log_msg_read_min_length}]."}
+
     log.info """
-    Used primer-scheme: $params.primerV
-    \033[2m Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
-    Min Coverage:        20 [ no parameter]
-    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
+    $params.primerV amplicon scheme is used [--primerV]
+    \033[2mMin read-length set to: $log_msg_read_min_length [--minLength]
+    Max read-length set to: $log_msg_read_max_length [--maxLength]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
