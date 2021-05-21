@@ -411,7 +411,7 @@ ${c_yellow}Parameters - Basecalling${c_reset}
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
-    --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
+    --guppy_model   guppy basecalling model; e.g.: dna_r9.4.1_450bps_sup.cfg [default: ${params.guppy_model}]
 
 ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
