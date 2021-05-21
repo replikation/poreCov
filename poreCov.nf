@@ -229,7 +229,7 @@ else { params.pangolindocker = params.defaultpangolin }
 
 defaultMSG()
 if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-read_length()
+if (!params.fasta || workflow.profile.contains('test_fasta')) { read_length() }
 rki()
 
 /************************** 
@@ -483,8 +483,7 @@ def defaultMSG(){
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m
     Parameters:
-    \033[2mPrimerscheme:        $params.primerV [--primerV]
-    Medaka model:        $params.medaka_model [--medaka_model]
+    \033[2mMedaka model:        $params.medaka_model [--medaka_model]
     Update Pangolin?:    $params.update [--update]
     CPUs to use:         $params.cores [--cores]
     Memory in GB:        $params.memory [--memory]\u001B[0m
@@ -530,7 +529,7 @@ def read_length() {
     if (log_msg_read_max_length < log_msg_read_min_length) {exit 5, "Please choose [--maxLength] of [${log_msg_read_max_length}] greater than the [--minlength] of [${log_msg_read_min_length}]."}
 
     log.info """
-    $params.primerV amplicon scheme is used [--primerV]
+    Primerscheme:        $params.primerV [--primerV]
     \033[2mMin read-length set to: $log_msg_read_min_length [--minLength]
     Max read-length set to: $log_msg_read_max_length [--maxLength]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
