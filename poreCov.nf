@@ -417,8 +417,8 @@ ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
                         Supported: V1, V2, V3, V1200
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 350; 500 for V1200 primer scheme]
-    --maxLength     max length filter raw reads [default: 700; 1500 for V1200 primer scheme]
+    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
+    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
 
 ${c_yellow}Parameters - Genome quality control${c_reset}
