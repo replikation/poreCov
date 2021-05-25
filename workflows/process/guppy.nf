@@ -73,7 +73,7 @@ process guppy_gpu {
 process guppy_cpu {
         label 'guppy_cpu'
         if (!params.localguppy && workflow.profile.contains('docker') || workflow.profile.contains('singularity') ) {
-            container = 'nanozoo/guppy_cpu:4.5.4-1--8a4421c'
+            container = 'nanozoo/guppy_cpu:5.0.7-1--47b84be'
         }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
