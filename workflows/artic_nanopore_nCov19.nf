@@ -1,6 +1,7 @@
 include { artic_medaka ; artic_nanopolish } from './process/artic.nf' 
 include { bwa_samtools } from './process/bwa_samtools.nf'
 include { coverage_plot } from './process/coverage_plot.nf'
+include { covarplot } from './process/covarplot.nf'
 include { filter_fastq_by_length } from './process/filter_fastq_by_length.nf'
 
 workflow artic_ncov_wf {
