@@ -3,6 +3,7 @@
 
 import os
 import sys
+import fnmatch
 
 def error(string, error_type=1):
     sys.stderr.write(f'ERROR: {string}\n')
@@ -40,7 +41,8 @@ for fasta_file in sys.argv[1:]:
                 if seq_name in sequence_names:
                     log(f'WARNING: Duplicate sequence name: {seq_name}')
                     # add number to seq_name, according to how often seq_name alrready appeared
-                    seq_name += f'_duplicate{int(len([item for item in sequence_names if seq_name in item])):02d}'
+                    duplicate_seq_name_pattern = f'{seq_name}_duplicate**'
+                    seq_name += f'_duplicate{int(len([item for item in sequence_names if item == seq_name or fnmatch.fnmatch(item ,duplicate_seq_name_pattern)])):02d}'
                 
                 # save
                 sequence_names.append(seq_name)
