@@ -35,17 +35,13 @@ for fasta_file in sys.argv[1:]:
                 assert seq_name != '', f'Empty header in file: {fasta_file}'
                 
                 # sanitize
-                seq_name = seq_name.replace(' ','_').replace('/', '_').replace(':', '_').replace('|','_')
+                seq_name = seq_name.replace('/', '_').replace(':', '_').replace('|','_')
 
                 # handle duplicates
                 if seq_name in sequence_names:
                     log(f'WARNING: Duplicate sequence name: {seq_name}')
-                    sname, ncount = seq_name.rsplit('_',1)
-                    if sname in duplicates:
-                        seq_name = sname + f'_{int(ncount):02d}'
-                    else:
-                        duplicates.append(seq_name)
-                        seq_name += '_02'
+                    seq_name += f'_{int(len([item for item in sequence_names if seq_name in item])):02d}'
+                
                 # save
                 sequence_names.append(seq_name)
 
