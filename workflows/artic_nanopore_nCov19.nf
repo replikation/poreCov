@@ -1,6 +1,4 @@
 include { artic_medaka ; artic_nanopolish } from './process/artic.nf' 
-include { bwa_samtools } from './process/bwa_samtools.nf'
-include { coverage_plot } from './process/coverage_plot.nf'
 include { covarplot } from './process/covarplot.nf'
 include { filter_fastq_by_length } from './process/filter_fastq_by_length.nf'
 
@@ -17,11 +15,6 @@ workflow artic_ncov_wf {
         artic_medaka(filter_fastq_by_length.out.combine(external_primer_schemes))
 
         assembly = artic_medaka.out.fasta
-
-        // validate fasta
-        coverage_plot(
-            bwa_samtools(
-                assembly.join(filter_fastq_by_length.out))[0])
 
         // plot amplicon coverage
         covarplot(
@@ -55,11 +48,6 @@ workflow artic_ncov_np_wf {
         )
 
         assembly = artic_nanopolish.out.fasta
-
-        // validate fasta
-        coverage_plot(
-            bwa_samtools(
-                assembly.join(filter_fastq_by_length.out))[0])
 
         // plot amplicon coverage
         covarplot(
