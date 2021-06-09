@@ -2,23 +2,23 @@ process guppy_gpu {
     label 'guppy_gpu'
         if (!params.localguppy) {
             if (workflow.profile.contains('docker')) {
-                container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
+                container = 'nanozoo/guppy_gpu:5.0.7-1--ec2c6e7'
                 containerOptions '--gpus all'
             }
             else if (workflow.profile.contains('singularity')) {
-                container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
+                container = 'nanozoo/guppy_gpu:5.0.7-1--ec2c6e7'
                 containerOptions '--nv'
             }
             else if (workflow.profile.contains('ukj_cloud') || workflow.profile.contains('nanozoo')) {
             accelerator 2, type: 'nvidia-tesla-p100'
-            container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
+            container = 'nanozoo/guppy_gpu:5.0.7-1--ec2c6e7'
             containerOptions '--gpus all'
             }
         }
         else if (params.localguppy) {
             if (workflow.profile.contains('ukj_cloud') || workflow.profile.contains('nanozoo')) {
                 executor = "local"
-                container = 'nanozoo/guppy_gpu:4.4.1-1--a3fcea3'
+                container = 'nanozoo/guppy_gpu:5.0.7-1--ec2c6e7'
                 containerOptions '--gpus all'
             }
             else {
@@ -73,7 +73,7 @@ process guppy_gpu {
 process guppy_cpu {
         label 'guppy_cpu'
         if (!params.localguppy && workflow.profile.contains('docker') || workflow.profile.contains('singularity') ) {
-            container = 'nanozoo/guppy_cpu:4.2.2-1--416f83d'
+            container = 'nanozoo/guppy_cpu:5.0.7-1--47b84be'
         }
         publishDir "${params.output}/${params.readsdir}/", mode: 'copy'
     input:
