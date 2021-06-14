@@ -390,7 +390,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
     --fastq         one fastq or fastq.gz file per sample or
-                    multiple file-samples: --fastq 'sample_*.fasta.gz'
+                    multiple file-samples: --fastq 'sample_*.fastq.gz'
                     ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
     --fastq_pass    the fastq_pass dir from the (guppy) bascalling
