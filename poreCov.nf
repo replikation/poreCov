@@ -236,7 +236,7 @@ else { params.pangolindocker = params.defaultpangolin }
 
 defaultMSG()
 if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if (!params.fasta || workflow.profile.contains('test_fasta')) { read_length() }
+if (!params.fasta && !workflow.profile.contains('test_fasta')) { read_length() }
 rki()
 
 /************************** 
