@@ -168,6 +168,7 @@ For citing etc. check out these programs used for poreCov:
 * [nextflow](https://www.nextflow.io/index.html)
 * [pangolin](https://github.com/hCoV-2019/pangolin)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
+* [CoVarPlot](https://github.com/Psy-Fer/CoVarPlot)
 
 # 6. Troubleshooting
 * Collection of some helpful infos
