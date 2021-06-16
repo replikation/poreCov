@@ -112,7 +112,7 @@ def mutation_parsing(OUTPUT_FILE_NAME, DF_NEXTCLADE):
 def deletion_parsing(OUTPUT_FILE_NAME, DF_NEXTCLADE):
 	AA_DELETIONS_LIST = str(DF_NEXTCLADE['aaDeletions'].values[0]).split(',')
 	if AA_DELETIONS_LIST[0] == 'nan':
-		AA_DELETIONS_LIST[0] = 'no_mutations'
+		AA_DELETIONS_LIST[0] = 'no_deletions'
 	RESULT_FILE = open(OUTPUT_FILE_NAME, "a")
 	RESULT_FILE.write("    \"Deletions\": {\n")
 	[RESULT_FILE.write("        \"%s\": \"true\",\n" %(AA_DELETION)) if AA_DELETION != AA_DELETIONS_LIST[-1] else RESULT_FILE.write("        \"%s\": \"true\"\n" %(AA_DELETION)) for AA_DELETION in AA_DELETIONS_LIST]
