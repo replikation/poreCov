@@ -15,4 +15,8 @@ process quality_genome_filter {
           mv ${fasta} qc_${fasta}         
     fi
     """
+  stub:
+    """
+    touch qc_${fasta} error_report_1.txt
+    """
   }

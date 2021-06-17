@@ -18,6 +18,10 @@ process rki_report {
             touch rki_valid_report.csv
         fi
         """
+    stub:
+        """
+        touch rki_valid_report.csv ${readme}
+        """
 }
 
 process rki_report_extended {
@@ -40,6 +44,10 @@ process rki_report_extended {
         else
             touch rki_valid_report.csv
         fi
+        """
+    stub:
+        """
+        touch rki_valid_report.csv ${readme}
         """
 }
 

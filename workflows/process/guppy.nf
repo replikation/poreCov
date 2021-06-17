@@ -68,6 +68,13 @@ process guppy_gpu {
 
         cp fastq/*.txt fastq_tmp
         """
+    stub:
+        """
+        touch ${name}.fastq.gz
+        mkdir -p fastq_tmp/
+        touch fastq_tmp/sequencesummary.txt
+        """
+
 }
 
 process guppy_cpu {
@@ -112,5 +119,11 @@ process guppy_cpu {
         done
 
         cp fastq/*.txt fastq_tmp
+        """
+    stub:
+        """
+        touch ${name}.fastq.gz
+        mkdir -p fastq_tmp/
+        touch fastq_tmp/sequencesummary.txt
         """
 }

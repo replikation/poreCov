@@ -9,3 +9,11 @@ jobs:
     - uses: actions/checkout@v1
     - name: Help_test
       run: curl -s https://get.nextflow.io | bash && ./nextflow run poreCov.nf --help
+    - name: fasta dry run
+      run: |
+          touch genome.fasta 
+          nextflow run poreCov.nf --fasta genome.fasta -stub -profile local,stub
+    - name: fastq dry run
+      run: |
+          touch reads.fastq 
+          nextflow run poreCov.nf --fastq reads.fastq -stub -profile local,stub

@@ -9,4 +9,9 @@ process split_fasta {
 	mkdir -p split_fasta
     split_fasta.py ${fasta_input_raw}
 	"""
+	stub:
+	"""
+	mkdir split_fasta
+	touch split_fasta/genome.fasta
+	"""
 }

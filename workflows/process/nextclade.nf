@@ -10,4 +10,8 @@ process nextclade {
     nextclade --input-fasta ${consensus} --output-tsv tmp.tsv
     cat tmp.tsv | tr -d "\r" > ${name}_clade.tsv
     """
+    stub:
+    """
+    touch ${name}_clade.tsv
+    """
 }

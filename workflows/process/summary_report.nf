@@ -36,6 +36,10 @@ process summary_report {
             -c $(echo !{coverage_plots} | tr ' ' ',') \
             -s !{samples_list}
         '''
+    stub:
+        """
+        touch poreCov_summary_report_1.html poreCov_summary_report_1.xlsx poreCov_summary_report_1.tsv
+        """
 }
 
 process summary_report_default {
@@ -74,6 +78,10 @@ process summary_report_default {
             -k kraken2_results.csv \
             -c $(echo !{coverage_plots} | tr ' ' ',') 
         '''
+    stub:
+        """
+        touch poreCov_summary_report_1.html poreCov_summary_report_1.xlsx poreCov_summary_report_1.tsv
+        """
 }
 
 process summary_report_fasta {
@@ -99,5 +107,9 @@ process summary_report_fasta {
             -q ${president_results} \
             -n ${nextclade_results} \
             -s "deactivated"
+        """
+    stub:
+        """
+        touch poreCov_summary_report_1.html poreCov_summary_report_1.xlsx poreCov_summary_report_1.tsv
         """
 }

@@ -10,4 +10,8 @@ process plot_coverages {
 	'''
     fastcov.py -l -o coverages_$(echo !{alignment_files} | tr ' ' '_').png !{alignment_files}
 	'''
+	stub:
+	"""
+	touch coverages_1.png
+	"""
 }
