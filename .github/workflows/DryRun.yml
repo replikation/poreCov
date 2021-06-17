@@ -17,3 +17,11 @@ jobs:
       run: |
           touch reads.fastq 
           ./nextflow run poreCov.nf --fastq reads.fastq -stub -profile stub --cores 2 --max_cores 2
+    - name: fastq_pass dry run
+      run: |
+          mkdir fastq_pass 
+          ./nextflow run poreCov.nf --fastq_pass fastq_pass/  -stub -profile stub --cores 2 --max_cores 2
+    - name: fast5 dry run
+      run: |
+          mkdir fast5 
+          ./nextflow run poreCov.nf --fast5 fast5/  -stub -profile stub --cores 2 --max_cores 2
