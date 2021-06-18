@@ -30,4 +30,8 @@ process kraken2 {
     # cleanup to reduce footprint
     rm -rf kraken_db/
     """
+    stub:
+    """
+    touch ${name}.kraken.out ${name}.kreport
+    """
   }

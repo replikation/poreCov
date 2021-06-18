@@ -12,4 +12,9 @@ process align_to_reference {
 
     samtools index ${name}.bam
     """
+    stub:
+	"""
+	touch ${name}.bam ${name}.bam.bai
+	"""
+    
 }

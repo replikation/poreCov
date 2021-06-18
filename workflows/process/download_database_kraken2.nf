@@ -14,4 +14,8 @@ process download_database_kraken2 {
         """
         wget https://osf.io/eprfq/download -O kraken.tar.gz
         """
+    stub:
+        """
+        touch kraken.tar.gz
+        """
 }

@@ -21,5 +21,8 @@ process json_report {
         -q ${president_result} \
         -v ${params.primerV}
     """
-
+    stub:
+    """
+    touch ${name}.json
+    """
 }

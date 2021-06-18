@@ -14,4 +14,8 @@ process pycoqc {
         """
         pycoQC -f sequencing_summary.txt -b barcoding_summary.txt -o ${name}_sequencing_performance.html         
         """
+    stub:
+        """
+        touch ${name}_sequencing_performance.html
+        """
 }

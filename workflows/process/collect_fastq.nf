@@ -38,4 +38,8 @@ process collect_fastq {
             done
         fi
         """
+        stub:
+        """
+        touch ${name}.fastq.gz
+        """
 }

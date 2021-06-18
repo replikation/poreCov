@@ -14,4 +14,9 @@ process pangolin {
     
     find . -name "*.csv" -size  0 -print -delete
     """
+    stub:
+    """
+    echo "taxon,lineage,conflict,ambiguity_score,scorpio_call,scorpio_support,scorpio_conflict,version,pangolin_version,pangoLEARN_version,pango_version,status,note" > lineage_report_${name}.csv
+    echo "barcode13_ARTIC_medaka,B.1.177,,,,,,PANGO-v1.2.12,3.0.5,2021-06-05,v1.2.12,passed_qc,Assigned from designation hash." >> lineage_report_${name}.csv
+    """
   }

@@ -11,4 +11,8 @@ process krona {
     ktImportTaxonomy file.krona -m 1
     mv *.html ${name}_krona.html
     """
+    stub:
+    """
+    touch ${name}_krona.html
+    """
 }

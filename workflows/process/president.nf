@@ -11,5 +11,9 @@ process president {
         """
         president -r ${reference_fasta} -t ${task.cpus} -q ${fasta} -x ${params.seq_threshold} -n ${params.n_threshold} -p . -f ${name}_
         """
+    stub:
+        """
+        touch ${name}_report.tsv ${name}_valid.fasta ${name}_invalid.fasta
+        """
 }
 

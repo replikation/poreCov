@@ -71,6 +71,7 @@ if ( params.help ) { exit 0, helpMSG() }
         workflow.profile.contains('singularity') ||
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
+        workflow.profile.contains('stub') ||
         workflow.profile.contains('docker')
         ) { "engine selected" }
     else { println "No engine selected:  -profile EXECUTER,ENGINE" 
@@ -79,6 +80,7 @@ if ( params.help ) { exit 0, helpMSG() }
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
         workflow.profile.contains('local') ||
+        workflow.profile.contains('stub') ||
         workflow.profile.contains('slurm')
         ) { "executer selected" }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }

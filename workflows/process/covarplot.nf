@@ -12,6 +12,10 @@ process covarplot {
         covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primer_bed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
         """
+    stub:
+        """
+        touch ${name}_amplicon_coverage1.png
+        """
 }
 
 /* USAGE
