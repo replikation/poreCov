@@ -133,6 +133,15 @@ _id,Status
 Sample_2021,barcode01
 2ndSample,BC02
 ```
+  
+### Pangolin Lineage definitions
+  * Lineage determinations are quickly changing
+  * To avoid that poreCov is using too old linegage schemes a `--update` flag can be added to each poreCov run
+  * in this way poreCov is forced to automatically use the most recent pangolin version
+  * we are currently automatically building 2 times every week version controlled and tested "pangolin container" for this [see here](https://hub.docker.com/r/nanozoo/pangolin/tags?page=1&ordering=last_updated)
+    * it is also possible to use instead of `--update` this flag: `--pangolindocker  'nanozoo/pangolin:3.1.1--2021-06-14'`
+    * this way you can use other container or version, but beware some containers might not be compatible with poreCov
+  
 
 # 3. Quality Metrics (default)
 
