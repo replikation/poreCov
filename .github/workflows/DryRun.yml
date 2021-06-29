@@ -25,3 +25,7 @@ jobs:
       run: |
           mkdir fast5 
           ./nextflow run poreCov.nf --fast5 fast5/  -stub -profile stub --cores 2 --max_cores 2
+    - name: fast5 dry run nanopolish
+      run: |
+          mkdir fast5 
+          ./nextflow run poreCov.nf --fast5 fast5/ --nanopolish  -stub -profile stub --cores 2 --max_cores 2
