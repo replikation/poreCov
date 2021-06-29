@@ -51,7 +51,7 @@ workflow artic_ncov_np_wf {
 
         // plot amplicon coverage
         covarplot(
-            artic_medaka.out.covarplot.combine(external_primer_schemes)
+            artic_nanopolish.out.covarplot.combine(external_primer_schemes)
         )
         
         // error logging
