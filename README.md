@@ -6,8 +6,8 @@
 ===
 ![](https://img.shields.io/github/v/release/replikation/poreCov)
 ![](https://img.shields.io/badge/nextflow-20.10.0-brightgreen)
-![](https://img.shields.io/badge/uses-docker-blue.svg)
-![](https://img.shields.io/badge/uses-singularity-yellow.svg)
+![](https://img.shields.io/badge/uses-Docker-blue.svg)
+![](https://img.shields.io/badge/uses-Singularity-yellow.svg)
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
 ![](https://github.com/replikation/poreCov/actions/workflows/nextflow-test.yml/badge.svg)
 
@@ -24,7 +24,7 @@
 ## What is this Repo?
 
 * poreCov is a SARS-CoV-2 analysis workflow for nanopore data (via the [ARTIC protocol](https://artic.network/ncov-2019)) or SARS-CoV-2 genomes (fasta)
-* the workflow is pre configured to simplify [data anlysis](https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html): 
+* the workflow is pre configured to simplify [data analysis](https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html): 
 <p align="left">
     <a href="https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html">
         <img src="data/figures/report_summary.png" width="500" title="Report file">
@@ -37,9 +37,9 @@ Table of Contents
     * [1.1 Nextflow](#1.1-Nextflow-(the-workflow-manager))
     * [1.2 Container](#1.2-Container-(choose-one---they-manage-all-the-tools))
     * [1.3 Basecalling (optional)](#1.3-Basecalling-(optional))
-* [2. run poreCov](#2.-run-poreCov)
-    * [2.1 test run](#2.1-test-run)
-    * [2.2 quick run examples](#2.2-quick-run-examples)
+* [2. Run poreCov](#2.-Run-poreCov)
+    * [2.1 Test run](#2.1-Test-run)
+    * [2.2 Quick run examples](#2.2-Quick-run-examples)
     * [2.3 Extended Usage](#2.3-Extended-Usage)
 * [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
 * [4. Workflow](#4.-Workflow)
@@ -48,41 +48,41 @@ Table of Contents
 
 # 1. Quick Setup (ubuntu)
 ## 1.1 Nextflow (the workflow manager)
-* poreCov needs [nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
+* poreCov needs [Nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
     * install java run time via:  `sudo apt install -y default-jre`
-    * install nextflow via:  `curl -s https://get.nextflow.io | bash && sudo mv nextflow /bin && sudo chmod 770 /bin/nextflow`
+    * install Nextflow via:  `curl -s https://get.nextflow.io | bash && sudo mv nextflow /bin && sudo chmod 770 /bin/nextflow`
 ## 1.2 Container (choose one - they manage all the tools)
 ### Docker
 * installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce) (recommended), alternatively via: `sudo apt install -y docker`
-* add docker to the user: `sudo usermod -a -G docker $USER`
+* add Docker to the user: `sudo usermod -a -G docker $USER`
 ### Singularity
 * Singularity installation [here](https://singularity.lbl.gov/install-linux)
-* if you cant use docker
+* if you cant use Docker
 ### Conda (not recommended)
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
-* install nextflow and singularity via conda (not cluster compatible) - and use the singularity profile
+* install Nextflow and Singularity via conda (not cluster compatible) - and use the `singularity` profile
 ## 1.3 Basecalling (optional)
 * only important if you want to do basecalling via GPU with the workflow:
     * local guppy installation (see oxford nanopore installation guide)
-    * or: install nvidia docker tool kit
-    * or: singularity (with --nv support)
+    * or: install nvidia Docker tool kit
+    * or: Singularity (with --nv support)
 
 
-# 2. run poreCov
-## 2.1 test run
+# 2. Run poreCov
+## 2.1 Test run
 * validate your installation via test data:
 
 ```bash
-# for a docker installation
+# for a Docker installation
 nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.8.0
 
-# or for singularity or conda installation
+# or for Singularity or conda installation
 nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.8.0
 ```
 
-## 2.2 quick run examples
+## 2.2 Quick run examples
 
-* poreCov with basecalling and docker
+* poreCov with basecalling and Docker
     * `--update` tryies to force the most recent lineage release version (optional)
     * `-r 0.8.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
 ```bash
@@ -174,7 +174,7 @@ For citing etc. check out these programs used for poreCov:
 * [medaka](https://github.com/nanoporetech/medaka)
 * [minimap2](https://github.com/lh3/minimap2)
 * [nextclade](https://clades.nextstrain.org/)
-* [nextflow](https://www.nextflow.io/index.html)
+* [Nextflow](https://www.nextflow.io/index.html)
 * [pangolin](https://github.com/hCoV-2019/pangolin)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
 * [CoVarPlot](https://github.com/Psy-Fer/CoVarPlot)
@@ -183,4 +183,4 @@ For citing etc. check out these programs used for poreCov:
 * Collection of some helpful infos
 
 ## Singularity
-* Singularity needs additional option flags to run like `--userns` [Solution on how to pass singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)
+* Singularity needs additional option flags to run like `--userns` [Solution on how to pass Singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)
