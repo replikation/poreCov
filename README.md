@@ -42,9 +42,9 @@ Table of Contents
     * [2.2 Quick run examples](#2.2-Quick-run-examples)
     * [2.3 Extended Usage](#2.3-Extended-Usage)
 * [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
-* [4. Workflow](#4.-workflow)
+* [4. Workflow](#4.workflow)
 * [5. Literature / References to cite](#5.-Literature-/-References-to-cite)
-* [6. Troubleshooting](#6.-troubleshooting)
+* [6. Troubleshooting](#6.troubleshooting)
 <!--te-->
 
   # 1. Quick Setup (ubuntu)
