@@ -33,21 +33,21 @@
 Table of Contents
 =================
 <!--ts-->
-* [1. Quick Setup (ubuntu)](#1.-Quick-Setup-(ubuntu))
-    * [1.1 Nextflow](#1.1-Nextflow-(the-workflow-manager))
-    * [1.2 Container](#1.2-Container-(choose-one---they-manage-all-the-tools))
-    * [1.3 Basecalling (optional)](#1.3-Basecalling-(optional))
-* [2. Run poreCov](#2.-Run-poreCov)
-    * [2.1 Test run](#2.1-Test-run)
-    * [2.2 Quick run examples](#2.2-Quick-run-examples)
-    * [2.3 Extended Usage](#2.3-Extended-Usage)
-* [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
-* [4. Workflow](#4.workflow)
-* [5. Literature / References to cite](#5.-Literature-/-References-to-cite)
-* [6. Troubleshooting](#6.troubleshooting)
+* [1. Quick Setup (Ubuntu)](#1-quick-setup-ubuntu)
+    * [1.1 Nextflow](#11-nextflow-the-workflow-manager)
+    * [1.2 Container](#12-container-choose-one---they-manage-all-the-tools)
+    * [1.3 Basecalling (optional)](#13-basecalling-optional)
+* [2. Run poreCov](#2-run-porecov)
+    * [2.1 Test run](#21-test-run)
+    * [2.2 Quick run examples](#22-quick-run-examples)
+    * [2.3 Extended Usage](#23-extended-usage)
+* [3. Quality Metrics (default)](#3-quality-metrics-default)
+* [4. Workflow](#4-workflow)
+* [5. Literature / References to cite](#5-literature--references-to-cite)
+* [6. Troubleshooting](#6-troubleshooting)
 <!--te-->
 
-  # 1. Quick Setup (ubuntu)
+  # 1. Quick Setup (Ubuntu)
 ## 1.1 Nextflow (the workflow manager)
 * poreCov needs [Nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
     * install java run time via:  `sudo apt install -y default-jre`
