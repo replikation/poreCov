@@ -32,7 +32,7 @@
 
 Table of Contents
 =================
-
+<!--ts-->
 * [1. Quick Setup (ubuntu)](#1.-Quick-Setup-(ubuntu))
     * [1.1 Nextflow](#1.1-Nextflow-(the-workflow-manager))
     * [1.2 Container](#1.2-Container-(choose-one---they-manage-all-the-tools))
@@ -42,11 +42,12 @@ Table of Contents
     * [2.2 Quick run examples](#2.2-Quick-run-examples)
     * [2.3 Extended Usage](#2.3-Extended-Usage)
 * [3. Quality Metrics (default)](#3.-Quality-Metrics-(default))
-* [4. Workflow](#4.-Workflow)
+* [4. Workflow](#4.-workflow)
 * [5. Literature / References to cite](#5.-Literature-/-References-to-cite)
-* [6. Troubleshooting](#6.-Troubleshooting)
+* [6. Troubleshooting](#6.-troubleshooting)
+<!--te-->
 
-# 1. Quick Setup (ubuntu)
+  # 1. Quick Setup (ubuntu)
 ## 1.1 Nextflow (the workflow manager)
 * poreCov needs [Nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
     * install java run time via:  `sudo apt install -y default-jre`
