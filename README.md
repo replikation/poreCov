@@ -58,7 +58,7 @@ Table of Contents
 * add Docker to the user: `sudo usermod -a -G docker $USER`
 ### Singularity
 * Singularity installation [here](https://singularity.lbl.gov/install-linux)
-* if you cant use Docker
+* if you can't use Docker
 ### Conda (not recommended)
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
 * install Nextflow and Singularity via conda (not cluster compatible) - and use the `singularity` profile
@@ -109,8 +109,8 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 ## 2.3 Extended Usage
 * see also `nextflow run replikation/poreCov --help -r 0.8.0`
 ### Version control
-* poreCov supports version control via `-r` this way you can run everything reproducable (e.g. `-r 0.8.0`)
-* poreCov relases are listed [here](https://github.com/replikation/poreCov/releases)
+* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.8.0`)
+* poreCov releases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
    * if you have issues during update try `rm -rf ~/.nextflow` and then `nextflow pull replikation/poreCov`
@@ -125,7 +125,7 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 
 ### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
-* example comma separated file (dont replace the header)
+* example comma separated file (don't replace the header)
   * `_id` = sample name
   * `Status` = barcode number which should be renamed
 
@@ -136,10 +136,9 @@ Sample_2021,barcode01
 ```
   
 ### Pangolin Lineage definitions
-  * Lineage determinations are quickly changing
-  * To avoid that poreCov is using too old linegage schemes a `--update` flag can be added to each poreCov run
-  * in this way poreCov is forced to automatically use the most recent pangolin version
-  * we are currently automatically building 2 times every week version controlled and tested "pangolin container" for this [see here](https://hub.docker.com/r/nanozoo/pangolin/tags?page=1&ordering=last_updated)
+  * lineage determinations are quickly changing in response to the pandemic
+  * to avoid using out of date lineage schemes, a `--update` flag can be added to each poreCov run to get the most recent version-controlled pangolin container
+  * we are currently building two times every week version-controlled pangolin container automatically, [see here](https://hub.docker.com/r/nanozoo/pangolin/tags?page=1&ordering=last_updated)
     * it is also possible to use instead of `--update` this flag: `--pangolindocker  'nanozoo/pangolin:3.1.1--2021-06-14'`
     * this way you can use other container or version, but beware some containers might not be compatible with poreCov
   
@@ -147,7 +146,7 @@ Sample_2021,barcode01
 # 3. Quality Metrics (default)
 
 * Regions with coverage of 20 or less are masked ("N")
-* Genomequality is compared to NC_045512.2
+* Genome quality is compared to NC_045512.2
     * Genome quality assessment is based on [RKIBioinformaticsPipelines/president](https://gitlab.com/RKIBioinformaticsPipelines/president)
         * also prepares csv and fasta for upload via DESH portal
 * Pangolin lineages are determined
