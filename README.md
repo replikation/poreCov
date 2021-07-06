@@ -187,7 +187,7 @@ For citing etc. check out these programs used for poreCov:
 * Singularity needs additional option flags to run like `--userns` [Solution on how to pass Singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)
   
 # 7. Time to results
-**Table 1**: Execution speed of poreCov on different Ubuntu 20 Systems using a single sample file with 167,929 reads. Command used: `nextflow run replikation/poreCov -profile test_fastq,local,docker`.
+**Table 1**: Execution speed of poreCov on different Ubuntu 20 Systems using a single sample file with 167,929 reads. Command used: `nextflow run replikation/poreCov -r 0.9.4 -profile test_fastq,local,docker`.
 Hardware|First time with download (DB+container)¹ |Default settings | 
 -|-|-
 2 CPUs 4 GB RAM| 1h 2min | 32 min 30s ² 
@@ -200,7 +200,7 @@ Hardware|First time with download (DB+container)¹ |Default settings |
 ² *was not able to execute read classification due to limited hardware, but generated and classified SARS-CoV-2 genomes*  
 
 
-**Table 2**: Execution speed of poreCov on different Ubuntu 20 Systems using 24 fastq samples. Command used: `nextflow run replikation/poreCov -profile test_fastq,local,docker`. Time meassured by the start of the workflow.
+**Table 2**: Execution speed of poreCov on different Ubuntu 20 Systems using 24 fastq samples. Command used: `nextflow run replikation/poreCov -r 0.9.4 --fastq "*.fastq.gz" --primerV V1200 --samples samplenames.csv -profile local,docker`. Time meassured by the start of the workflow.
 Hardware|Default settings 
 -|-|
 2 CPUs 4 GB RAM| 13h 33m ¹
