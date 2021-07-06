@@ -45,6 +45,7 @@ Table of Contents
 * [4. Workflow](#4-workflow)
 * [5. Literature / References to cite](#5-literature--references-to-cite)
 * [6. Troubleshooting](#6-troubleshooting)
+* [7. Time to results](#7-time-to-results)
 <!--te-->
 
   # 1. Quick Setup (Ubuntu)
@@ -184,3 +185,28 @@ For citing etc. check out these programs used for poreCov:
 
 ## Singularity
 * Singularity needs additional option flags to run like `--userns` [Solution on how to pass Singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)
+  
+# 7. Time to results
+**Table 1**: Execution speed of poreCov on different Ubuntu 20 Systems using a single sample file with 167,929 reads. Command used: `nextflow run replikation/poreCov -profile test_fastq,local,docker`.
+Hardware|First time with download (DB+container)¹ |Default settings | 
+-|-|-
+2 CPUs 4 GB RAM| 1h 2min | 32 min 30s ² 
+2 CPUs 8 GB RAM| 46 min | 21m 20s 
+4 CPUs 16 GB RAM| 40 min | 12m 48s 
+8 CPUs 32  GB RAM| 35 min | 11m 39s 
+16 CPUs 64  GB RAM| 30 min | 9m 39s
+
+¹ *time depends mostly on available internet speed*  
+² *was not able to execute read classification due to limited hardware, but generated and classified SARS-CoV-2 genomes*  
+
+
+**Table 2**: Execution speed of poreCov on different Ubuntu 20 Systems using 24 fastq samples. Command used: `nextflow run replikation/poreCov -profile test_fastq,local,docker`. Time meassured by the start of the workflow.
+Hardware|Default settings 
+-|-|
+2 CPUs 4 GB RAM| 13h 33m ¹
+2 CPUs 8 GB RAM| 7h 56m  ¹
+4 CPUs 16 GB RAM| 4h 10 min
+8 CPUs 32  GB RAM| 2h 15 min
+16 CPUs 64  GB RAM| 1h 25 min
+  
+¹ *was not able to execute read classification due to limited hardware, but generated and classified SARS-CoV-2 genomes*  
