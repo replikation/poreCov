@@ -46,6 +46,7 @@ Table of Contents
 * [5. Literature / References to cite](#5-literature--references-to-cite)
 * [6. Troubleshooting](#6-troubleshooting)
 * [7. Time to results](#7-time-to-results)
+* [8. Credits](#8-credits)
 <!--te-->
 
   # 1. Quick Setup (Ubuntu)
