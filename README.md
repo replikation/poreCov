@@ -210,3 +210,6 @@ Hardware|Default settings
 16 CPUs 64  GB RAM| 1h 25 min
   
 ¹ *was not able to execute read classification due to limited hardware, but generated and classified SARS-CoV-2 genomes*  
+  
+# 8. Credits
+The key steps of poreCov are carried out using the [ARTIC Network field bioinformatics pipeline](https://github.com/artic-network/fieldbioinformatics). Kudos to all amazing developers for your incredible efforts during this pandemic! Many thanks to all others who have helped out and contributed to poreCov as well. 
