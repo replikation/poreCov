@@ -19,12 +19,13 @@
 **Citation:**  
 > **poreCov - an easy to use, fast, and robust workflow for SARS-CoV-2 genome reconstruction via nanopore sequencing**  
 > Christian Brandt, Sebastian Krautwurst, Riccardo Spott, Mara Lohde, Mateusz Jundzill, Mike Marquet, Martin Hölzer  
-> https://www.biorxiv.org/content/10.1101/2021.05.07.443089v1.
+> https://www.frontiersin.org/articles/10.3389/fgene.2021.711437/full
+> https://doi.org/10.3389/fgene.2021.711437
 
 ## What is this Repo?
 
 * poreCov is a SARS-CoV-2 analysis workflow for nanopore data (via the [ARTIC protocol](https://artic.network/ncov-2019)) or SARS-CoV-2 genomes (fasta)
-* the workflow is pre configured to simplify [data analysis](https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html): 
+* the workflow is pre-configured to simplify [data analysis](https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html): 
 <p align="left">
     <a href="https://htmlpreview.github.io/?https://github.com/replikation/poreCov/blob/master/data/figures/index.html">
         <img src="data/figures/report_summary.png" width="500" title="Report file">
@@ -118,7 +119,7 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
    * if you have issues during update try `rm -rf ~/.nextflow` and then `nextflow pull replikation/poreCov`
    * this removes old files and downloads everything new
 
-### Important input flags (choose on)
+### Important input flags (choose one)
 * these are the flags to get "data" into the workflow
    * `--fast5 fast5_dir/`  for fast5 directory input
    * `--fastq_pass fastq_dir/`  directory with basecalled data (contains "barcode01" etc. directories)
