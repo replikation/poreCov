@@ -428,6 +428,7 @@ ${c_yellow}Parameters - nCov genome reconstruction${c_reset}
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
     --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
+    --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
 
 ${c_yellow}Parameters - Genome quality control${c_reset}
@@ -517,7 +518,7 @@ def rki() {
     RKI output for german DESH upload:
     \033[2mOutput stored at:    $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
-    Min Coverage:        20 [ no parameter]
+    Min Depth:        $params.min_depth [--min_depth]
     Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()

@@ -1,6 +1,6 @@
 process kraken2 {
         label 'kraken2'
-        publishDir "${params.output}/${params.readqcdir}/1.read_classification", mode: 'copy'
+        publishDir "${params.output}/${params.readqcdir}/${name}/tax_read_classification", mode: 'copy'
     input:
         tuple val(name), path(reads)
         path(database)

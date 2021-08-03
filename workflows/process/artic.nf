@@ -10,12 +10,24 @@ process artic_medaka {
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
-        //tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.nCoV-2019_1.depths"), path("${name}.coverage_mask.txt.nCoV-2019_2.depths"), emit: covarplot
-        tuple val(name), path("${name}.pass.vcf.gz"), emit: covarplot
+        tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.nCoV-2019_1.depths"), path("${name}.coverage_mask.txt.nCoV-2019_2.depths"), emit: covarplot
     script:   
         """
-        artic minion --medaka --medaka-model ${params.medaka_model} --normalise 500 --threads ${task.cpus} --scheme-directory ${external_scheme} \
-            --read-file ${reads} nCoV-2019/${params.primerV} ${name}
+        artic minion    --medaka \
+                        --medaka-model ${params.medaka_model} \
+                        --min-depth ${params.min_depth} \
+                        --normalise 500 \
+                        --threads ${task.cpus} \
+                        --scheme-directory ${external_scheme} \
+                        --read-file ${reads} \
+                        nCoV-2019/${params.primerV} ${name}
+
+        # generate depth files
+        artic_make_depth_mask --depth ${params.min_depth} \
+            --store-rg-depths ${external_scheme}/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta \
+            ${name}.primertrimmed.rg.sorted.bam \
+            ${name}.coverage_mask.txt
+
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
 
         sed -i "1s/.*/>${name}/" *.consensus.fasta
@@ -59,6 +71,12 @@ process artic_nanopolish {
             --fast5-directory ${fast5_dir} \
             --sequencing-summary sequencing_summary*.txt \
             nCoV-2019/${params.primerV} ${name}
+
+        # generate depth files
+        artic_make_depth_mask --depth ${params.min_depth} \
+            --store-rg-depths ${external_scheme}/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta \
+            ${name}.primertrimmed.rg.sorted.bam \
+            ${name}.coverage_mask.txt
 
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
 
