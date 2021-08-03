@@ -1,0 +1,3 @@
+# 2500 bp amplicons
+* from this supplement [here](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/ve/6/1/10.1093_ve_veaa027/2/veaa027_supplementary_data.pdf?Expires=1628749969&Signature=CphTCy4OVzE5xp5rCFHJu2BHHeBQRMI6p2ZWv9hNiGE-L2-urweJyKQ7mTEBdbcKDPm1HTGnqqpjNgEifqK40B0ezgUPGFK6qJHa4PF-Bpj3R0BQTk3MvmYUrv2-9B-ACLr2CzI~FTwvYr0~e-dYyXP~~SrYGg0n~q5y4atoYxgTZo4L56PfCy-vd8JuhbSPXw0SiKoTSA3~UH7N3VQD-moCN3oSiGFH8TSisOj5TNJ6-IZsyzpt44s9m-F2VYaOOhcW-b7~h-VuLVo4vt9FsesgfskWAmSTcpWW3aR1da~wBmiecCL4Dww~28~zZCuz21aF8KK-vygRh6~0rJuQCA__&Key-Pair-Id=APKAIE5G5CRDK6RD3PGA)
+* this publikation https://academic.oup.com/ve/article/6/1/veaa027/5818738
