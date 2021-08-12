@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-martin
+//martin is cool
 
 /*
 * Nextflow -- SARS-CoV-2 Analysis Pipeline
