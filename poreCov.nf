@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+martin
+
 /*
 * Nextflow -- SARS-CoV-2 Analysis Pipeline
 * Author: christian.jena@gmail.com
