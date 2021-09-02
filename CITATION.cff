@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Brandt"
+  given-names: "Christian"
+- family-names: "Krautwurst"
+  given-names: "Sebastian"
+- family-names: "Riccardo"
+  given-names: "Spott"
+- family-names: "Lohde"
+  given-names: "Mara"
+- family-names: "Jundzill"
+  given-names: "Mateusz"
+- family-names: "Marquet"
+  given-names: "Mike"
+- family-names: "Hölzer"
+  given-names: "Martin"
+title: "poreCov-An Easy to Use, Fast, and Robust Workflow for SARS-CoV-2 Genome Reconstruction via Nanopore Sequencing"
+version: 0.9.5
+date-released: 2020-06-09
+url: "https://github.com/replikation/poreCov"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Brandt"
+    given-names: "Christian"
+    - family-names: "Krautwurst"
+    given-names: "Sebastian"
+    - family-names: "Riccardo"
+    given-names: "Spott"
+    - family-names: "Lohde"
+    given-names: "Mara"
+    - family-names: "Jundzill"
+    given-names: "Mateusz"
+    - family-names: "Marquet"
+    given-names: "Mike"
+    - family-names: "Hölzer"
+    given-names: "Martin"
+    doi: "10.3389/fgene.2021.711437"
+  journal: "Frontiers in Genetics"
+  month: 7
+  title: "poreCov-An Easy to Use, Fast, and Robust Workflow for SARS-CoV-2 Genome Reconstruction via Nanopore Sequencing"
+  year: 2021
+  pages: 1397   
+  issn: 1664-8021   
