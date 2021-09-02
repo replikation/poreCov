@@ -11,7 +11,7 @@
 ![](https://img.shields.io/badge/licence-GPL--3.0-lightgrey.svg)
 ![](https://github.com/replikation/poreCov/actions/workflows/nextflow-test.yml/badge.svg)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4153509.svg)](https://doi.org/10.5281/zenodo.4153509)
+[![](https://img.shields.io/badge/publication-frontiers-brightgreen.svg)](https://doi.org/10.3389/fgene.2021.711437)
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/gcloudChris.svg?style=social)](https://twitter.com/gcloudChris) 
 
@@ -19,8 +19,7 @@
 **Citation:**  
 > **poreCov - an easy to use, fast, and robust workflow for SARS-CoV-2 genome reconstruction via nanopore sequencing**  
 > Christian Brandt, Sebastian Krautwurst, Riccardo Spott, Mara Lohde, Mateusz Jundzill, Mike Marquet, Martin Hölzer  
-> https://www.frontiersin.org/articles/10.3389/fgene.2021.711437/full
-> https://doi.org/10.3389/fgene.2021.711437
+> https://www.frontiersin.org/articles/10.3389/fgene.2021.711437/full  
 
 ## What is this Repo?
 
