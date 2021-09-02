@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Brandt"
+  given-names: "Christian"
+- family-names: "Krautwurst"
+  given-names: "Sebastian"
+- family-names: "Riccardo"
+  given-names: "Spott"
+- family-names: "Lohde"
+  given-names: "Mara"
+- family-names: "Jundzill"
+  given-names: "Mateusz"
+- family-names: "Marquet"
+  given-names: "Mike"
+- family-names: "Hölzer"
+  given-names: "Martin"
+title: "poreCov-An Easy to Use, Fast, and Robust Workflow for SARS-CoV-2 Genome Reconstruction via Nanopore Sequencing "
+doi: 10.3389/fgene.2021.711437    
+url: "https://www.frontiersin.org/article/10.3389/fgene.2021.711437"
+VOLUME: 12
+YEAR: 2021
+PAGES: 1397
+JOURNAL: "Frontiers in Genetics"
+ISSN: "1664-8021"
+ABSTRACT: "In response to the SARS-CoV-2 pandemic, a highly increased sequencing effort has been established worldwide to track and trace ongoing viral evolution. Technologies, such as nanopore sequencing via the ARTIC protocol are used to reliably generate genomes from raw sequencing data as a crucial base for molecular surveillance. However, for many labs that perform SARS-CoV-2 sequencing, bioinformatics is still a major bottleneck, especially if hundreds of samples need to be processed in a recurring fashion. Pipelines developed for short-read data cannot be applied to nanopore data. Therefore, specific long-read tools and parameter settings need to be orchestrated to enable accurate genotyping and robust reference-based genome reconstruction of SARS-CoV-2 genomes from nanopore data. Here we present poreCov, a highly parallel workflow written in Nextflow, using containers to wrap all the tools necessary for a routine SARS-CoV-2 sequencing lab into one program. The ease of installation, combined with concise summary reports that clearly highlight all relevant information, enables rapid and reliable analysis of hundreds of SARS-CoV-2 raw sequence data sets or genomes. poreCov is freely available on GitHub under the GNUv3 license: <ext-link ext-link-type="uri" xlink:href="http://github.com/replikation/poreCov" xmlns:xlink="http://www.w3.org/1999/xlink">github.com/replikation/poreCov</ext-link>."
