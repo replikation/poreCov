@@ -77,26 +77,26 @@ Table of Contents
 
 ```bash
 # for a Docker installation
-nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.8.0
+nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.9.5
 
 # or for Singularity or conda installation
-nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.8.0
+nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.9.5
 ```
 
 ## 2.2 Quick run examples
 
 * poreCov with basecalling and Docker
     * `--update` tryies to force the most recent lineage release version (optional)
-    * `-r 0.8.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+    * `-r 0.9.5` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
 ```bash
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.8.0 \
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.9.5 \
     --cores 6 -profile local,docker --update 
 ```
 
 * poreCov with a basecalled fastq directory 
 
 ```bash
-nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.8.0 \
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.9.5 \
     --cores 32  -profile local,docker
 ```
 
@@ -109,9 +109,9 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 ```
 
 ## 2.3 Extended Usage
-* see also `nextflow run replikation/poreCov --help -r 0.8.0`
+* see also `nextflow run replikation/poreCov --help -r 0.9.5`
 ### Version control
-* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.8.0`)
+* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.9.5`)
 * poreCov releases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
