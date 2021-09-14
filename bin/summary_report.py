@@ -284,7 +284,7 @@ class SummaryReport():
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
         self.add_column_raw('pangolin_conflict', res_data['conflict'])
 
-        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
+        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
 
         self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
