@@ -363,7 +363,7 @@ workflow {
         }
 
         if (params.samples) {
-            samples_list_ch = samples_input_ch.map{ it -> it[1] }.collectFile(name: 'samples_list.csv', newLine: true)
+            samples_list_ch = Channel.fromPath( params.samples, checkIfExists: true)
         }
         else { samples_list_ch = Channel.from( ['deactivated'] ) }
 

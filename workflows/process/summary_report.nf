@@ -10,7 +10,7 @@ process summary_report {
         path(nextclade_results)
         file(kraken2_results)
         file(coverage_plots)
-        file(samples_list)
+        file(samples_table)
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
@@ -41,7 +41,7 @@ process summary_report {
             -n !{nextclade_results} \
             -k kraken2_results.csv \
             -c $(echo !{coverage_plots} | tr ' ' ',') \
-            -s !{samples_list}
+            -s !{samples_table}
         '''
     stub:
         """

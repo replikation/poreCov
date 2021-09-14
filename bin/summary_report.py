@@ -42,6 +42,7 @@ class SummaryReport():
     sample_QC_status = None
     sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
+    samples_table = None
 
 
     # colors
@@ -134,16 +135,25 @@ class SummaryReport():
 
 
     def check_and_init_table_with_samples(self, samples):
-        if samples != 'samples_list.csv':
+
+        print(samples)
+        if samples == 'deactivated':
             log('No sample list input.')
         else:
             log('Using samples input.')
-            s_list = [s.strip() for s in open(samples).readlines()]
+            self.samples_table = pd.read_csv(samples, index_col='_id')
+
+            s_list = list(self.samples_table.index)
             log(f'Samples: {s_list}')
 
             s_table = pd.DataFrame(index=s_list)
             self.force_index_dtype_string(s_table)
             self.check_and_init_tabledata(s_table.index)
+
+            # add description column if present
+            if 'Description' in self.samples_table.columns:
+                self.add_column_raw('Description', self.samples_table['Description'])
+                self.add_column('Description', self.samples_table['Description'])
 
 
     def check_and_init_tabledata(self, t_index):
