@@ -14,7 +14,11 @@ process summary_report {
         path("poreCov_summary_report_*.xlsx")
         path("poreCov_summary_report_*.tsv")
 
+
     shell:
+
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5')
+
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
@@ -27,7 +31,10 @@ process summary_report {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
-	    --pangolin_docker !{params.pangolindocker} \
+            --guppy_used !{guppyused} \
+            --guppy_model !{params.guppy_model} \
+            --medaka_model !{params.medaka_model} \
+	        --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -58,6 +65,9 @@ process summary_report_default {
         path("poreCov_summary_report_*.tsv")
 
     shell:
+
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5')
+
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
@@ -70,6 +80,9 @@ process summary_report_default {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+            --guppy_used !{guppyused} \
+            --guppy_model !{params.guppy_model} \
+            --medaka_model !{params.medaka_model} \
             --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \

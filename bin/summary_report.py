@@ -550,6 +550,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--porecov_version", help="porecov version", required=True)
+    parser.add_argument("--guppy_used", help="guppy used")
+    parser.add_argument("--guppy_model", help="guppy model")
+    parser.add_argument("--medaka_model", help="medaka model")
     parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
@@ -594,11 +597,16 @@ if __name__ == '__main__':
 
     # check run type
     if args.primer:
-        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--fast5', '--fastq' or '--fastq_raw')")
+        
+        report.add_param('Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
+        if args.guppy_used == 'true':
+            report.add_param('Guppy model', args.guppy_model)
+        if args.medaka_model:
+            report.add_param('Medaka model', args.medaka_model)
     else:
-        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
+        report.add_param('Run type', "Genome classification from sequences (input with '--fasta' or from test_fasta profile)")
     report.add_time_param()
 
     report.write_html_report()
