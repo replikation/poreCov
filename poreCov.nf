@@ -72,6 +72,8 @@ if ( params.help ) { exit 0, helpMSG() }
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
         workflow.profile.contains('stub') ||
+        workflow.profile.contains('gcp') ||
+        workflow.profile.contains('aws') ||
         workflow.profile.contains('docker')
         ) { "engine selected" }
     else { println "No engine selected:  -profile EXECUTER,ENGINE" 
@@ -79,6 +81,8 @@ if ( params.help ) { exit 0, helpMSG() }
     if (
         workflow.profile.contains('nanozoo') ||
         workflow.profile.contains('ukj_cloud') ||
+        workflow.profile.contains('gcp') ||
+        workflow.profile.contains('aws') ||
         workflow.profile.contains('local') ||
         workflow.profile.contains('stub') ||
         workflow.profile.contains('slurm')
@@ -120,6 +124,15 @@ if (params.maxLength && !params.maxLength.toString().matches("[0-9]+")) { exit 5
 if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
 if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
+
+
+// cloud computing helps
+if ( workflow.profile.contains('gcp') && (params.gcpproject == true || !params.gcpproject)) { exit 6, "Specify a google cloud project via --gcpproject myproject-23511" }
+if ( workflow.profile.contains('gcp') && (params.bucket == true || !params.bucket)) { exit 6, "Specify a google cloud bucket via --bucket gs://mybucket/mydir" }
+if ( workflow.profile.contains('gcp') && !params.bucket.contains('gs://')) { exit 6, "A bucket starts with gs://  e.g. --bucket gs://mybucket/mydir" }
+
+
+
 
 /************************** 
 * INPUTs
@@ -450,10 +463,13 @@ ${c_yellow}Execution/Engine profiles:${c_reset}
     examples:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
      -profile ${c_yellow}test_fastq${c_reset},${c_green}slurm${c_reset},${c_blue}singularity${c_reset}
+     -profile ${c_green}gcp${c_reset}
 
       ${c_green}Executer${c_reset} (choose one):
        local
        slurm
+       gcp       (Google cloud plattform via Lifescience, no Engine required)
+       aws       (Amazon web service via aws batch, no Engine required)
       ${c_blue}Engines${c_reset} (choose one):
        docker
        singularity
