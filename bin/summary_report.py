@@ -598,15 +598,17 @@ if __name__ == '__main__':
     # check run type
     if args.primer:
         
+        # infer run type from guppy usage
         report.add_param('Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
-        if args.guppy_used == 'true':
+        # add guppy/medaka model if used
+        if args.guppy_model and args.guppy_used == 'true':
             report.add_param('Guppy model', args.guppy_model)
         if args.medaka_model:
             report.add_param('Medaka model', args.medaka_model)
     else:
-        report.add_param('Run type', "Genome classification from sequences (input with '--fasta' or from test_fasta profile)")
+        report.add_param('Run type', "Genome classification from sequences (fasta)")
     report.add_time_param()
 
     report.write_html_report()

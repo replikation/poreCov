@@ -1,6 +1,8 @@
 process summary_report {
-        publishDir "${params.output}/", mode: 'copy'
-        label 'fastcov'
+
+    publishDir "${params.output}/", mode: 'copy'
+    label 'fastcov'
+    
     input:
         path(version_config)
         path(pangolin_results)
@@ -14,10 +16,8 @@ process summary_report {
         path("poreCov_summary_report_*.xlsx")
         path("poreCov_summary_report_*.tsv")
 
-
     shell:
-
-        guppyused = (params.fast5 || workflow.profile.contains('test_fast5')
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
 
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
@@ -34,7 +34,7 @@ process summary_report {
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
-	        --pangolin_docker !{params.pangolindocker} \
+            --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -50,8 +50,10 @@ process summary_report {
 }
 
 process summary_report_default {
-        publishDir "${params.output}/", mode: 'copy'
-        label 'fastcov'
+
+    publishDir "${params.output}/", mode: 'copy'
+    label 'fastcov'
+    
     input:
         path(version_config)
         path(pangolin_results)
@@ -65,8 +67,7 @@ process summary_report_default {
         path("poreCov_summary_report_*.tsv")
 
     shell:
-
-        guppyused = (params.fast5 || workflow.profile.contains('test_fast5')
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
 
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
