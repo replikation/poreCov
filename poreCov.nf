@@ -363,12 +363,12 @@ workflow {
         }
 
         if (params.samples) {
-            samples_list_ch = Channel.fromPath( params.samples, checkIfExists: true)
+            samples_table_ch = Channel.fromPath( params.samples, checkIfExists: true)
         }
-        else { samples_list_ch = Channel.from( ['deactivated'] ) }
+        else { samples_table_ch = Channel.from( ['deactivated'] ) }
 
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                read_classification_ch, alignments_ch, samples_list_ch)
+                                read_classification_ch, alignments_ch, samples_table_ch)
 
 }
 
@@ -384,7 +384,7 @@ def helpMSG() {
     log.info """
     .    
 \033[0;33mUsage examples:${c_reset}
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.8.0 -profile local,singularity
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.9.5 -profile local,singularity
 
 ${c_yellow}Inputs (choose one):${c_reset}
     --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
