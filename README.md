@@ -33,20 +33,31 @@
 Table of Contents
 =================
 <!--ts-->
-* [1. Quick Setup (Ubuntu)](#1-quick-setup-ubuntu)
-    * [1.1 Nextflow](#11-nextflow-the-workflow-manager)
-    * [1.2 Container](#12-container-choose-one---they-manage-all-the-tools)
-    * [1.3 Basecalling (optional)](#13-basecalling-optional)
-* [2. Run poreCov](#2-run-porecov)
-    * [2.1 Test run](#21-test-run)
-    * [2.2 Quick run examples](#22-quick-run-examples)
-    * [2.3 Extended Usage](#23-extended-usage)
-* [3. Quality Metrics (default)](#3-quality-metrics-default)
-* [4. Workflow](#4-workflow)
-* [5. Literature / References to cite](#5-literature--references-to-cite)
-* [6. Troubleshooting](#6-troubleshooting)
-* [7. Time to results](#7-time-to-results)
-* [8. Credits](#8-credits)
+- [**poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**](#porecov--sars-cov-2-workflow-for-nanopore-sequencing-data)
+  - [What is this Repo?](#what-is-this-repo)
+- [Table of Contents](#table-of-contents)
+- [1. Quick Setup (Ubuntu)](#1-quick-setup-ubuntu)
+  - [1.1 Nextflow (the workflow manager)](#11-nextflow-the-workflow-manager)
+  - [1.2 Container (choose one - they manage all the tools)](#12-container-choose-one---they-manage-all-the-tools)
+    - [Docker](#docker)
+    - [Singularity](#singularity)
+    - [Conda (not recommended)](#conda-not-recommended)
+  - [1.3 Basecalling (optional)](#13-basecalling-optional)
+- [2. Run poreCov](#2-run-porecov)
+  - [2.1 Test run](#21-test-run)
+  - [2.2 Quick run examples](#22-quick-run-examples)
+  - [2.3 Extended Usage](#23-extended-usage)
+    - [Version control](#version-control)
+    - [Important input flags (choose one)](#important-input-flags-choose-one)
+    - [Sample sheet](#sample-sheet)
+    - [Pangolin Lineage definitions](#pangolin-lineage-definitions)
+- [3. Quality Metrics (default)](#3-quality-metrics-default)
+- [4. Workflow](#4-workflow)
+- [5. Literature / References to cite](#5-literature--references-to-cite)
+- [6. Troubleshooting](#6-troubleshooting)
+  - [Singularity](#singularity-1)
+- [7. Time to results](#7-time-to-results)
+- [8. Credits](#8-credits)
 <!--te-->
 
   # 1. Quick Setup (Ubuntu)
@@ -127,14 +138,17 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 
 ### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
-* example comma separated file (don't replace the header)
+* required columns:
   * `_id` = sample name
   * `Status` = barcode number which should be renamed
+* optional column:
+  * `Description` = description column to be included in the output report and tables
 
+Example comma separated file (don't replace the header):
 ```csv
-_id,Status
-Sample_2021,barcode01
-2ndSample,BC02
+_id,Status,Description
+Sample_2021,barcode01,good
+2ndSample,BC02,bad
 ```
   
 ### Pangolin Lineage definitions
