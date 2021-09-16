@@ -44,6 +44,7 @@ class SummaryReport():
     sample_QC_status = None
     sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
+    samples_table = None
 
 
     # colors
@@ -139,16 +140,25 @@ class SummaryReport():
 
 
     def check_and_init_table_with_samples(self, samples):
-        if samples != 'samples_list.csv':
+
+        print(samples)
+        if samples == 'deactivated':
             log('No sample list input.')
         else:
             log('Using samples input.')
-            s_list = [s.strip() for s in open(samples).readlines()]
+            self.samples_table = pd.read_csv(samples, index_col='_id')
+
+            s_list = list(self.samples_table.index)
             log(f'Samples: {s_list}')
 
             s_table = pd.DataFrame(index=s_list)
             self.force_index_dtype_string(s_table)
             self.check_and_init_tabledata(s_table.index)
+
+            # add description column if present
+            if 'Description' in self.samples_table.columns:
+                self.add_column_raw('Description', self.samples_table['Description'])
+                self.add_column('Description', self.samples_table['Description'])
 
 
     def check_and_init_tabledata(self, t_index):
@@ -289,7 +299,7 @@ class SummaryReport():
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
         self.add_column_raw('pangolin_conflict', res_data['conflict'])
 
-        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p:.2f})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
+        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
 
         self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
@@ -558,6 +568,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--porecov_version", help="porecov version", required=True)
+    parser.add_argument("--guppy_used", help="guppy used")
+    parser.add_argument("--guppy_model", help="guppy model")
+    parser.add_argument("--medaka_model", help="medaka model")
     parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--nextclade_docker", help="nextclade/nextcladedata version", required=True)
     parser.add_argument("--primer", help="primer version")
@@ -604,11 +617,18 @@ if __name__ == '__main__':
 
     # check run type
     if args.primer:
-        report.add_param('Run type', "Genome reconstruction and classification from sequencing reads (input with '--fast5', '--fastq' or '--fastq_raw')")
+        
+        # infer run type from guppy usage
+        report.add_param('Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
+        # add guppy/medaka model if used
+        if args.guppy_model and args.guppy_used == 'true':
+            report.add_param('Guppy model', args.guppy_model)
+        if args.medaka_model:
+            report.add_param('Medaka model', args.medaka_model)
     else:
-        report.add_param('Run type', "Genome classification from sequences (input with '--fasta')")
+        report.add_param('Run type', "Genome classification from sequences (fasta)")
     report.add_time_param()
 
     report.write_html_report()

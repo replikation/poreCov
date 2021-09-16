@@ -8,7 +8,7 @@ workflow create_summary_report_wf {
         nextclade
         kraken2
         alignments
-        samples_list
+        samples_table
         main:
         version_ch = Channel.fromPath(workflow.projectDir + "/configs/container.config")
 
@@ -27,7 +27,7 @@ workflow create_summary_report_wf {
             coverage_plots = plot_coverages(alignments.map{it -> it[0]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6), \
                                             alignments.map{it -> it[1]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6)).collect()
 
-            if (params.samples) { summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_list) }
+            if (params.samples) { summary_report(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_table) }
             else { summary_report_default(version_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots) }
             
         }
