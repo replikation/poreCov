@@ -1,6 +1,8 @@
 process summary_report {
-        publishDir "${params.output}/", mode: 'copy'
-        label 'fastcov'
+
+    publishDir "${params.output}/", mode: 'copy'
+    label 'fastcov'
+    
     input:
         path(version_config)
         path(pangolin_results)
@@ -8,13 +10,15 @@ process summary_report {
         path(nextclade_results)
         file(kraken2_results)
         file(coverage_plots)
-        file(samples_list)
+        file(samples_table)
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
         path("poreCov_summary_report_*.tsv")
 
     shell:
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
+
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
@@ -27,14 +31,17 @@ process summary_report {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
-	    --pangolin_docker !{params.pangolindocker} \
+            --guppy_used !{guppyused} \
+            --guppy_model !{params.guppy_model} \
+            --medaka_model !{params.medaka_model} \
+            --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
             -n !{nextclade_results} \
             -k kraken2_results.csv \
             -c $(echo !{coverage_plots} | tr ' ' ',') \
-            -s !{samples_list}
+            -s !{samples_table}
         '''
     stub:
         """
@@ -43,8 +50,10 @@ process summary_report {
 }
 
 process summary_report_default {
-        publishDir "${params.output}/", mode: 'copy'
-        label 'fastcov'
+
+    publishDir "${params.output}/", mode: 'copy'
+    label 'fastcov'
+    
     input:
         path(version_config)
         path(pangolin_results)
@@ -58,6 +67,8 @@ process summary_report_default {
         path("poreCov_summary_report_*.tsv")
 
     shell:
+        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
+
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
         for KF in !{kraken2_results}; do
@@ -70,6 +81,9 @@ process summary_report_default {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+            --guppy_used !{guppyused} \
+            --guppy_model !{params.guppy_model} \
+            --medaka_model !{params.medaka_model} \
             --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
