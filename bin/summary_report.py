@@ -33,6 +33,8 @@ class SummaryReport():
     tool_versions = {}
     pangolin_version = None
     pangolearn_version = None
+    nextclade_version = None
+    nextcladedata_version = None
     tabledata = None
     tabledataraw = None
     col_formatters = {}
@@ -123,6 +125,9 @@ class SummaryReport():
         # e.g. nanozoo/pangolin:2.3.8--2021-04-21
         self.pangolin_version, self.pangolearn_version = pangolin_docker.split(':',1)[-1].split('--')
 
+    def parse_nextclade_version(self, nextclade_docker):
+        # e.g. nanozoo/nextclade:1.3.0--2021-06-25
+        self.nextclade_version, self.nextcladedata_version = nextclade_docker.split(':',1)[-1].split('--')
 
     # UNUSED
     # def validate_index(self, t_index):
@@ -394,7 +399,10 @@ class SummaryReport():
         self.add_col_formatter('Clade', clade_markup)
         self.add_col_formatter(muts_colname, spike_markup)
         self.add_col_formatter(dels_colname, spike_markup)
-        self.add_col_description(f'Clade, mutations and deletions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.tool_versions["nextclade"]}).')
+
+        if self.nextclade_version is None or self.nextcladedata_version is None:
+            error('No nextclade/nextcladedata versions were added before adding nextclade results.')
+        self.add_col_description(f'Clade, mutations and deletions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
 
 
     def add_kraken2_results(self, kraken2_results):
@@ -551,6 +559,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
+    parser.add_argument("--nextclade_docker", help="nextclade/nextcladedata version", required=True)
     parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
@@ -565,6 +574,7 @@ if __name__ == '__main__':
     report = SummaryReport()
     report.parse_version_config(args.version_config)
     report.parse_pangolin_version(args.pangolin_docker)
+    report.parse_nextclade_version(args.nextclade_docker)
 
 
     # check for samples input
