@@ -493,11 +493,11 @@ def defaultMSG(){
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m
     Parameters:
-    \033[2mMedaka model:        $params.medaka_model [--medaka_model]
-    Min Depth of each nucleotide:        $params.min_depth [--min_depth]
-    Update Pangolin?:    $params.update [--update]
-    CPUs to use:         $params.cores [--cores]
-    Memory in GB:        $params.memory [--memory]\u001B[0m
+    \033[2mMedaka model:         $params.medaka_model [--medaka_model]
+    Min depth nucleotide: $params.min_depth [--min_depth]
+    Update Pangolin?:     $params.update [--update]
+    CPUs to use:          $params.cores [--cores]
+    Memory in GB:         $params.memory [--memory]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -517,11 +517,11 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output for german DESH upload:
-    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    \033[2mOutput stored at:      $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
     Min Depth used:        $params.min_depth [--min_depth]
-    (this should be 20 or more for a RKI upload)
-    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
+       Min Depth should be 20 or more for RKI upload
+    Proportion cutoff N:   $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
