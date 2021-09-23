@@ -13,6 +13,10 @@ process filter_fastq_by_length {
         if ( !params.minLength ) { read_min_length = 500 }
         if ( !params.maxLength ) { read_max_length = 1500 }
     }
+    else if (params.rapid) {
+        if ( !params.minLength ) { read_min_length = 100 }
+        if ( !params.maxLength ) { read_max_length = 700 }
+    }
     else {
         if ( !params.minLength ) { read_min_length = 350 }
         if ( !params.maxLength ) { read_max_length = 700 }
