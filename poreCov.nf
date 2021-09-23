@@ -430,6 +430,7 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
     --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
+                    e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
 
 ${c_yellow}Parameters - nCov genome reconstruction  (optional)${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
@@ -439,7 +440,7 @@ ${c_yellow}Parameters - nCov genome reconstruction  (optional)${c_reset}
     --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
-                    e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
+                    e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
 
 ${c_yellow}Parameters - Genome quality control  (optional)${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
@@ -505,7 +506,7 @@ def defaultMSG(){
     Parameters:
     \033[2mMedaka model:         $params.medaka_model [--medaka_model]
     Min depth nucleotide: $params.min_depth [--min_depth]
-    Update Pangolin?:     $params.update [--update]
+    Latest Pangolin/Nextclade?: $params.update [--update]
     CPUs to use:          $params.cores [--cores]
     Memory in GB:         $params.memory [--memory]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
