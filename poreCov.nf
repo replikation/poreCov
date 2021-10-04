@@ -217,20 +217,28 @@ static boolean DockernetIsAvailable() {
     }
 }
 
-def pangocheck = DockernetIsAvailable()
+def internetcheck = DockernetIsAvailable()
 
 if (params.update) {
-println "\033[0;33mWarning: Most recent pangolin version might not be poreCov compatible!\033[0m"
-    if ( pangocheck.toString() == "true" ) { 
+println "\033[0;33mWarning: Most recent pangolin/nextclade version might not be poreCov compatible!\033[0m"
+    if ( internetcheck.toString() == "true" ) { 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-        params.pangolindocker = "nanozoo/pangolin:" + tagname 
-        println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m"} 
-    if ( pangocheck.toString() == "false" ) { 
+        params.pangolindocker = "nanozoo/pangolin:" + tagname
+        println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m" 
+
+        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+        params.nextcladedocker = "nanozoo/nextclade:" + tagname 
+        println "\033[0;32mCould parse the latest nextclade container to use: " + params.nextcladedocker + " \033[0m"
+    } 
+    if ( internetcheck.toString() == "false" ) { 
         println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.defaultpangolin + "\033[0m"
         params.pangolindocker = params.defaultpangolin 
-        } 
+
+        println "\033[0;33mCould not parse the latest nextclade container to use, trying: " + params.defaultnextclade + "\033[0m"
+        params.nextcladedocker = params.defaultnextclade 
+    } 
 }
-else { params.pangolindocker = params.defaultpangolin }
+else { params.pangolindocker = params.defaultpangolin ; params.nextcladedocker = params.defaultnextclade  }
 
 /************************** 
 * Log-infos
@@ -384,6 +392,7 @@ def helpMSG() {
     log.info """
     .    
 \033[0;33mUsage examples:${c_reset}
+
     nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.9.5 -profile local,singularity
 
 ${c_yellow}Inputs (choose one):${c_reset}
@@ -403,8 +412,8 @@ ${c_yellow}Inputs (choose one):${c_reset}
     --fasta         direct input of genomes - supports multi-fasta file(s)
                     ${c_dim}[Lineage + Reports]${c_reset}
 
-${c_yellow}Workflow control ${c_reset}
-    --update        Always try to use latest pangolin lineage release [default: $params.update]
+${c_yellow}Workflow control (optional)${c_reset}
+    --update        Always try to use latest pangolin & nextclade release [default: $params.update]
     --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                     Status,_id
                     barcode01,sample2011XY
@@ -415,28 +424,30 @@ ${c_yellow}Workflow control ${c_reset}
                     to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt
                     e.g --nanopolish sequencing_summary.txt                 
 
-${c_yellow}Parameters - Basecalling${c_reset}
+${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
     --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
+                    e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
 
-${c_yellow}Parameters - nCov genome reconstruction${c_reset}
+${c_yellow}Parameters - nCov genome reconstruction  (optional)${c_reset}
     --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
-                        Supported: V1, V2, V3, V1200
+                        Supported: V1, V2, V3, V4, V1200
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
     --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
+                    e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
 
-${c_yellow}Parameters - Genome quality control${c_reset}
+${c_yellow}Parameters - Genome quality control  (optional)${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
     --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
     --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
-${c_yellow}Options:${c_reset}
+${c_yellow}Options  (optional)${c_reset}
     --cores         amount of cores for a process (local use) [default: $params.cores]
     --max_cores     max amount of cores for poreCov to use (local use) [default: $params.max_cores]
     --memory        available memory [default: $params.memory]
@@ -445,7 +456,7 @@ ${c_yellow}Options:${c_reset}
                     [default: $params.cachedir]
     --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
 
-${c_yellow}Execution/Engine profiles:${c_reset}
+${c_yellow}Execution/Engine profiles (choose executer and engine${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
     examples:
      -profile ${c_green}local${c_reset},${c_blue}docker${c_reset}
@@ -493,10 +504,11 @@ def defaultMSG(){
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m
     Parameters:
-    \033[2mMedaka model:        $params.medaka_model [--medaka_model]
-    Update Pangolin?:    $params.update [--update]
-    CPUs to use:         $params.cores [--cores]
-    Memory in GB:        $params.memory [--memory]\u001B[0m
+    \033[2mMedaka model:         $params.medaka_model [--medaka_model]
+    Min depth nucleotide: $params.min_depth [--min_depth]
+    Latest Pangolin/Nextclade?: $params.update [--update]
+    CPUs to use:          $params.cores [--cores]
+    Memory in GB:         $params.memory [--memory]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -516,10 +528,11 @@ def basecalling() {
 def rki() {
     log.info """
     RKI output for german DESH upload:
-    \033[2mOutput stored at:    $params.output/$params.rkidir  
+    \033[2mOutput stored at:      $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
-    Min Depth:        $params.min_depth [--min_depth]
-    Proportion cutoff N: $params.n_threshold [--n_threshold]\u001B[0m
+    Min Depth used:        $params.min_depth [--min_depth]
+       Min Depth should be 20 or more for RKI upload
+    Proportion cutoff N:   $params.n_threshold [--n_threshold]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
     """.stripIndent()
 }
@@ -531,6 +544,10 @@ def read_length() {
     if ( params.primerV.matches('V1200')) {
         if ( !params.minLength ) { log_msg_read_min_length = 500 }
         if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
+    }
+    else if (params.rapid) {
+        if ( !params.minLength ) { log_msg_read_min_length = 100 }
+        if ( !params.maxLength ) { log_msg_read_max_length = 700 }
     }
     else {
         if ( !params.minLength ) { log_msg_read_min_length = 350 }

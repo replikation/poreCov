@@ -31,6 +31,7 @@ process summary_report {
         summary_report.py \
             -v !{version_config} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
+            --nextclade_docker !{params.nextcladedocker} \
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
@@ -85,6 +86,7 @@ process summary_report_default {
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
             --pangolin_docker !{params.pangolindocker} \
+            --nextclade_docker !{params.nextcladedocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -117,6 +119,7 @@ process summary_report_fasta {
             -v ${version_config} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
             --pangolin_docker ${params.pangolindocker} \
+            --nextclade_docker ${params.nextcladedocker} \
             -p ${pangolin_results} \
             -q ${president_results} \
             -n ${nextclade_results} \
