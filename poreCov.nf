@@ -121,6 +121,29 @@ if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5,
 if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
 
+// validating sample table
+if (params.samples) {  
+
+    // check that the rows _id and Status can be found
+    // checks afterwards that no fields are empty
+    Channel.fromPath( params.samples, checkIfExists: true)
+        .splitCsv(header: false, sep: ',')
+        .take( 1 )
+        .map { row ->  
+            if ( !("_id" in row) ) { exit 6, "The column '_id' was not found in $params.samples, hidden symbols? Use a editor to generate the csv file" }
+            if ( !("Status" in row) ) { exit 6, exi1, "The column 'Status' was not found in $params.samples" }
+        }
+        .mix(
+        Channel.fromPath( params.samples, checkIfExists: true)
+            .splitCsv(header: true, sep: ',')
+            .map { row -> 
+                if (!row.'Status') { exit 6, "A Status field appears to be empty in the file $params.samples" }
+                if (!row.'_id') { exit 6, "A _id field appears to be empty in the file $params.samples"} 
+            }
+        )
+}
+
+
 /************************** 
 * INPUTs
 **************************/
@@ -180,23 +203,30 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
     }
 
 // samples input 
-    if (params.samples) { samples_input_ch = Channel
-        .fromPath( params.samples, checkIfExists: true)
-        .splitText(by: 100000) { it.replace( " ", "") }
-        .splitCsv(header: true, sep: ',')
-        .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id}")}
+    if (params.samples) { 
+        samples_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
+            .splitCsv(header: true, sep: ',')
+            .map { row -> tuple ("barcode${row.Status[-2..-1]}", "${row._id.replace( " ", "")}")}
+
+        samples_file_ch = Channel.fromPath( params.samples, checkIfExists: true)
+            .splitCsv(header: true, sep: ',')
+            .collectFile(seed: '_id,Status\n') {
+                        row -> [ "input.csv", row.'_id'.replace( " ", "") + ',' + row.'Status'.replace( " ", "") + '\n']
+                        }
     }
+
+    else { samples_file_ch = Channel.from( ['deactivated'] ) }
 
     // extended input
     if (params.samples && params.extended) { 
         extended_input_ch = Channel.fromPath( params.samples, checkIfExists: true)
-        .splitText(by: 100000) { it.replace( " ", "") }
         .splitCsv(header: true, sep: ',')
         .collectFile() {
-                    row -> [ "extended.csv", row.'_id' + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 
-                    row.'Seq_Reason' + ',' + row.'Sample_Type' + '\n']
+                    row -> [ "extended.csv", row.'_id'.replace( " ", "") + ',' + row.'Submitting_Lab' + ',' + row.'Isolation_Date' + ',' + 
+                    row.'Seq_Reason' + ',' + row.'Sample_Type'.replace( " ", "") + '\n']
                     }
     }
+    
     else { extended_input_ch = Channel.from( ['deactivated', 'deactivated'] ) }
 
 /************************** 
@@ -370,13 +400,14 @@ workflow {
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
 
+/*
         if (params.samples) {
             samples_table_ch = Channel.fromPath( params.samples, checkIfExists: true)
         }
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
-
+*/
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                read_classification_ch, alignments_ch, samples_table_ch)
+                                read_classification_ch, alignments_ch, samples_file_ch)
 
 }
 
