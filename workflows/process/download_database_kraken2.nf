@@ -6,7 +6,7 @@ process download_database_kraken2 {
     output:
         path("kraken.tar.gz")
     script:
-    if (task.attempt = 0)
+    if (task.attempt = 1)
         """
         wget --no-check-certificate https://zenodo.org/record/4534746/files/GRCh38.p13_SC2_2021-02-08.tar.gz -O kraken.tar.gz
         """
