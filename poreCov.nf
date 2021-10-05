@@ -131,7 +131,7 @@ if (params.samples) {
         .take( 1 )
         .map { row ->  
             if ( !("_id" in row) ) { exit 6, "The column '_id' was not found in $params.samples, hidden symbols? Use a editor to generate the csv file" }
-            if ( !("Status" in row) ) { exit 6, exi1, "The column 'Status' was not found in $params.samples" }
+            if ( !("Status" in row) ) { exit 6, "The column 'Status' was not found in $params.samples" }
         }
         .mix(
         Channel.fromPath( params.samples, checkIfExists: true)
