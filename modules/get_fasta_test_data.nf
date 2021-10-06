@@ -5,6 +5,6 @@ process get_fasta {
 	path("SARSCoV2.fasta") 
 	script:
 	"""
-    wget https://osf.io/87bc9/download -O SARSCoV2.fasta
+    wget --no-check-certificate https://osf.io/87bc9/download -O SARSCoV2.fasta
 	"""
 }

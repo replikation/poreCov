@@ -5,7 +5,7 @@ process get_fast5 {
 	path("fast5") 
 	script:
 	"""
-    wget https://osf.io/vxd7f/download -O SARSCoV2.tar.gz
+    wget --no-check-certificate https://osf.io/vxd7f/download -O SARSCoV2.tar.gz
     tar xzf SARSCoV2.tar.gz 
 	"""
 }
