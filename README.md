@@ -33,9 +33,6 @@
 Table of Contents
 =================
 <!--ts-->
-- [**poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**](#porecov--sars-cov-2-workflow-for-nanopore-sequencing-data)
-  - [What is this Repo?](#what-is-this-repo)
-- [Table of Contents](#table-of-contents)
 - [1. Quick Setup (Ubuntu)](#1-quick-setup-ubuntu)
   - [1.1 Nextflow (the workflow manager)](#11-nextflow-the-workflow-manager)
   - [1.2 Container (choose one - they manage all the tools)](#12-container-choose-one---they-manage-all-the-tools)
@@ -60,7 +57,7 @@ Table of Contents
 - [8. Credits](#8-credits)
 <!--te-->
 
-  # 1. Quick Setup (Ubuntu)
+# 1. Quick Setup (Ubuntu)
 ## 1.1 Nextflow (the workflow manager)
 * poreCov needs [Nextflow](https://www.nextflow.io/index.html) and java run time (default-jre)
     * install java run time via:  `sudo apt install -y default-jre`
@@ -88,26 +85,26 @@ Table of Contents
 
 ```bash
 # for a Docker installation
-nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.9.5
+nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.11.0
 
 # or for Singularity or conda installation
-nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.9.5
+nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.11.0
 ```
 
 ## 2.2 Quick run examples
 
 * poreCov with basecalling and Docker
     * `--update` tryies to force the most recent lineage release version (optional)
-    * `-r 0.9.5` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+    * `-r 0.11.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
 ```bash
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.9.5 \
+nextflow run replikation/poreCov --fast5 fast5/ -r 0.11.0 \
     --cores 6 -profile local,docker --update 
 ```
 
 * poreCov with a basecalled fastq directory 
 
 ```bash
-nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.9.5 \
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.11.0 \
     --cores 32  -profile local,docker
 ```
 
@@ -120,9 +117,9 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 ```
 
 ## 2.3 Extended Usage
-* see also `nextflow run replikation/poreCov --help -r 0.9.5`
+* see also `nextflow run replikation/poreCov --help -r 0.11.0`
 ### Version control
-* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.9.5`)
+* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.11.0`)
 * poreCov releases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
