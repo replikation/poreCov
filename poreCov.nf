@@ -463,7 +463,7 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
                     e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
 
-${c_yellow}Parameters - nCov genome reconstruction (optional)${c_reset}
+${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
     --primerV       Supported primer variants - choose one [default: ${params.primerV}]
                         ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4 
                         ${c_dim}NEB:${c_reset} VarSkipV1a
