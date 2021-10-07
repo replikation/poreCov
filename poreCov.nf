@@ -463,9 +463,11 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
                     e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
 
-${c_yellow}Parameters - nCov genome reconstruction  (optional)${c_reset}
-    --primerV       artic-ncov2019 primer_schemes [default: ${params.primerV}]
-                        Supported: V1, V2, V3, V4, V1200
+${c_yellow}Parameters - nCov genome reconstruction (optional)${c_reset}
+    --primerV       Supported primer variants - choose one [default: ${params.primerV}]
+                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4 
+                        ${c_dim}NEB:${c_reset} VarSkipV1a
+                        ${c_dim}Other:${c_reset} V1200
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
     --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
