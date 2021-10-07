@@ -29,3 +29,8 @@ jobs:
       run: |
           mkdir fast5_2 
           ./nextflow run poreCov.nf --fast5 fast5_2/ --nanopolish  -stub -profile stub --cores 2 --max_cores 2
+    - name: fastq samples dry run
+      run: |
+          touch barcode01.fastq.gz
+          printf "_id,Status\nsample,BC01\n" > sample.csv
+          ./nextflow run poreCov.nf --fastq barcode01.fastq.gz --samples sample.csv -stub -profile stub --cores 2 --max_cores 2
