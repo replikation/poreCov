@@ -288,6 +288,7 @@ include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
+include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
 
 /************************** 
 * Workflows
@@ -326,19 +327,18 @@ workflow {
                     reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                     }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
-
-            read_classification_wf(fastq_from5_ch)
+            
+            filtered_reads_ch = filter_fastq_by_length.nf(fastq_from5_ch)
+            read_classification_wf(filtered_reads_ch.out)
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
-                artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1])
                 fasta_input_ch = artic_ncov_np_wf.out[0]
-                filtered_reads_ch = artic_ncov_np_wf.out[1] 
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(fastq_from5_ch) 
+                artic_ncov_wf(filtered_reads_ch) 
                 fasta_input_ch = artic_ncov_wf.out[0] 
-                filtered_reads_ch = artic_ncov_wf.out[1] 
                 }
         }
         // fastq input via dir and or files
@@ -353,7 +353,8 @@ workflow {
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
-            read_classification_wf(fastq_input_ch)
+            filtered_reads_ch = filter_fastq_by_length.nf(fastq_input_ch)
+            read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish && !params.fast5 ) { exit 3, "Please provide fast5 data for nanopolish via [--fast5]" }
@@ -363,14 +364,12 @@ workflow {
                 
                 external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
-                artic_ncov_np_wf(fastq_input_ch, dir_input_ch, sequence_summary_ch )
-                fasta_input_ch = artic_ncov_np_wf.out[0]
-                filtered_reads_ch = artic_ncov_np_wf.out[1]
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, sequence_summary_ch )
+                fasta_input_ch = artic_ncov_np_wf.out
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(fastq_input_ch)
-                fasta_input_ch = artic_ncov_wf.out[0] 
-                filtered_reads_ch = artic_ncov_wf.out[1] 
+                artic_ncov_wf(filtered_reads_ch)
+                fasta_input_ch = artic_ncov_wf.out
                 }
         }
 
