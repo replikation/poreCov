@@ -61,7 +61,7 @@ process artic_nanopolish {
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
-        tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.nCoV-2019_1.depths"), path("${name}.coverage_mask.txt.nCoV-2019_2.depths"), emit: covarplot
+        tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
     script:   
         """
         artic minion --minimap2 --normalise 500 \
