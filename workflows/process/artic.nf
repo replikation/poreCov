@@ -2,7 +2,7 @@ process artic_medaka {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}*.trimmed.*sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
 
     input:
