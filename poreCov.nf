@@ -328,7 +328,7 @@ workflow {
                     }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
             
-            filtered_reads_ch = filter_fastq_by_length.nf(fastq_from5_ch)
+            filtered_reads_ch = filter_fastq_by_length(fastq_from5_ch)
             read_classification_wf(filtered_reads_ch.out)
 
             // use medaka or nanopolish artic reconstruction
@@ -353,7 +353,7 @@ workflow {
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
-            filtered_reads_ch = filter_fastq_by_length.nf(fastq_input_ch)
+            filtered_reads_ch = filter_fastq_by_length(fastq_input_ch)
             read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
