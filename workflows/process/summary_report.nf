@@ -5,6 +5,7 @@ process summary_report {
     
     input:
         path(version_config)
+        tuple val(scorpio_ver), val(scorpio_constellations_ver)
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
@@ -30,6 +31,8 @@ process summary_report {
 
         summary_report.py \
             -v !{version_config} \
+            --scorpio_version "!{scorpio_ver}" \
+            --scorpio_constellations_version = "!{scorpio_constellations_ver}" \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --nextclade_docker !{params.nextcladedocker} \
             --guppy_used !{guppyused} \
@@ -81,6 +84,8 @@ process summary_report_default {
 
         summary_report.py \
             -v !{version_config} \
+            --scorpio_version "!{scorpio_ver}" \
+            --scorpio_constellations_version = "!{scorpio_constellations_ver}" \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
@@ -117,6 +122,8 @@ process summary_report_fasta {
         """
         summary_report.py \
             -v ${version_config} \
+            --scorpio_version "!{scorpio_ver}" \
+            --scorpio_constellations_version = "!{scorpio_constellations_ver}" \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
             --pangolin_docker ${params.pangolindocker} \
             --nextclade_docker ${params.nextcladedocker} \

@@ -31,6 +31,8 @@ class SummaryReport():
     output_filename = report_name + '.html'
     porecov_params = {}
     tool_versions = {}
+    scorpio_version = None
+    scorpio_constellations_version = None
     pangolin_version = None
     pangolearn_version = None
     nextclade_version = None
@@ -120,6 +122,18 @@ class SummaryReport():
             error(f'Failed to parse version config file: {version_config_file}')
         self.tool_versions = version_dict
         log('Parsed version config file.')
+
+
+    def parse_scorpio_versions(self, scorpio_version, sc_constell_version):
+        # e.g. 'scorpio 0.3.14'
+        name, vers = scorpio_version.split(' ')
+        assert name == 'scorpio'
+        self.scorpio_version = vers.lstrip('v')
+
+        # e.g. 'constellations v0.0.24'
+        name, vers = sc_constell_version.split(' ')
+        assert name == 'constellations'
+        self.scorpio_constellations_version = vers.lstrip('v')
 
 
     def parse_pangolin_version(self, pangolin_docker):
@@ -290,8 +304,8 @@ class SummaryReport():
 
     def add_pangolin_results(self, pangolin_results):
         log(f'Adding Pangolin results ...')
-        # column names:
-        # taxon,lineage,probability,pangoLEARN_version,status,note
+        # column names used:
+        # taxon,lineage,conflict,scorpio_call,scorpio_conflict
         res_data = pd.read_csv(pangolin_results, index_col='taxon', dtype={'taxon': str})
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
@@ -304,8 +318,22 @@ class SummaryReport():
         self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
-            
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
+        
+        # Conditionally add scorpio info if it is present
+        if (res_data['scorpio_call'] != '').any():
+            log(f'Found "scorpio_call" value(s), adding Scorpio results ...')
+        
+            self.add_column_raw('scorpio_constellation', res_data['scorpio_call'])
+            self.add_column_raw('scorpio_conflict', res_data['scorpio_conflict'])
+
+            res_data['scorpio_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['scorpio_call'], res_data['scorpio_conflict'])]
+
+            self.add_column('Constellation<br>(conflict)', res_data['scorpio_conflict'])
+            if self.scorpio_version is None or self.scorpio_constellations_version is None:
+                error('No Scorpio/constellations versions were added before adding Pangolin results.')
+            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with <a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using <a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
+
 
     def add_president_results(self, president_results):
         log(f'Adding President results ...')
@@ -567,6 +595,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
+    parser.add_argument("--scorpio_version", help="scorpio version", required=True)
+    parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version")    
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
@@ -586,6 +616,7 @@ if __name__ == '__main__':
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
+    report.parse_scorpio_versions(args.scorpio_version, args.scorpio_constellations_version)
     report.parse_pangolin_version(args.pangolin_docker)
     report.parse_nextclade_version(args.nextclade_docker)
 
