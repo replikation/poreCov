@@ -329,7 +329,8 @@ workflow {
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
             
             filtered_reads_ch = filter_fastq_by_length(fastq_from5_ch)
-            read_classification_wf(filtered_reads_ch.out)
+            noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
+            read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
@@ -354,6 +355,7 @@ workflow {
 
             read_qc_wf(fastq_input_ch)
             filtered_reads_ch = filter_fastq_by_length(fastq_input_ch)
+            noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
             read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
