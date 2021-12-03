@@ -107,7 +107,7 @@ class SummaryReport():
     def add_pangolin_version_param(self):
         if self.tool_versions is None:
             error('add_pangolin_version_param() called before parse_pangolin_version()')
-        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force an update of the pangolin container!</font>'
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent pangolin container!</font>'
         
         # pa_param = f'<a href="https://cov-lineages.org/pangolin.html"><b>Pangolin</b></a> version'
         # pa_val =  f'{self.pangolin_version}'
