@@ -104,6 +104,24 @@ class SummaryReport():
                 self.add_param(pc_param, scriptID + ' (local scriptID) - ' + warning_msg)
 
 
+    def add_pangolin_version_param(self):
+        if self.tool_versions is None:
+            error('add_pangolin_version_param() called before parse_pangolin_version()')
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force an update of the pangolin container!</font>'
+        
+        # pa_param = f'<a href="https://cov-lineages.org/pangolin.html"><b>Pangolin</b></a> version'
+        # pa_val =  f'{self.pangolin_version}'
+        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/pangolearn.html"><b>PangoLEARN</b></a> version'
+        pl_val = f'{self.pangolearn_version}'
+
+        year, month, day = self.pangolearn_version.split('-')
+        if int(year) <= 2021 and int(month) <= 10:
+            pl_val += warning_msg
+
+        # self.add_param(pa_param, pa_val)
+        self.add_param(pl_param, pl_val)
+        
+
     def parse_version_config(self, version_config_file):
         version_dict = {}
         try:
@@ -318,7 +336,7 @@ class SummaryReport():
         self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/pangolearn.html">PangoLEARN</a> data release {self.pangolearn_version}).')
         
 
         # Add scorpio info if any is present
@@ -646,6 +664,7 @@ if __name__ == '__main__':
 
     # params
     report.add_poreCov_version_param(args.porecov_version)
+    report.add_pangolin_version_param()
 
     # check run type
     if args.primer:
