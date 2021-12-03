@@ -322,7 +322,7 @@ class SummaryReport():
         
 
         # Add scorpio info if any is present
-        if not res_data['scorpio_call'].notna().any():
+        if res_data['scorpio_call'].notna().any():
             log(f'Found "scorpio_call" value(s), adding Scorpio results ...')
         
             self.add_column_raw('scorpio_constellation', res_data['scorpio_call'])
