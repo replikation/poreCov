@@ -22,7 +22,7 @@ workflow create_summary_report_wf {
         alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             
-            summary_report_fasta(version_ch, pangolin_results, president_results, nextclade_results)
+            summary_report_fasta(version_ch, scorpio_ver_ch, pangolin_results, president_results, nextclade_results)
 
         } else {
             kraken2_results = kraken2.map {it -> it[2]}.collect()

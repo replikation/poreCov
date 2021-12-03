@@ -320,14 +320,15 @@ class SummaryReport():
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
         self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
         
-        # Conditionally add scorpio info if it is present
-        if (res_data['scorpio_call'] != '').any():
+
+        # Add scorpio info if any is present
+        if not res_data['scorpio_call'].notna().any():
             log(f'Found "scorpio_call" value(s), adding Scorpio results ...')
         
             self.add_column_raw('scorpio_constellation', res_data['scorpio_call'])
             self.add_column_raw('scorpio_conflict', res_data['scorpio_conflict'])
 
-            res_data['scorpio_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['scorpio_call'], res_data['scorpio_conflict'])]
+            res_data['scorpio_conflict'] = [f'<b>{l if pd.notna(l) else "-"}</b><br>({p if pd.notna(p) else "-"})' for l,p in zip(res_data['scorpio_call'], res_data['scorpio_conflict'])]
 
             self.add_column('Constellation<br>(conflict)', res_data['scorpio_conflict'])
             if self.scorpio_version is None or self.scorpio_constellations_version is None:
@@ -596,7 +597,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--scorpio_version", help="scorpio version", required=True)
-    parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version")    
+    parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version", required=True)    
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
