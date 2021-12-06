@@ -127,7 +127,7 @@ class SummaryReport():
             error('add_nextclade_version_param() called before parse_nextclade_version()')
         warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of Nextclade data was used ({self.nextcladedata_version}). Use parameter \'--update\' to force the use of the most recent Nextclade container!</font>'
         
-        nc_param = f'<a href="https://clades.nextstrain.org/">Nextclade</a> data version'
+        nc_param = f'<a href="https://clades.nextstrain.org/"><b>Nextclade</></a> data version'
         nc_val = f'{self.nextcladedata_version}'
 
         year, month, day = self.nextcladedata_version.split('-')
