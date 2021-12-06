@@ -105,9 +105,9 @@ class SummaryReport():
 
 
     def add_pangolin_version_param(self):
-        if self.tool_versions is None:
+        if self.pangolearn_version is None:
             error('add_pangolin_version_param() called before parse_pangolin_version()')
-        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent pangolin container!</font>'
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
         
         # pa_param = f'<a href="https://cov-lineages.org/pangolin.html"><b>Pangolin</b></a> version'
         # pa_val =  f'{self.pangolin_version}'
@@ -120,7 +120,22 @@ class SummaryReport():
 
         # self.add_param(pa_param, pa_val)
         self.add_param(pl_param, pl_val)
+
+
+    def add_nextclade_version_param(self):
+        if self.nextcladedata_version is None:
+            error('add_nextclade_version_param() called before parse_nextclade_version()')
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of Nextclade data was used ({self.nextcladedata_version}). Use parameter \'--update\' to force the use of the most recent Nextclade container!</font>'
         
+        nc_param = f'<a href="https://clades.nextstrain.org/">Nextclade</a> data version'
+        nc_val = f'{self.nextcladedata_version}'
+
+        year, month, day = self.nextcladedata_version.split('-')
+        if int(year) <= 2021 and int(month) <= 10:
+            nc_val += warning_msg
+
+        self.add_param(nc_param, nc_val)
+
 
     def parse_version_config(self, version_config_file):
         version_dict = {}
@@ -665,12 +680,13 @@ if __name__ == '__main__':
     # params
     report.add_poreCov_version_param(args.porecov_version)
     report.add_pangolin_version_param()
+    report.add_nextclade_version_param()
 
     # check run type
     if args.primer:
         
         # infer run type from guppy usage
-        report.add_param('Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
+        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
         # add guppy/medaka model if used
@@ -679,7 +695,7 @@ if __name__ == '__main__':
         if args.medaka_model:
             report.add_param('Medaka model', args.medaka_model)
     else:
-        report.add_param('Run type', "Genome classification from sequences (fasta)")
+        report.add_param('<br>Run type', "Genome classification from sequences (fasta)")
     report.add_time_param()
 
     report.write_html_report()
