@@ -580,7 +580,7 @@ if __name__ == '__main__':
     
     for sample in res_data.index:
         nt_ins = res_data.at[sample, 'insertions']
-        res_data.at[sample, 'aaInsertionsCustom'] = insertions_nt_to_aa(nt_ins)
+        res_data.at[sample, 'aaInsertionsCustom'] = insertions_nt_to_aa(nt_ins) if type(nt_ins) == str else ''
 
     res_data.to_csv(args.output, sep="\t")
 
