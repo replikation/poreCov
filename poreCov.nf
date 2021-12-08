@@ -441,7 +441,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fasta         direct input of genomes - supports multi-fasta file(s)
+    --fasta         direct input of genomes - supports multi-fasta file(s) - can be gzip compressed (.gz)
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control (optional)${c_reset}
