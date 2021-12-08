@@ -1,6 +1,9 @@
 process guppy_gpu {
     label 'guppy_gpu'
         if (!params.localguppy) {
+	    if (workflow.profile.contains('slurm')) {
+		clusterOptions = '--gpus=1'
+	    }
             if (workflow.profile.contains('docker')) {
                 container = 'nanozoo/guppy_gpu:5.0.7-1--ec2c6e7'
                 containerOptions '--gpus all'
