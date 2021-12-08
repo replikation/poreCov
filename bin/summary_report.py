@@ -427,7 +427,7 @@ class SummaryReport():
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
         self.add_col_description(f'Clade, mutations, deletions and insertions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
-        self.add_col_description('<b>Note:</b> amino acid insertions are currently not reported directly by Nextclade, and were instead converted from nucleotide insertions with custom code when possible.')
+        self.add_col_description('<b>Note:</b> amino acid insertions are currently not reported directly by Nextclade, and were instead converted from nucleotide insertions with custom code when possible (adapted from <a href="https://github.com/theosanderson/Codon2Nucleotide">Codon2Nucleotide</a>).')
         
 
     def add_kraken2_results(self, kraken2_results):
