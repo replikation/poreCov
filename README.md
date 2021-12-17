@@ -175,7 +175,7 @@ Sample_2021,barcode01,good
 * poreCov was coded with "easy to use" in mind, while staying flexible
 * therefore we provide a few input types which adjusts the workflow automatically (see image below)
   * fast5 raw data, fastq files (one sample per file), fastq_pass (the basecalling output) or fasta (supports multifastas)
-* primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
+* primer schemes for ARTIC can be V1, V2, V3(default), V4, V4.1 or V1200 (the 1200bp amplicon ones)
 
 <p align="left">
   <img src="data/figures/workflow.png" width="700" title="Workflow">

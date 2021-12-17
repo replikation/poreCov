@@ -466,12 +466,12 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
 
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
     --primerV       Supported primer variants - choose one [default: ${params.primerV}]
-                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4 
+                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1
                         ${c_dim}NEB:${c_reset} VarSkipV1a
                         ${c_dim}Other:${c_reset} V1200
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
+    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-4); 500 (primer-scheme: V1200)]
+    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4); 1500 (primer-scheme: V1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
                     e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
