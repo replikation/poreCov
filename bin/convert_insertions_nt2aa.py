@@ -559,9 +559,9 @@ def insertions_nt_to_aa(nt_ins):
             aa_ins_list.append(ins)
         else:
             # notation includes the amino acid directly before, e.g. 'S:R214REPE'
-            nt_before = get_wuhan_seq_from_pos(pos-3, pos-1)
+            nt_before = get_wuhan_seq_from_pos(pos, pos+2)
             aa_before = nt2aa(nt_before)
-            aa_ins_list.append(gene + ':' + aa_before + str(codon-1) + aa_before + aminos)
+            aa_ins_list.append(gene + ':' + aa_before + str(codon) + aa_before + aminos)
 
     return ','.join(aa_ins_list)
 
