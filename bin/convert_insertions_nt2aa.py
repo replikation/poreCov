@@ -543,7 +543,10 @@ def nt2aa(nucleotides, allow_uracil=True, allow_stop_codon=False):
 
 def insertions_nt_to_aa(nt_ins):
     '''convert Nextclade nucleotide insertion calls to gene/codon number aa insertion format
-    e.g. '22205:GAGCCAGAA' -> 'S:R214REPE'
+    e.g. '22204:GAGCCAGAA' -> 'S:R214REPE'
+    (2021-12-19 Nextclade changed the position, it is now the last nucleotide
+    of the preceding amino acid (R) instead of the first nucleotide of the first inserted aa (E),
+    so it was 22205 before, and is 22204 now)
     will skip conversion as a fallback if something goes wrong
     '''
     nt_ins_list = nt_ins.split(',')
@@ -559,8 +562,11 @@ def insertions_nt_to_aa(nt_ins):
             aa_ins_list.append(ins)
         else:
             # notation includes the amino acid directly before, e.g. 'S:R214REPE'
-            nt_before = get_wuhan_seq_from_pos(pos, pos+2)
-            aa_before = nt2aa(nt_before)
+            nt_before = get_wuhan_seq_from_pos(pos-2, pos)
+            if nt_before is None:
+                aa_before = '*'
+            else:
+                aa_before = nt2aa(nt_before)
             aa_ins_list.append(gene + ':' + aa_before + str(codon) + aa_before + aminos)
 
     return ','.join(aa_ins_list)
