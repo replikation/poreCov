@@ -12,6 +12,8 @@ import argparse
 import pandas as pd
 
 
+### functions
+
 def error(string, error_type=1):
     sys.stderr.write(f'ERROR: {string}\nAborting.\n')
     sys.exit(error_type)
@@ -22,7 +24,8 @@ def log(string, newline_before=False):
         sys.stderr.write('\n')
     sys.stderr.write(f'LOG: {string}\n')
 
-###
+
+### main
 
 class SummaryReport():
 
@@ -31,6 +34,8 @@ class SummaryReport():
     output_filename = report_name + '.html'
     porecov_params = {}
     tool_versions = {}
+    scorpio_version = None
+    scorpio_constellations_version = None
     pangolin_version = None
     pangolearn_version = None
     nextclade_version = None
@@ -102,6 +107,39 @@ class SummaryReport():
                 self.add_param(pc_param, scriptID + ' (local scriptID) - ' + warning_msg)
 
 
+    def add_pangolin_version_param(self):
+        if self.pangolearn_version is None:
+            error('add_pangolin_version_param() called before parse_pangolin_version()')
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
+        
+        # pa_param = f'<a href="https://cov-lineages.org/pangolin.html"><b>Pangolin</b></a> version'
+        # pa_val =  f'{self.pangolin_version}'
+        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/pangolearn.html"><b>PangoLEARN</b></a> version'
+        pl_val = f'{self.pangolearn_version}'
+
+        year, month, day = self.pangolearn_version.split('-')
+        if int(year) <= 2021 and int(month) <= 10:
+            pl_val += warning_msg
+
+        # self.add_param(pa_param, pa_val)
+        self.add_param(pl_param, pl_val)
+
+
+    def add_nextclade_version_param(self):
+        if self.nextcladedata_version is None:
+            error('add_nextclade_version_param() called before parse_nextclade_version()')
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of Nextclade data was used ({self.nextcladedata_version}). Use parameter \'--update\' to force the use of the most recent Nextclade container!</font>'
+        
+        nc_param = f'<a href="https://clades.nextstrain.org/"><b>Nextclade</b></a> data version'
+        nc_val = f'{self.nextcladedata_version}'
+
+        year, month, day = self.nextcladedata_version.split('-')
+        if int(year) <= 2021 and int(month) <= 10:
+            nc_val += warning_msg
+
+        self.add_param(nc_param, nc_val)
+
+
     def parse_version_config(self, version_config_file):
         version_dict = {}
         try:
@@ -120,6 +158,18 @@ class SummaryReport():
             error(f'Failed to parse version config file: {version_config_file}')
         self.tool_versions = version_dict
         log('Parsed version config file.')
+
+
+    def parse_scorpio_versions(self, scorpio_version, sc_constell_version):
+        # e.g. 'scorpio 0.3.14'
+        name, vers = scorpio_version.split(' ')
+        assert name == 'scorpio'
+        self.scorpio_version = vers.lstrip('v')
+
+        # e.g. 'constellations v0.0.24'
+        name, vers = sc_constell_version.split(' ')
+        assert name == 'constellations'
+        self.scorpio_constellations_version = vers.lstrip('v')
 
 
     def parse_pangolin_version(self, pangolin_docker):
@@ -290,8 +340,8 @@ class SummaryReport():
 
     def add_pangolin_results(self, pangolin_results):
         log(f'Adding Pangolin results ...')
-        # column names:
-        # taxon,lineage,probability,pangoLEARN_version,status,note
+        # column names used:
+        # taxon,lineage,conflict,scorpio_call,scorpio_conflict
         res_data = pd.read_csv(pangolin_results, index_col='taxon', dtype={'taxon': str})
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
@@ -304,8 +354,23 @@ class SummaryReport():
         self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">pangolin</a> (v{self.pangolin_version} using pangoLEARN data release {self.pangolearn_version}).')
-            
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/pangolearn.html">PangoLEARN</a> data release {self.pangolearn_version}).')
+        
+
+        # Add scorpio info if any is present
+        if res_data['scorpio_call'].notna().any():
+            log(f'Found "scorpio_call" value(s), adding Scorpio results ...')
+        
+            self.add_column_raw('scorpio_constellation', res_data['scorpio_call'])
+            self.add_column_raw('scorpio_conflict', res_data['scorpio_conflict'])
+
+            res_data['scorpio_conflict'] = [f'<b>{l if pd.notna(l) else "-"}</b><br>({p if pd.notna(p) else "-"})' for l,p in zip(res_data['scorpio_call'], res_data['scorpio_conflict'])]
+
+            self.add_column('Constellation<br>(conflict)', res_data['scorpio_conflict'])
+            if self.scorpio_version is None or self.scorpio_constellations_version is None:
+                error('No Scorpio/constellations versions were added before adding Pangolin results.')
+            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with <a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using <a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
+
 
     def add_president_results(self, president_results):
         log(f'Adding President results ...')
@@ -380,18 +445,27 @@ class SummaryReport():
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
+
         self.add_column_raw('nextclade_clade', res_data['clade'])
+        self.add_column_raw('nextclade_mutations_nt', res_data['substitutions'])
         self.add_column_raw('nextclade_mutations', res_data['aaSubstitutions'])
+        self.add_column_raw('nextclade_deletions_nt', res_data['deletions'])
         self.add_column_raw('nextclade_deletions', res_data['aaDeletions'])
+        self.add_column_raw('nextclade_insertions_nt', res_data['insertions'])
+        # this column is added by the convert_insertions_nt2aa.py script in the nextclade process (until Nextclade provides this itself)
+        self.add_column_raw('nextclade_insertions', res_data['aaInsertionsCustom'])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
+        res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertionsCustom']]
 
         self.add_column('Clade', res_data['clade'])
         muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>, see Note below)'
         self.add_column(muts_colname, res_data['mutations_formatted'])
         self.add_column(dels_colname, res_data['deletions_formatted'])
+        self.add_column(inss_colname, res_data['insertions_formatted'])
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -400,7 +474,8 @@ class SummaryReport():
             muts = field.split(', ')
             mumuts = []
             for mut in muts:
-                if mut.split(':')[0] == 'S':
+                first = mut.split(':')[0]
+                if first == 'S' or (first.isnumeric() and 21563 <= int(first) <= 25385):
                     mumuts.append(f'<font color="{self.color_spike_markup}"><b>' + mut + '</b></font>')
                 else:
                     mumuts.append(mut)
@@ -409,11 +484,13 @@ class SummaryReport():
         self.add_col_formatter('Clade', clade_markup)
         self.add_col_formatter(muts_colname, spike_markup)
         self.add_col_formatter(dels_colname, spike_markup)
+        self.add_col_formatter(inss_colname, spike_markup)
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
-        self.add_col_description(f'Clade, mutations and deletions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
-
+        self.add_col_description(f'Clade, mutations, deletions and insertions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
+        self.add_col_description('<b>Note:</b> amino acid insertions are currently not reported directly by Nextclade, and were instead converted from nucleotide insertions with custom code when possible (adapted from <a href="https://github.com/theosanderson/Codon2Nucleotide">Codon2Nucleotide</a>).')
+        
 
     def add_kraken2_results(self, kraken2_results):
         log(f'Adding Kraken2 results ...')
@@ -559,7 +636,7 @@ class SummaryReport():
         self.tabledataraw.to_excel(self.report_name + '_datatable.xlsx' , sheet_name='poreCov', index_label='sample')
         self.tabledataraw.to_csv(self.report_name + '_datatable.tsv', index_label='sample', sep='\t')
 
-###
+### main
 
 if __name__ == '__main__':
 
@@ -567,6 +644,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
     parser.add_argument("-v", "--version_config", help="version config", required=True)
+    parser.add_argument("--scorpio_version", help="scorpio version", required=True)
+    parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version", required=True)    
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
@@ -586,6 +665,7 @@ if __name__ == '__main__':
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
+    report.parse_scorpio_versions(args.scorpio_version, args.scorpio_constellations_version)
     report.parse_pangolin_version(args.pangolin_docker)
     report.parse_nextclade_version(args.nextclade_docker)
 
@@ -614,12 +694,14 @@ if __name__ == '__main__':
 
     # params
     report.add_poreCov_version_param(args.porecov_version)
+    report.add_pangolin_version_param()
+    report.add_nextclade_version_param()
 
     # check run type
     if args.primer:
         
         # infer run type from guppy usage
-        report.add_param('Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
+        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
         # add guppy/medaka model if used
@@ -628,7 +710,7 @@ if __name__ == '__main__':
         if args.medaka_model:
             report.add_param('Medaka model', args.medaka_model)
     else:
-        report.add_param('Run type', "Genome classification from sequences (fasta)")
+        report.add_param('<br>Run type', "Genome classification from sequences (fasta)")
     report.add_time_param()
 
     report.write_html_report()

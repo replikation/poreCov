@@ -288,6 +288,7 @@ include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
 include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
+include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
 
 /************************** 
 * Workflows
@@ -326,19 +327,19 @@ workflow {
                     reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                     }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
-
-            read_classification_wf(fastq_from5_ch)
+            
+            filtered_reads_ch = filter_fastq_by_length(fastq_from5_ch)
+            noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
+            read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
-                artic_ncov_np_wf(fastq_from5_ch, dir_input_ch, basecalling_wf.out[1])
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1])
                 fasta_input_ch = artic_ncov_np_wf.out[0]
-                filtered_reads_ch = artic_ncov_np_wf.out[1] 
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(fastq_from5_ch) 
+                artic_ncov_wf(filtered_reads_ch) 
                 fasta_input_ch = artic_ncov_wf.out[0] 
-                filtered_reads_ch = artic_ncov_wf.out[1] 
                 }
         }
         // fastq input via dir and or files
@@ -353,7 +354,9 @@ workflow {
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
             read_qc_wf(fastq_input_ch)
-            read_classification_wf(fastq_input_ch)
+            filtered_reads_ch = filter_fastq_by_length(fastq_input_ch)
+            noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
+            read_classification_wf(filtered_reads_ch)
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish && !params.fast5 ) { exit 3, "Please provide fast5 data for nanopolish via [--fast5]" }
@@ -363,14 +366,12 @@ workflow {
                 
                 external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
-                artic_ncov_np_wf(fastq_input_ch, dir_input_ch, sequence_summary_ch )
-                fasta_input_ch = artic_ncov_np_wf.out[0]
-                filtered_reads_ch = artic_ncov_np_wf.out[1]
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, sequence_summary_ch )
+                fasta_input_ch = artic_ncov_np_wf.out
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(fastq_input_ch)
-                fasta_input_ch = artic_ncov_wf.out[0] 
-                filtered_reads_ch = artic_ncov_wf.out[1] 
+                artic_ncov_wf(filtered_reads_ch)
+                fasta_input_ch = artic_ncov_wf.out
                 }
         }
 
@@ -440,7 +441,7 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     to skip demultiplexing (no barcodes) add the flag [--single]
                     ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fasta         direct input of genomes - supports multi-fasta file(s)
+    --fasta         direct input of genomes - supports multi-fasta file(s) - can be gzip compressed (.gz)
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control (optional)${c_reset}
@@ -465,12 +466,12 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
 
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
     --primerV       Supported primer variants - choose one [default: ${params.primerV}]
-                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4 
+                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1
                         ${c_dim}NEB:${c_reset} VarSkipV1a
                         ${c_dim}Other:${c_reset} V1200
     --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-3); 500 (primer-scheme: V1200)]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-3); 1500 (primer-scheme: V1200)]
+    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-4); 500 (primer-scheme: V1200)]
+    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4); 1500 (primer-scheme: V1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
                     e.g. "r941_min_hac_g507" or "r941_min_sup_g507"

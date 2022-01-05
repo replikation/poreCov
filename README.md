@@ -33,6 +33,9 @@
 Table of Contents
 =================
 <!--ts-->
+- [**poreCov | SARS-CoV-2 Workflow for nanopore sequencing data**](#porecov--sars-cov-2-workflow-for-nanopore-sequencing-data)
+  - [What is this Repo?](#what-is-this-repo)
+- [Table of Contents](#table-of-contents)
 - [1. Quick Setup (Ubuntu)](#1-quick-setup-ubuntu)
   - [1.1 Nextflow (the workflow manager)](#11-nextflow-the-workflow-manager)
   - [1.2 Container (choose one - they manage all the tools)](#12-container-choose-one---they-manage-all-the-tools)
@@ -131,7 +134,7 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
    * `--fast5 fast5_dir/`  for fast5 directory input
    * `--fastq_pass fastq_dir/`  directory with basecalled data (contains "barcode01" etc. directories)
    * `--fastq "sample*.fastq.gz"` alternative fastq input (one sample per file)
-   * `--fasta "*genomes.fasta"`  SARS-CoV-2 genomes as fasta 
+   * `--fasta "*genomes.fasta"`  SARS-CoV-2 genomes as fasta (.gz allowed)
 
 ### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
@@ -172,7 +175,7 @@ Sample_2021,barcode01,good
 * poreCov was coded with "easy to use" in mind, while staying flexible
 * therefore we provide a few input types which adjusts the workflow automatically (see image below)
   * fast5 raw data, fastq files (one sample per file), fastq_pass (the basecalling output) or fasta (supports multifastas)
-* primer schemes for ARTIC can be V1, V2, V3(default) or V1200 (the 1200bp amplicon ones)
+* primer schemes for ARTIC can be V1, V2, V3(default), V4, V4.1 or V1200 (the 1200bp amplicon ones)
 
 <p align="left">
   <img src="data/figures/workflow.png" width="700" title="Workflow">
