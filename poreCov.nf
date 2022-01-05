@@ -86,7 +86,7 @@ if ( params.help ) { exit 0, helpMSG() }
     else { exit 1, "No executer selected:  -profile EXECUTER,ENGINE" }
 
     if (workflow.profile.contains('local')) {
-        println "\033[2m Using $params.cores/$params.max_cores CPU threads [--max_cores]\u001B[0m"
+        println "\033[2m Using $params.cores/$params.max_cores CPU threads per process for a local run [--max_cores]\u001B[0m"
         println " "
     }
     if ( workflow.profile.contains('singularity') ) {
@@ -469,9 +469,9 @@ ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
                         ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1
                         ${c_dim}NEB:${c_reset} VarSkipV1a
                         ${c_dim}Other:${c_reset} V1200
-    --rapid         use rapid-barcoding-kit [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 350 (primer-scheme: V1-4); 500 (primer-scheme: V1200)]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4); 1500 (primer-scheme: V1200)]
+    --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
+    --minLength     min length filter raw reads [default: 100]
+    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
                     e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
@@ -550,7 +550,7 @@ def defaultMSG(){
 def basecalling() {
     log.info """
     Basecalling options:
-    \033[2mUse local guppy?      $params.localguppy [--localguppy]  
+    \033[2mUse local guppy?        $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
     Basecalling via CPUs?   $params.guppy_cpu [--guppy_cpu]
     Basecalling modell:     $params.guppy_model [--guppy_model]
@@ -576,18 +576,14 @@ def read_length() {
     log_msg_read_max_length = params.maxLength
 
     if ( params.primerV.matches('V1200')) {
-        if ( !params.minLength ) { log_msg_read_min_length = 500 }
+        if ( !params.minLength ) { log_msg_read_min_length = 100 }
         if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
     }
-    else if (params.rapid) {
+    else {
         if ( !params.minLength ) { log_msg_read_min_length = 100 }
         if ( !params.maxLength ) { log_msg_read_max_length = 700 }
     }
-    else {
-        if ( !params.minLength ) { log_msg_read_min_length = 350 }
-        if ( !params.maxLength ) { log_msg_read_max_length = 700 }
-    }
-    if (log_msg_read_max_length < log_msg_read_min_length) {exit 5, "Please choose [--maxLength] of [${log_msg_read_max_length}] greater than the [--minlength] of [${log_msg_read_min_length}]."}
+    if (log_msg_read_max_length < log_msg_read_min_length) {exit 5, "--maxLength ${log_msg_read_max_length} needs to be greater than --minlength ${log_msg_read_min_length}."}
 
     log.info """
     Primerscheme:        $params.primerV [--primerV]
