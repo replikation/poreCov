@@ -576,11 +576,11 @@ def read_length() {
     log_msg_read_max_length = params.maxLength
 
     if ( params.primerV.matches('V1200')) {
-        if ( !params.minLength ) { log_msg_read_min_length = 100 }
+        if ( !params.minLength ) { log_msg_read_min_length = 400 }
         if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
     }
     else {
-        if ( !params.minLength ) { log_msg_read_min_length = 100 }
+        if ( !params.minLength ) { log_msg_read_min_length = 200 }
         if ( !params.maxLength ) { log_msg_read_max_length = 700 }
     }
     if (log_msg_read_max_length < log_msg_read_min_length) {exit 5, "--maxLength ${log_msg_read_max_length} needs to be greater than --minlength ${log_msg_read_min_length}."}
