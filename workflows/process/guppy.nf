@@ -63,7 +63,7 @@ process guppy_gpu {
         else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp -x auto -r --disable_pings
-        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}" --disable_pings
+        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq --detect_mid_strand_barcodes --min_score_mid_barcodes 50 --arrangements_files "${guppy_arrangement_files}" --disable_pings
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz
@@ -115,7 +115,7 @@ process guppy_cpu {
         else
         """
         guppy_basecaller -c ${params.guppy_model} -i ${dir} -s fastq_tmp  --num_callers ${task.cpus} --cpu_threads_per_caller 1 -r --disable_pings
-        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq --arrangements_files "${guppy_arrangement_files}" --disable_pings
+        guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i fastq_tmp -s fastq  --detect_mid_strand_barcodes --min_score_mid_barcodes 50 --arrangements_files "${guppy_arrangement_files}" --disable_pings
 
         for barcodes in fastq/barcode??; do
             find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip > \${barcodes##*/}.fastq.gz

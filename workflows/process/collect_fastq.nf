@@ -26,7 +26,7 @@ process collect_fastq {
         BARCODE_DIRS=\$(find -L ${dir} -name "barcode??" -type d)
         
         if [ -z "\${BARCODE_DIRS}" ]; then 
-            guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i ${dir} -s fastq_porecov --arrangements_files "${guppy_arrangement_files}"
+            guppy_barcoder -t ${task.cpus} -r ${barcoding_option} -i ${dir} -s fastq_porecov  --detect_mid_strand_barcodes --min_score_mid_barcodes 50 --arrangements_files "${guppy_arrangement_files}"
 
             for barcodes in fastq_porecov/barcode??; do
                 find -L \${barcodes} -name '*.fastq' -exec cat {} + | gzip >> \${barcodes##*/}.fastq.gz
