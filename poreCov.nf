@@ -453,7 +453,7 @@ ${c_yellow}Workflow control (optional)${c_reset}
     --extended      poreCov utilizes from --samples these additional headers:
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
     --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
-                    to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt
+                    to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
                     e.g --nanopolish sequencing_summary.txt                 
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
