@@ -249,7 +249,7 @@ class SummaryReport():
 
         <style>
         * {
-            font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif
+            font-family:"Open Sans",freesans,sans-serif
         }
 
         .content {
@@ -296,6 +296,13 @@ class SummaryReport():
         padding: 2px 8px;
         border-radius: 5px;
         }
+        code {
+        background-color: #eee;
+        border-radius: 3px;
+        font-family: courier, monospace;
+        padding: 0 3px;
+        }
+
         </style>
         </head>
 
@@ -435,7 +442,7 @@ class SummaryReport():
 
         self.add_column_raw('president_QC_pass', res_data['QC_pass_raw'])
         self.add_column('QC<br>pass', res_data['QC_pass'])
-        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
+        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in German).')
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -650,6 +657,7 @@ if __name__ == '__main__':
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
     parser.add_argument("--medaka_model", help="medaka model")
+    parser.add_argument("--nf_commandline", help="full nextflow command call", required=True)
     parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--nextclade_docker", help="nextclade/nextcladedata version", required=True)
     parser.add_argument("--primer", help="primer version")
@@ -701,7 +709,8 @@ if __name__ == '__main__':
     if args.primer:
         
         # infer run type from guppy usage
-        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
+        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + \
+            ("(fast5)" if args.guppy_used == 'true' else "(fastq)") + (' utilizing Nanopolish (fast5) information' if '--nanopolish' in args.nf_commandline else ''))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
         # add guppy/medaka model if used
@@ -711,6 +720,7 @@ if __name__ == '__main__':
             report.add_param('Medaka model', args.medaka_model)
     else:
         report.add_param('<br>Run type', "Genome classification from sequences (fasta)")
+    report.add_param('poreCov command', '<code>' + args.nf_commandline + '</code>')
     report.add_time_param()
 
     report.write_html_report()
