@@ -49,6 +49,7 @@ class SummaryReport():
     sample_QC_status = None
     sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
+    frameshift_warning = False
     samples_table = None
 
 
@@ -460,18 +461,25 @@ class SummaryReport():
         self.add_column_raw('nextclade_deletions', res_data['aaDeletions'])
         self.add_column_raw('nextclade_insertions_nt', res_data['insertions'])
         self.add_column_raw('nextclade_insertions', res_data['aaInsertions'])
+        self.add_column_raw('nextclade_frameshifts', res_data['frameShifts'])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
         res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
+        res_data['frameshifts_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['frameShifts']]
+
+        if (res_data['frameshifts_formatted'] != '-').any():
+            self.frameshift_warning = True
 
         self.add_column('Clade', res_data['clade'])
         muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        frms_colname = f'Frameshifts<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         self.add_column(muts_colname, res_data['mutations_formatted'])
         self.add_column(dels_colname, res_data['deletions_formatted'])
         self.add_column(inss_colname, res_data['insertions_formatted'])
+        self.add_column(frms_colname, res_data['frameshifts_formatted'])
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -491,10 +499,11 @@ class SummaryReport():
         self.add_col_formatter(muts_colname, spike_markup)
         self.add_col_formatter(dels_colname, spike_markup)
         self.add_col_formatter(inss_colname, spike_markup)
+        self.add_col_formatter(frms_colname, spike_markup)
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
-        self.add_col_description(f'Clade, mutations, deletions and insertions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
+        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
     
         
 
@@ -625,6 +634,13 @@ class SummaryReport():
             self.add_QC_info('Negative control', f'<font color="{self.color_warn_orange}"><b>No negative control samples were found by automatic detection.</b></font>')
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
+
+        # frameshift warning message
+        if self.frameshift_warning:
+            self.add_QC_info('Frameshift warning', f'<font color="{self.color_error_red}"><b>WARNING:</b> There were frameshifts in one or more samples. ' + \
+                'This is most likely an error due to incorrect consensus calling as frameshifts are biologically very unlikely. ' + \
+                '<b>CAUTION:</b> This error can cause masking of downstream mutations, deletions and insertions in affected protein regions! ' + \
+                'Basecalling with superior accuracy (\'sup\') models and/or using --nanopolish for consensus calling can fix these errors.</font>')
 
         # mark control samples
         def mark_controls(sample_name):
