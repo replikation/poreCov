@@ -640,7 +640,9 @@ class SummaryReport():
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
-        
+        # warning if variant table is missing
+        if self.variants_table is None:
+            self.add_QC_info('Var warning', f'<font color="{self.color_warn_orange}">Warning: variant table could not be loaded - potential information on VOCs, VOIs, etc. is missing from the lineage column.</font>')
 
         # mark control samples
         def mark_controls(sample_name):
