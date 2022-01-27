@@ -459,17 +459,16 @@ class SummaryReport():
         self.add_column_raw('nextclade_deletions_nt', res_data['deletions'])
         self.add_column_raw('nextclade_deletions', res_data['aaDeletions'])
         self.add_column_raw('nextclade_insertions_nt', res_data['insertions'])
-        # this column is added by the convert_insertions_nt2aa.py script in the nextclade process (until Nextclade provides this itself)
-        self.add_column_raw('nextclade_insertions', res_data['aaInsertionsCustom'])
+        self.add_column_raw('nextclade_insertions', res_data['aaInsertions'])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
-        res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertionsCustom']]
+        res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
 
         self.add_column('Clade', res_data['clade'])
         muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>, see Note below)'
+        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         self.add_column(muts_colname, res_data['mutations_formatted'])
         self.add_column(dels_colname, res_data['deletions_formatted'])
         self.add_column(inss_colname, res_data['insertions_formatted'])
@@ -496,7 +495,7 @@ class SummaryReport():
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
         self.add_col_description(f'Clade, mutations, deletions and insertions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
-        self.add_col_description('<b>Note:</b> amino acid insertions are currently not reported directly by Nextclade, and were instead converted from nucleotide insertions with custom code when possible (adapted from <a href="https://github.com/theosanderson/Codon2Nucleotide">Codon2Nucleotide</a>).')
+    
         
 
     def add_kraken2_results(self, kraken2_results):
