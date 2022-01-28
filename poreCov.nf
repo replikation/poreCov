@@ -506,6 +506,9 @@ ${c_yellow}Execution/Engine profiles (choose executer and engine${c_reset}
        test_fasta
        test_fastq
        test_fast5
+
+       Note: The singularity profile automatically passes the following environment variables to the container. 
+       to ensure execution on HPCs: HTTPS_PROXY, HTTP_PROXY, http_proxy, https_proxy, FTP_PROXY, ftp_proxy
     """.stripIndent()
 }
 
