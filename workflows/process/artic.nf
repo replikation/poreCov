@@ -2,6 +2,7 @@ process artic_medaka {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
 
     input:
@@ -11,6 +12,7 @@ process artic_medaka {
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
+        tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
         """
         artic minion    --medaka \
@@ -45,7 +47,8 @@ process artic_medaka {
             SNP_${name}.pass.vcf \
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
-            ${name}.coverage_mask.txt.nCoV-2019_2.depths
+            ${name}.coverage_mask.txt.nCoV-2019_2.depths \
+            ${name}.trimmed.rg.sorted.bam
         """
 }
 
@@ -53,6 +56,7 @@ process artic_nanopolish {
         label 'artic'
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
 
     input:
@@ -62,6 +66,7 @@ process artic_nanopolish {
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
+        tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
         """
         artic minion --minimap2 --normalise 500 \
@@ -95,7 +100,8 @@ process artic_nanopolish {
             SNP_${name}.pass.vcf \
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
-            ${name}.coverage_mask.txt.nCoV-2019_2.depths
+            ${name}.coverage_mask.txt.nCoV-2019_2.depths \
+            ${name}.trimmed.rg.sorted.bam
         """
 }
 

@@ -49,6 +49,7 @@ class SummaryReport():
     sample_QC_status = None
     sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
+    frameshift_warning = False
     samples_table = None
 
 
@@ -249,7 +250,7 @@ class SummaryReport():
 
         <style>
         * {
-            font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif
+            font-family:"Open Sans",freesans,sans-serif
         }
 
         .content {
@@ -296,6 +297,13 @@ class SummaryReport():
         padding: 2px 8px;
         border-radius: 5px;
         }
+        code {
+        background-color: #eee;
+        border-radius: 3px;
+        font-family: courier, monospace;
+        padding: 0 3px;
+        }
+
         </style>
         </head>
 
@@ -435,7 +443,7 @@ class SummaryReport():
 
         self.add_column_raw('president_QC_pass', res_data['QC_pass_raw'])
         self.add_column('QC<br>pass', res_data['QC_pass'])
-        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in german).')
+        self.add_col_description(f'QC pass criteria are the RKI genome submission requirements: >= 90% identity to NC_045512.2, <= 5% Ns, etc. (<a href="https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/DESH/Qualitaetskriterien.pdf?__blob=publicationFile">PDF</a> in German).')
 
     
     def add_nextclade_results(self, nextclade_results):
@@ -452,20 +460,26 @@ class SummaryReport():
         self.add_column_raw('nextclade_deletions_nt', res_data['deletions'])
         self.add_column_raw('nextclade_deletions', res_data['aaDeletions'])
         self.add_column_raw('nextclade_insertions_nt', res_data['insertions'])
-        # this column is added by the convert_insertions_nt2aa.py script in the nextclade process (until Nextclade provides this itself)
-        self.add_column_raw('nextclade_insertions', res_data['aaInsertionsCustom'])
+        self.add_column_raw('nextclade_insertions', res_data['aaInsertions'])
+        self.add_column_raw('nextclade_frameshifts', res_data['frameShifts'])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
-        res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertionsCustom']]
+        res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
+        res_data['frameshifts_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['frameShifts']]
+
+        if (res_data['frameshifts_formatted'] != '-').any():
+            self.frameshift_warning = True
 
         self.add_column('Clade', res_data['clade'])
         muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>, see Note below)'
+        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        frms_colname = f'Frameshifts<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         self.add_column(muts_colname, res_data['mutations_formatted'])
         self.add_column(dels_colname, res_data['deletions_formatted'])
         self.add_column(inss_colname, res_data['insertions_formatted'])
+        self.add_column(frms_colname, res_data['frameshifts_formatted'])
 
         def clade_markup(field):
             return f'<b>{field}</b>'
@@ -485,11 +499,12 @@ class SummaryReport():
         self.add_col_formatter(muts_colname, spike_markup)
         self.add_col_formatter(dels_colname, spike_markup)
         self.add_col_formatter(inss_colname, spike_markup)
+        self.add_col_formatter(frms_colname, spike_markup)
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
-        self.add_col_description(f'Clade, mutations, deletions and insertions were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
-        self.add_col_description('<b>Note:</b> amino acid insertions are currently not reported directly by Nextclade, and were instead converted from nucleotide insertions with custom code when possible (adapted from <a href="https://github.com/theosanderson/Codon2Nucleotide">Codon2Nucleotide</a>).')
+        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
+    
         
 
     def add_kraken2_results(self, kraken2_results):
@@ -620,6 +635,13 @@ class SummaryReport():
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
+        # frameshift warning message
+        if self.frameshift_warning:
+            self.add_QC_info('Frameshift warning', f'<font color="{self.color_error_red}"><b>WARNING:</b> There were frameshifts in one or more samples. ' + \
+                'This is most likely an error due to incorrect consensus calling as frameshifts are biologically very unlikely. ' + \
+                '<b>CAUTION:</b> This error can cause masking of downstream mutations, deletions and insertions in affected protein regions! ' + \
+                'Basecalling with superior accuracy (\'sup\') models and/or using --nanopolish for consensus calling can fix these errors.</font>')
+
         # mark control samples
         def mark_controls(sample_name):
             if self.check_if_control(sample_name):
@@ -650,6 +672,7 @@ if __name__ == '__main__':
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
     parser.add_argument("--medaka_model", help="medaka model")
+    parser.add_argument("--nf_commandline", help="full nextflow command call", required=True)
     parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--nextclade_docker", help="nextclade/nextcladedata version", required=True)
     parser.add_argument("--primer", help="primer version")
@@ -701,7 +724,8 @@ if __name__ == '__main__':
     if args.primer:
         
         # infer run type from guppy usage
-        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + ("(fast5)" if args.guppy_used == 'true' else "(fastq)"))
+        report.add_param('<br>Run type', "Genome reconstruction and classification from raw sequencing data " + \
+            ("(fast5)" if args.guppy_used == 'true' else "(fastq)") + (' utilizing Nanopolish (fast5) information' if '--nanopolish' in args.nf_commandline else ''))
         report.add_param('<a href="https://artic.network/ncov-2019">ARTIC</a> version', report.tool_versions['artic'])
         report.add_param('ARTIC primer version', args.primer)
         # add guppy/medaka model if used
@@ -711,6 +735,7 @@ if __name__ == '__main__':
             report.add_param('Medaka model', args.medaka_model)
     else:
         report.add_param('<br>Run type', "Genome classification from sequences (fasta)")
+    report.add_param('poreCov command', '<code>' + args.nf_commandline + '</code>')
     report.add_time_param()
 
     report.write_html_report()
