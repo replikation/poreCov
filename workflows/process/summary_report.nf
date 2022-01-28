@@ -19,7 +19,7 @@ process summary_report {
         path("poreCov_summary_report_*.tsv")
 
     shell:
-        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
+        guppyused = ((params.fast5 && !(params.fastq || params.fastq_pass)) || workflow.profile.contains('test_fast5'))
 
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
@@ -40,6 +40,7 @@ process summary_report {
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
+            --nf_commandline '!{workflow.commandLine}' \
             --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
@@ -75,7 +76,7 @@ process summary_report_default {
         path("poreCov_summary_report_*.tsv")
 
     shell:
-        guppyused = (params.fast5 || workflow.profile.contains('test_fast5'))
+        guppyused = ((params.fast5 && !(params.fastq || params.fastq_pass)) || workflow.profile.contains('test_fast5'))
 
         '''
         echo 'sample,num_unclassified,num_sarscov2,num_human' > kraken2_results.csv
@@ -95,6 +96,7 @@ process summary_report_default {
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
+            --nf_commandline '!{workflow.commandLine}' \
             --pangolin_docker !{params.pangolindocker} \
             --nextclade_docker !{params.nextcladedocker} \
             --primer !{params.primerV} \
@@ -133,6 +135,7 @@ process summary_report_fasta {
             --scorpio_constellations_version "${scorpio_constellations_ver}" \
             --variants_table ${variants_table} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
+            --nf_commandline '${workflow.commandLine}' \
             --pangolin_docker ${params.pangolindocker} \
             --nextclade_docker ${params.nextcladedocker} \
             -p ${pangolin_results} \
