@@ -469,6 +469,7 @@ ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
                         ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1
                         ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2
                         ${c_dim}Other:${c_reset} V1200    ${c_dim}(also known as midnight)${c_reset}
+                        ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}${c_reset}
     --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: 100]
     --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200)]

@@ -88,27 +88,27 @@ Table of Contents
 
 ```bash
 # for a Docker installation
-nextflow run replikation/poreCov -profile test_fastq,local,docker -r 0.11.0
+nextflow run replikation/poreCov -profile test_fastq,local,docker -r 1.1.0 --update
 
 # or for Singularity or conda installation
-nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 0.11.0
+nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 1.1.0 --update
 ```
 
 ## 2.2 Quick run examples
 
 * poreCov with basecalling and Docker
-    * `--update` tryies to force the most recent lineage release version (optional)
-    * `-r 0.11.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+    * `--update` tryies to force the most recent pangolin lineage and nextclade release version (optional)
+    * `-r 1.1.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
 ```bash
-nextflow run replikation/poreCov --fast5 fast5/ -r 0.11.0 \
+nextflow run replikation/poreCov --fast5 fast5/ -r 1.1.0 \
     --cores 6 -profile local,docker --update 
 ```
 
 * poreCov with a basecalled fastq directory 
 
 ```bash
-nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.11.0 \
-    --cores 32  -profile local,docker
+nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 1.1.0 \
+    --cores 32  -profile local,docker --update
 ```
 
 * poreCov with basecalling and renaming of barcodes based on `sample_names.csv`
@@ -116,13 +116,13 @@ nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 0.11.0 \
 ```bash
 # rename barcodes automatically by providing an input file, also using another primer scheme
 nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
-   --primerV V1200 --output results -profile local,docker
+   --primerV V1200 --output results -profile local,docker --update
 ```
 
 ## 2.3 Extended Usage
-* see also `nextflow run replikation/poreCov --help -r 0.11.0`
+* see also `nextflow run replikation/poreCov --help -r 1.1.0`
 ### Version control
-* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 0.11.0`)
+* poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 1.1.0`)
 * poreCov releases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates

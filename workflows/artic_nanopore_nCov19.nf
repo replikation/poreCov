@@ -1,4 +1,4 @@
-include { artic_medaka ; artic_nanopolish } from './process/artic.nf' 
+include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed } from './process/artic.nf' 
 include { covarplot } from './process/covarplot.nf'
 
 workflow artic_ncov_wf {
@@ -6,20 +6,33 @@ workflow artic_ncov_wf {
         fastq
     main: 
 
-        // assembly
-        external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+        // assembly with a primer bed file
+        if (params.primerV.toString().contains(".bed")) {
+            primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
+            external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+
+            artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))
+            assembly = artic_medaka_custom_bed.out.fasta
+
+            // covarplot missing
+        }
             
-        artic_medaka(fastq.combine(external_primer_schemes))
+        // assembly via pre installed Primers
+        else {
+            external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            
+            artic_medaka(fastq.combine(external_primer_schemes))
+            assembly = artic_medaka.out.fasta
 
-        assembly = artic_medaka.out.fasta
+            // plot amplicon coverage
+            covarplot(artic_medaka.out.covarplot.combine(external_primer_schemes))
+        }
 
-        // plot amplicon coverage
-        covarplot(
-            artic_medaka.out.covarplot.combine(external_primer_schemes)
-        )
+
+
 
         // error logging
-        nogenomesatall = artic_medaka.out.fasta.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
+        no_genomes_at_all = assembly.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
 
     emit:   
         assembly
