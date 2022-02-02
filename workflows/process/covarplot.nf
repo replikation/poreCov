@@ -14,7 +14,7 @@ process covarplot {
         """
     stub:
         """
-        touch ${name}_amplicon_coverage1.png ${name}_amplicon_coverage_log.png
+        touch ${name}_amplicon_coverage.png ${name}_amplicon_coverage_log.png
         """
 }
 
