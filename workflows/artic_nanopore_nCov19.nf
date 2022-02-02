@@ -1,4 +1,4 @@
-include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed } from './process/artic.nf' 
+include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed; artic_nanopolish_custom_bed } from './process/artic.nf' 
 include { covarplot } from './process/covarplot.nf'
 
 workflow artic_ncov_wf {
@@ -44,21 +44,41 @@ workflow artic_ncov_np_wf {
     main: 
 
         // assembly
-        external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-        artic_nanopolish(
+        if (params.primerV.toString().contains(".bed")) {
+            primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
+            external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+
+            artic_nanopolish_custom_bed(
                 fastq
                     .combine(external_primer_schemes)
                     .combine(fast5.map{it -> it[1]})
                     .combine(sequence_summaries)
-                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5])}
+                    .combine(primerBed)
+                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5],it[6])}
         )
 
-        assembly = artic_nanopolish.out.fasta
+            assembly = artic_nanopolish_custom_bed.out.fasta
 
-        // plot amplicon coverage
-        covarplot(
-            artic_nanopolish.out.covarplot.combine(external_primer_schemes)
-        )
+            // covarplot missing
+        }
+
+
+        // assembly via pre installed Primers
+        else {
+        external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            artic_nanopolish(
+                    fastq
+                        .combine(external_primer_schemes)
+                        .combine(fast5.map{it -> it[1]})
+                        .combine(sequence_summaries)
+                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5])}
+            )
+
+            assembly = artic_nanopolish.out.fasta
+
+            // plot amplicon coverage
+            covarplot(artic_nanopolish.out.covarplot.combine(external_primer_schemes))
+        }
         
     emit:   
         assembly
