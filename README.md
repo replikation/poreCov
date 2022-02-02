@@ -72,6 +72,8 @@ Table of Contents
 ### Singularity
 * Singularity installation [here](https://singularity.lbl.gov/install-linux)
 * if you can't use Docker
+
+Note, that with Singularity the following environment variables are automatically passed to the container to ensure execution on HPCs: `HTTPS_PROXY`, `HTTP_PROXY`, `http_proxy`, `https_proxy`, `FTP_PROXY` and `ftp_proxy`.
 ### Conda (not recommended)
 * Conda installation [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/)
 * install Nextflow and Singularity via conda (not cluster compatible) - and use the `singularity` profile
