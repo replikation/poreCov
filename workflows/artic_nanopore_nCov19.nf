@@ -1,5 +1,5 @@
 include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed; artic_nanopolish_custom_bed } from './process/artic.nf' 
-include { covarplot } from './process/covarplot.nf'
+include { covarplot; covarplot_custom_bed } from './process/covarplot.nf'
 
 workflow artic_ncov_wf {
     take:   
@@ -14,7 +14,8 @@ workflow artic_ncov_wf {
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))
             assembly = artic_medaka_custom_bed.out.fasta
 
-            // covarplot missing
+            // plot amplicon coverage
+            covarplot_custom_bed(artic_medaka_custom_bed.out.covarplot.combine(primerBed))
         }
             
         // assembly via pre installed Primers
@@ -59,7 +60,8 @@ workflow artic_ncov_np_wf {
 
             assembly = artic_nanopolish_custom_bed.out.fasta
 
-            // covarplot missing
+            // plot amplicon coverage
+            covarplot_custom_bed(artic_nanopolish_custom_bed.out.covarplot.combine(primerBed))
         }
 
 
