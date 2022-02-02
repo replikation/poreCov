@@ -2,19 +2,46 @@ process covarplot {
     label "covarplot"
     publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
     input:
-        tuple val(name), path(vcf), path(depth1), path(depth2), path(primer_bed)
+        tuple val(name), path(vcf), path(depth1), path(depth2), path(primerbed)
     output:
-        tuple val(name), path("${name}_amplicon_coverage*.png")
+        tuple val(name), path("${name}_amplicon_coverage.png"), path("${name}_amplicon_coverage_log.png")
     script:
         """
-        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primer_bed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s .
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s .
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage.png
-        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primer_bed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
         """
     stub:
         """
-        touch ${name}_amplicon_coverage1.png
+        touch ${name}_amplicon_coverage.png ${name}_amplicon_coverage_log.png
+        """
+}
+
+process covarplot_custom_bed {
+    label "covarplot"
+    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
+    input:
+        tuple val(name), path(vcf), path(depth1), path(depth2), path(primerbed)
+    output:
+        tuple val(name), path("${name}_amplicon_coverage.png"), path("${name}_amplicon_coverage_log.png")
+    script:
+        """
+        # clean up bed file: replace first colum with MN908947.3, remove empty lines and sort by 4th column (primer names) 
+        cut -f2- ${primerbed} |\
+            sed '/^[[:space:]]*\$/d' |\
+            sed -e \$'s/^/MN908947.3\\t/' |\
+            sort -k4 > nCoV-2019-plot.scheme.bed
+
+
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s .
+        mv ${name}.CoVarPlot.png ${name}_amplicon_coverage.png
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s . --log
+        mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
+        """
+    stub:
+        """
+        touch ${name}_amplicon_coverage.png ${name}_amplicon_coverage_log.png
         """
 }
 
