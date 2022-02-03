@@ -377,7 +377,7 @@ class SummaryReport():
                     res_data.at[row, 'lineage_conflict'] += f'<br><font color="{color}"><b>{var_status}</b></font>'
 
             self.add_column_raw('variant_status', res_data['variant_status'])
-            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>')
+            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
 
 
         self.add_column(colname, res_data['lineage_conflict'])
@@ -658,7 +658,11 @@ class SummaryReport():
 
         # warning if variant table is missing
         if self.variants_table is None:
-            self.add_QC_info('Var warning', f'<font color="{self.color_warn_orange}">Warning: variant table could not be loaded - potential information on VOCs, VOIs, etc. is missing from the lineage column.</font>')
+            self.add_QC_info('Var warning', f'<font color="{self.color_warn_orange}">Warning: variants table was not provided - potential information on VOCs, VOIs, etc. is missing from the lineage column.</font>')
+
+        # warning if variant table fallback was used
+        if self.variants_table is not None and 'fallback' in args.variants_table:
+            self.add_QC_info('fallback warning', f'<font color="{self.color_warn_orange}">Warning: variants table could not be downloaded and a fallback was used (<a href="{args.variants_table}">{args.variants_table}</a>). Please check if it is outdated! To fix, your setup need to be able to download from github.</font>')
 
         # frameshift warning message
         if self.frameshift_warning:
