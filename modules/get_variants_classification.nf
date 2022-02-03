@@ -11,5 +11,6 @@ process get_variants_classification {
 	'''
 	DATE=`date +"%Y-%m-%d_%H-%M-%S"`
     wget --no-check-certificate https://raw.githubusercontent.com/3dgiordano/SARS-CoV-2-Variants/main/data/variants.csv -O SARSCoV2_variants_${DATE}.csv
+	if [ $? != 0 ]; then cp !{params.projectDir}/data/variants_SARSCoV2/variants.csv SARSCoV2_variants_${DATE}.csv; fi
 	'''
 }
