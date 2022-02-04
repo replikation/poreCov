@@ -49,6 +49,7 @@ Table of Contents
   - [2.3 Extended Usage](#23-extended-usage)
     - [Version control](#version-control)
     - [Important input flags (choose one)](#important-input-flags-choose-one)
+    - [Custom primer bed files](#custom-primer-bed-files)
     - [Sample sheet](#sample-sheet)
     - [Pangolin Lineage definitions](#pangolin-lineage-definitions)
 - [3. Quality Metrics (default)](#3-quality-metrics-default)
@@ -125,6 +126,7 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
 * see also `nextflow run replikation/poreCov --help -r 1.1.0`
 ### Version control
 * poreCov supports version control via `-r` this way, you can run everything reproducible (e.g. `-r 1.1.0`)
+    * moreover only releases are extensively tested and validated
 * poreCov releases are listed [here](https://github.com/replikation/poreCov/releases)
 * add `-r <version>` to a poreCoV run to activate this
 * run `nextflow pull replikation/poreCov` to install updates
@@ -137,6 +139,31 @@ nextflow run replikation/poreCov --fast5 fast5_dir/ --samples sample_names.csv \
    * `--fastq_pass fastq_dir/`  directory with basecalled data (contains "barcode01" etc. directories)
    * `--fastq "sample*.fastq.gz"` alternative fastq input (one sample per file)
    * `--fasta "*genomes.fasta"`  SARS-CoV-2 genomes as fasta (.gz allowed)
+
+### Custom primer bed files
+* poreCov supports the input of `primer.bed` files via `--primerV` instead of selecting a preexisting primer version like `--primerV V4`
+   * for an example see [2.2 Quick run examples](#22-quick-run-examples)
+   * feature available for poreCov version `1.1.0` or greater
+* the main issue with primer bed files is that they need to have the correct columns and text to be recognized via artic
+* the following rules apply to the bed file (see also example)
+    * each column is separated via one `tab` or `\t`
+    * column 1 is the fasta reference, and it should be MN908947.3 (poreCov replaces that automatically)
+    * column 2 is the primer start
+    * column 3 is the primer end
+    * column 4 is the primer name, and it *has to end* with `_RIGHT` or `_LEFT`
+    * column 5 is the pool and it should be named `nCoV-2019_1` or `nCoV-2019_2`
+    * column 6 defines the strand orientation with either `-` or `+`
+
+```csv
+MN908947.3	30	54	nCoV-2019_1_LEFT	nCoV-2019_1	+
+MN908947.3	1183	1205	nCoV-2019_1_RIGHT	nCoV-2019_1	-
+MN908947.3	1100	1128	nCoV-2019_2_LEFT	nCoV-2019_2	+
+MN908947.3	2244	2266	nCoV-2019_2_RIGHT	nCoV-2019_2	-
+MN908947.3	2153	2179	nCoV-2019_3_LEFT	nCoV-2019_1	+
+MN908947.3	3235	3257	nCoV-2019_3_RIGHT	nCoV-2019_1	-
+MN908947.3	3144	3166	nCoV-2019_4_LEFT	nCoV-2019_2	+
+MN908947.3	4240	4262	nCoV-2019_4_RIGHT	nCoV-2019_2	-
+```
 
 ### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
