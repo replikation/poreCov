@@ -102,16 +102,18 @@ nextflow run replikation/poreCov -profile test_fastq,local,singularity -r 1.1.0 
 * poreCov with basecalling and Docker
     * `--update` tryies to force the most recent pangolin lineage and nextclade release version (optional)
     * `-r 1.1.0` specifies the workflow release from [here](https://github.com/replikation/poreCov/releases)
+    * `--primerV` specifies the primer sets that were used, see `--help` to see what is supported
+        * alternatively provide a primer bed file on your own
 ```bash
 nextflow run replikation/poreCov --fast5 fast5/ -r 1.1.0 \
-    --cores 6 -profile local,docker --update 
+    --cores 6 -profile local,docker --update --primerV V4
 ```
 
-* poreCov with a basecalled fastq directory 
+* poreCov with a basecalled fastq directory and custom primer bed file
 
 ```bash
 nextflow run replikation/poreCov --fastq_pass 'fastq_pass/' -r 1.1.0 \
-    --cores 32  -profile local,docker --update
+    --cores 32  -profile local,docker --update --primerV primers.bed
 ```
 
 * poreCov with basecalling and renaming of barcodes based on `sample_names.csv`
