@@ -276,6 +276,7 @@ class SummaryReport():
         }
         table.tablestyle thead {
         background: #E6F5FF;
+        white-space: nowrap;
         }
         table.tablestyle thead th {
         font-size: 20px;
@@ -299,6 +300,9 @@ class SummaryReport():
         summary {
         border: 1px solid #aaa;
         border-radius: 4px;
+        white-space: nowrap;
+        padding: 1px 4px;
+        background-color: #eee;
         }
         code {
         background-color: #eee;
@@ -420,7 +424,7 @@ class SummaryReport():
             return  f'<font color="{color}">{ident:.2f}</font><br>(<font color="{color}">{int(mismatches)}</font>)'
 
         res_data['identity_mismatches'] = [identity_markup(i*100, m) if not pd.isnull(m) else m for i, m in zip(res_data['ACGT Nucleotide identity'], res_data['Mismatches'])]
-        self.add_column('%identity<br>(mis-<br>matches)', res_data['identity_mismatches'])
+        self.add_column('%ident.<br>(mism.)', res_data['identity_mismatches'])
 
 
         # percent and number Ns
@@ -519,8 +523,7 @@ class SummaryReport():
                 return field
             else:
                 n_mutations = int(len(field.split(',')))
-                return f'Number found: <b>{n_mutations}</b><br>\n' + \
-                f'<details><summary><b>List</b></summary>\n{spike_markup(field)}</details>'
+                return f'<details><summary>Number found: <b>{n_mutations}</b></summary>\n{spike_markup(field)}</details>'
 
         self.add_col_formatter('Clade', clade_markup)
         self.add_col_formatter(muts_colname, spike_markup_with_toggle)
