@@ -314,8 +314,8 @@ class SummaryReport():
         </style>
 
         <script>
-        const expandElements = shouldExpand => {
-            let detailsElements = document.querySelectorAll("details");
+        const expandElements = (shouldExpand, whatToExpand) => {
+            let detailsElements = document.querySelectorAll("details[tag=" + whatToExpand + "]");
             
             detailsElements = [...detailsElements];
 
@@ -493,12 +493,15 @@ class SummaryReport():
         if (res_data['frameshifts_formatted'] != '-').any():
             self.frameshift_warning = True
 
+
+        def get_button_html(tag):
+            return f'<button onClick="expandElements(true, \'{tag}\')">Expand</button><button onClick="expandElements(false, \'{tag}\')">Collapse</button>'
+
         self.add_column('Clade', res_data['clade'])
-        muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + \
-            '<button onClick="expandElements(true)">Expand</button><button onClick="expandElements(false)">Collapse</button>'
-        dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
-        frms_colname = f'Frameshifts<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + get_button_html('mutations')
+        dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + get_button_html('deletions')
+        inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + get_button_html('insertions')
+        frms_colname = f'Frameshifts<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + get_button_html('frameshifts')
         self.add_column(muts_colname, res_data['mutations_formatted'])
         self.add_column(dels_colname, res_data['deletions_formatted'])
         self.add_column(inss_colname, res_data['insertions_formatted'])
@@ -518,18 +521,22 @@ class SummaryReport():
                     mumuts.append(mut)
             return ', '.join(mumuts)
 
-        def spike_markup_with_toggle(field):
+        def spike_markup_with_toggle(field, tag):
             if field == '-':
                 return field
             else:
                 n_mutations = int(len(field.split(',')))
-                return f'<details><summary>Number found: <b>{n_mutations}</b></summary>\n{spike_markup(field)}</details>'
+                return f'<details tag={tag}><summary>Number found: <b>{n_mutations}</b></summary>\n{spike_markup(field)}</details>'
+
+        def get_markup_with_toggle_and_tag(tag):
+            return lambda x: spike_markup_with_toggle(x, tag)
+
 
         self.add_col_formatter('Clade', clade_markup)
-        self.add_col_formatter(muts_colname, spike_markup_with_toggle)
-        self.add_col_formatter(dels_colname, spike_markup)
-        self.add_col_formatter(inss_colname, spike_markup)
-        self.add_col_formatter(frms_colname, spike_markup)
+        self.add_col_formatter(muts_colname, get_markup_with_toggle_and_tag('mutations'))
+        self.add_col_formatter(dels_colname, get_markup_with_toggle_and_tag('deletions'))
+        self.add_col_formatter(inss_colname, get_markup_with_toggle_and_tag('insertions'))
+        self.add_col_formatter(frms_colname, get_markup_with_toggle_and_tag('frameshifts'))
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
