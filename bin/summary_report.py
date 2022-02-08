@@ -260,7 +260,6 @@ class SummaryReport():
 
         table.tablestyle {
         background-color: #FFFFFF;
-        width: 1700px;
         text-align: center;
         border-collapse: collapse;
         }
@@ -269,7 +268,7 @@ class SummaryReport():
         padding: 5px 5px;
         }
         table.tablestyle tbody td {
-        font-size: 20px;
+        font-size: 16px;
         color: #000000;
         }
         table.tablestyle tr:nth-child(even) {
@@ -297,9 +296,9 @@ class SummaryReport():
         padding: 2px 8px;
         border-radius: 5px;
         }
-        table.tablestyle td:first-child {
-        font-size: 16px;
-        font-size: 0.8vw;
+        summary {
+        border: 1px solid #aaa;
+        border-radius: 4px;
         }
         code {
         background-color: #eee;
@@ -309,11 +308,26 @@ class SummaryReport():
         }
 
         </style>
+
+        <script>
+        const expandElements = shouldExpand => {
+            let detailsElements = document.querySelectorAll("details");
+            
+            detailsElements = [...detailsElements];
+
+            if (shouldExpand) {
+                detailsElements.map(item => item.setAttribute("open", shouldExpand));
+            } else {
+                detailsElements.map(item => item.removeAttribute("open"));
+            }
+        };
+        </script>
+
         </head>
 
         <body>
-        <div class="content">'''
-
+        <div class="content">
+        '''
 
         htmlfooter = '''
         </div>
@@ -348,7 +362,7 @@ class SummaryReport():
 
     def force_index_dtype_string(self, dataframe):
         dataframe.index = dataframe.index.astype('string')
-
+        
 
     def add_pangolin_results(self, pangolin_results):
         log(f'Adding Pangolin results ...')
@@ -476,7 +490,8 @@ class SummaryReport():
             self.frameshift_warning = True
 
         self.add_column('Clade', res_data['clade'])
-        muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
+        muts_colname = f'Mutations<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)<br>' + \
+            '<button onClick="expandElements(true)">Expand</button><button onClick="expandElements(false)">Collapse</button>'
         dels_colname = f'Deletions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         inss_colname = f'Insertions<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
         frms_colname = f'Frameshifts<br>(<font color="{self.color_spike_markup}"><b>on spike</b></font>)'
@@ -499,8 +514,16 @@ class SummaryReport():
                     mumuts.append(mut)
             return ', '.join(mumuts)
 
+        def spike_markup_with_toggle(field):
+            if field == '-':
+                return field
+            else:
+                n_mutations = int(len(field.split(',')))
+                return f'Number found: <b>{n_mutations}</b><br>\n' + \
+                f'<details><summary><b>List</b></summary>\n{spike_markup(field)}</details>'
+
         self.add_col_formatter('Clade', clade_markup)
-        self.add_col_formatter(muts_colname, spike_markup)
+        self.add_col_formatter(muts_colname, spike_markup_with_toggle)
         self.add_col_formatter(dels_colname, spike_markup)
         self.add_col_formatter(inss_colname, spike_markup)
         self.add_col_formatter(frms_colname, spike_markup)
