@@ -297,6 +297,10 @@ class SummaryReport():
         padding: 2px 8px;
         border-radius: 5px;
         }
+        table.tablestyle td:first-child {
+        font-size: 16px;
+        font-size: 0.8vw;
+        }
         code {
         background-color: #eee;
         border-radius: 3px;
