@@ -36,6 +36,7 @@ class SummaryReport():
     tool_versions = {}
     scorpio_version = None
     scorpio_constellations_version = None
+    variants_table = None
     pangolin_version = None
     pangolearn_version = None
     nextclade_version = None
@@ -357,14 +358,33 @@ class SummaryReport():
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
         self.add_column_raw('pangolin_conflict', res_data['conflict'])
 
-        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
 
-        self.add_column('Lineage<br>(conflict)', res_data['lineage_conflict'])
+        res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
+        colname = 'Lineage<br>(conflict)'
+        
+        # get VOC/VOI status if present
+        if self.variants_table is not None:
+            colname += f'<br>Variant type'
+            for row in res_data.index:
+                var_status = self.get_lineage_status(res_data.at[row, 'lineage'])
+                res_data.at[row, 'variant_status'] = var_status
+
+                # annotate pangolin column
+                if var_status != '':
+                    color = self.color_warn_orange
+                    if var_status in ['VOI', 'VOC']:
+                        color = self.color_error_red
+                    res_data.at[row, 'lineage_conflict'] += f'<br><font color="{color}"><b>{var_status}</b></font>'
+
+            self.add_column_raw('variant_status', res_data['variant_status'])
+            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
+
+
+        self.add_column(colname, res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolearn_version is None:
             error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
         self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/pangolearn.html">PangoLEARN</a> data release {self.pangolearn_version}).')
         
-
         # Add scorpio info if any is present
         if res_data['scorpio_call'].notna().any():
             log(f'Found "scorpio_call" value(s), adding Scorpio results ...')
@@ -635,12 +655,22 @@ class SummaryReport():
         patterns = "'" + "', '".join(self.control_string_patterns) + "'"
         self.add_QC_info('Note', f'Note: samples are considered negative controls if their name contains certain keywords ({patterns}) - please check if these assignments were correct.')
 
+
+        # warning if variant table is missing
+        if self.variants_table is None:
+            self.add_QC_info('Var warning', f'<font color="{self.color_warn_orange}">Warning: variants table was not provided - potential information on VOCs, VOIs, etc. is missing from the lineage column.</font>')
+
+        # warning if variant table fallback was used
+        if self.variants_table is not None and 'fallback' in args.variants_table:
+            self.add_QC_info('fallback warning', f'<font color="{self.color_warn_orange}">Warning: variants table could not be downloaded and a fallback was used (<a href="{args.variants_table}">{args.variants_table}</a>). Please check if it is outdated! To fix, your setup need to be able to download from github.</font>')
+
         # frameshift warning message
         if self.frameshift_warning:
             self.add_QC_info('Frameshift warning', f'<font color="{self.color_error_red}"><b>WARNING:</b> There were frameshifts in one or more samples. ' + \
                 'This is most likely an error due to incorrect consensus calling as frameshifts are biologically very unlikely. ' + \
                 '<b>CAUTION:</b> This error can cause masking of downstream mutations, deletions and insertions in affected protein regions! ' + \
                 'Basecalling with superior accuracy (\'sup\') models and/or using --nanopolish for consensus calling can fix these errors.</font>')
+
 
         # mark control samples
         def mark_controls(sample_name):
@@ -658,6 +688,56 @@ class SummaryReport():
         self.tabledataraw.to_excel(self.report_name + '_datatable.xlsx' , sheet_name='poreCov', index_label='sample')
         self.tabledataraw.to_csv(self.report_name + '_datatable.tsv', index_label='sample', sep='\t')
 
+
+    def parse_variants_table(self, table_file):
+        try:
+            self.variants_table = pd.read_csv(table_file, header=0)
+            log(f'Read in variants table: {table_file}')
+        except:
+            log(f'Could not read variants table: {table_file}')
+
+
+    def get_lineage_status(self, lineage):
+        if self.variants_table is None:
+            error('get_lineage_status() used before parse_variants_table()')
+        
+        # label 	pango 	interest 	type
+        # Alpha 	B.1.1.7 	WHO 	VOC
+        # Alpha - Q.1 	Q.1 	WHO 	VOC
+        # ...
+
+        candidates = self.variants_table[self.variants_table['pango'] == lineage]['type']
+        if len(candidates) > 1:
+            log(f'Multiple hits for lineage {lineage}')
+            return 'ambigious'
+        if len(candidates) == 1:
+            return candidates.iloc[0] if candidates.notnull().all() else ''
+
+        # check if there is a .* mask
+
+        # B.1.177 -> B.1.* ?
+        mask = lineage.rsplit('.', 1)[0] + '.*'
+        candidates = self.variants_table[self.variants_table['pango'] == mask]['type']
+        if len(candidates) > 1:
+            log(f'Multiple hits for mask {mask}')
+            return 'ambigious'
+        if len(candidates) == 1:
+            return candidates.iloc[0] if candidates.notnull().all() else ''
+
+        # B.1.177 -> B.1.177.* ?
+        mask = lineage + '.*'
+        candidates = self.variants_table[self.variants_table['pango'] == mask]['type']
+        if len(candidates) > 1:
+            log(f'Multiple hits for mask {mask}')
+            return 'ambigious'
+        if len(candidates) == 1:
+            return candidates.iloc[0] if candidates.notnull().all() else ''
+
+        return 'n/a'
+
+
+
+
 ### main
 
 if __name__ == '__main__':
@@ -668,6 +748,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--version_config", help="version config", required=True)
     parser.add_argument("--scorpio_version", help="scorpio version", required=True)
     parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version", required=True)    
+    parser.add_argument("--variants_table", help="variants table with VOCs, VOIs etc.", required=True)    
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
@@ -689,6 +770,7 @@ if __name__ == '__main__':
     report = SummaryReport()
     report.parse_version_config(args.version_config)
     report.parse_scorpio_versions(args.scorpio_version, args.scorpio_constellations_version)
+    report.parse_variants_table(args.variants_table)
     report.parse_pangolin_version(args.pangolin_docker)
     report.parse_nextclade_version(args.nextclade_docker)
 

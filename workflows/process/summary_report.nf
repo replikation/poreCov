@@ -6,6 +6,7 @@ process summary_report {
     input:
         path(version_config)
         tuple val(scorpio_ver), val(scorpio_constellations_ver)
+        path(variants_table)
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
@@ -33,6 +34,7 @@ process summary_report {
             -v !{version_config} \
             --scorpio_version "!{scorpio_ver}" \
             --scorpio_constellations_version "!{scorpio_constellations_ver}" \
+            --variants_table !{variants_table} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --nextclade_docker !{params.nextcladedocker} \
             --guppy_used !{guppyused} \
@@ -62,6 +64,7 @@ process summary_report_default {
     input:
         path(version_config)
         tuple val(scorpio_ver), val(scorpio_constellations_ver)
+        path(variants_table)
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
@@ -88,6 +91,7 @@ process summary_report_default {
             -v !{version_config} \
             --scorpio_version "!{scorpio_ver}" \
             --scorpio_constellations_version "!{scorpio_constellations_ver}" \
+            --variants_table !{variants_table} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
@@ -114,6 +118,7 @@ process summary_report_fasta {
     input:
         path(version_config)
         tuple val(scorpio_ver), val(scorpio_constellations_ver)
+        path(variants_table)
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
@@ -128,6 +133,7 @@ process summary_report_fasta {
             -v ${version_config} \
             --scorpio_version "${scorpio_ver}" \
             --scorpio_constellations_version "${scorpio_constellations_ver}" \
+            --variants_table ${variants_table} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
             --nf_commandline '${workflow.commandLine}' \
             --pangolin_docker ${params.pangolindocker} \
