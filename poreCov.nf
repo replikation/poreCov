@@ -250,21 +250,21 @@ static boolean DockernetIsAvailable() {
 def internetcheck = DockernetIsAvailable()
 
 if (params.update) {
-println "\033[0;33mWarning: Most recent pangolin/nextclade version might not be poreCov compatible!\033[0m"
+println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
     if ( internetcheck.toString() == "true" ) { 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
         params.pangolindocker = "nanozoo/pangolin:" + tagname
-        println "\033[0;32mCould parse the latest pangolin container to use: " + params.pangolindocker + " \033[0m" 
+        println "\033[0;32mFound latest pangolin container, using: " + params.pangolindocker + " \033[0m" 
 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
         params.nextcladedocker = "nanozoo/nextclade:" + tagname 
-        println "\033[0;32mCould parse the latest nextclade container to use: " + params.nextcladedocker + " \033[0m"
+        println "\033[0;32mFound latest nextclade container, using: " + params.nextcladedocker + " \033[0m"
     } 
     if ( internetcheck.toString() == "false" ) { 
-        println "\033[0;33mCould not parse the latest pangolin container to use, trying: " + params.defaultpangolin + "\033[0m"
+        println "\033[0;33mCould not find the latest pangolin container, trying: " + params.defaultpangolin + "\033[0m"
         params.pangolindocker = params.defaultpangolin 
 
-        println "\033[0;33mCould not parse the latest nextclade container to use, trying: " + params.defaultnextclade + "\033[0m"
+        println "\033[0;33mCould not find the latest nextclade container, trying: " + params.defaultnextclade + "\033[0m"
         params.nextcladedocker = params.defaultnextclade 
     } 
 }
@@ -425,7 +425,9 @@ def helpMSG() {
     .    
 \033[0;33mUsage examples:${c_reset}
 
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' -r 0.9.5 -profile local,singularity
+    nextflow run replikation/poreCov --update --fastq '*.fasta.gz' -r 1.3.0 -profile local,singularity
+
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' --fast5 dir/ --nanopolish sequencing_summary.txt -profile local,docker
 
 ${c_yellow}Inputs (choose one):${c_reset}
     --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
@@ -454,7 +456,8 @@ ${c_yellow}Workflow control (optional)${c_reset}
                     Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
     --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
                     to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
-                    e.g --nanopolish sequencing_summary.txt                 
+                    e.g --nanopolish sequencing_summary.txt
+    --screen_reads  Determines the Pangolineage of each individual read (takes time)         
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 

@@ -1,6 +1,6 @@
 process lcs_sc2 {
         label 'lcs_sc2'
-        publishDir "${params.output}/${params.readqcdir}/${name}/mixed_sample_check", mode: 'copy'
+        publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy'
     input:
         tuple val(name), path(reads)
   	output:
@@ -20,7 +20,7 @@ process lcs_sc2 {
     echo \$BN >> LCS/data/tags_pool_mypool
 
     cd LCS
-    snakemake --config markers=ucsc dataset=mypool --cores ${task.cpus} --resources mem_gb=8000
+    snakemake --config markers=ucsc dataset=mypool --cores ${task.cpus} --resources mem_gb=8000 --set-threads pool_mutect=${task.cpus}
     cd ..
 
     cp LCS/outputs/decompose/mypool.out ${name}.lcs.out

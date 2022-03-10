@@ -9,10 +9,7 @@ workflow read_classification_wf {
     main: 
 
         // database download
-        if (params.krakendb) { preload = file("${params.krakendb}") }
-        else { preload = file("${params.databases}/kraken2/kraken.tar.gz") }
-        
-        if (preload.exists()) { kraken_db = preload }
+        if (params.krakendb) { kraken_db = file("${params.krakendb}") }
         else  { download_database_kraken2(); kraken_db = download_database_kraken2.out } 
 
         // classification
@@ -22,7 +19,10 @@ workflow read_classification_wf {
         krona(kraken2.out)
 
         // calculate mixed/ pooled samples using LCS, https://github.com/rvalieris/LCS
-        lcs_sc2(fastq)
+        if (params.screen_reads) {
+            lcs_sc2(fastq)
+        }
+            
         
     emit:   
         kraken2.out
