@@ -1,6 +1,6 @@
 process krona {
         label 'krona'
-        publishDir "${params.output}/${params.readqcdir}/1.read_classification", mode: 'copy'
+        publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy'
     input:
         tuple val(name), path(kraken2), path(kreport)
   	output:
