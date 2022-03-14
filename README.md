@@ -214,7 +214,7 @@ Sample_2021,barcode01,good
 
 
 # 5. Literature / References to cite
-For citing etc. check out these programs used for poreCov:
+If you are using poreCov please also check the used software to cite in your work:
 * [artic protocol](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)
 * [kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0)
 * [krona](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-385)
@@ -225,6 +225,7 @@ For citing etc. check out these programs used for poreCov:
 * [pangolin](https://github.com/hCoV-2019/pangolin)
 * [president](https://gitlab.com/RKIBioinformaticsPipelines/president)
 * [CoVarPlot](https://github.com/Psy-Fer/CoVarPlot)
+* [LCS](https://academic.oup.com/bioinformatics/advance-article-pdf/doi/10.1093/bioinformatics/btac047/42357424/btac047.pdf)
 
 # 6. Troubleshooting
 * Collection of some helpful infos
