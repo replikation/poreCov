@@ -394,10 +394,16 @@ workflow {
 
     // 4. Summary output
         if (params.fasta || workflow.profile.contains('test_fasta')) {
-            read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
+            taxonomic_read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
+            linage_read_classification_ch = Channel.from( ['deactivated', 'deactivated'] ).collect()
             alignments_ch = Channel.from( ['deactivated'] )
         } else {
-            read_classification_ch = read_classification_wf.out
+            taxonomic_read_classification_ch = read_classification_wf.out.kraken
+            if (params.screen_reads) {
+                linage_read_classification_ch = read_classification_wf.out.lcs
+            } else {
+                linage_read_classification_ch = Channel.from( ['deactivated', 'deactivated'] ).collect()
+            }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
 
@@ -408,7 +414,7 @@ workflow {
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
 */
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                read_classification_ch, alignments_ch, samples_file_ch)
+                                taxonomic_read_classification_ch, linage_read_classification_ch, alignments_ch, samples_file_ch)
 
 }
 

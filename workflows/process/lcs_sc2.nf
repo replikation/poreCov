@@ -1,10 +1,10 @@
 process lcs_sc2 {
-        label 'lcs_sc2'
-        publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy'
+    label 'lcs_sc2'
+    publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy'
     input:
         tuple val(name), path(reads)
   	output:
-    	tuple val(name), path("${name}.lcs.out")
+    	tuple val(name), path("${name}.lcs.tsv")
   	script:
     """
     git clone https://github.com/rvalieris/LCS.git
@@ -23,10 +23,27 @@ process lcs_sc2 {
     snakemake --config markers=ucsc dataset=mypool --cores ${task.cpus} --resources mem_gb=8000 --set-threads pool_mutect=${task.cpus}
     cd ..
 
-    cp LCS/outputs/decompose/mypool.out ${name}.lcs.out
+    cp LCS/outputs/decompose/mypool.out ${name}.lcs.tsv
     """
     stub:
     """
-    touch ${name}.lcs.out
+    touch ${name}.lcs.tsv
     """
   }
+
+process lcs_plot {
+  label "ggplot2"
+  publishDir "${params.output}/${params.lineagedir}/", mode: 'copy'
+
+  input:
+  path(tsv)
+  val(cutoff)
+  
+  output:
+  path("lcs_bar_plot.png")
+  
+  script:
+  """
+  lcs_bar_plot.R ${cutoff}
+  """
+}

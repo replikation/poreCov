@@ -2,6 +2,7 @@ include { summary_report; summary_report_fasta; summary_report_default } from '.
 include { plot_coverages } from '../modules/plot_coverages.nf'
 include { get_scorpio_version } from '../modules/get_scorpio_version.nf'
 include { get_variants_classification } from '../modules/get_variants_classification.nf'
+include { lcs_plot } from './process/lcs_sc2'
 
 workflow create_summary_report_wf {
     take: 
@@ -9,6 +10,7 @@ workflow create_summary_report_wf {
         president
         nextclade
         kraken2
+        lcs
         alignments
         samples_table
 
@@ -20,7 +22,8 @@ workflow create_summary_report_wf {
         pangolin_results = pangolin.map {it -> it[1]}.collectFile(name: 'pangolin_results.csv', skip: 1, keepHeader: true)
         president_results = president.map {it -> it[1]}.collectFile(name: 'president_results.tsv', skip: 1, keepHeader: true)
         nextclade_results = nextclade.map {it -> it[1]}.collectFile(name: 'nextclade_results.tsv', skip: 1, keepHeader: true)
-       
+        lcs_results = lcs.map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")
+
         alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             
@@ -37,6 +40,8 @@ workflow create_summary_report_wf {
             
         }
 
-        
+        if (params.screen_reads){
+            lcs_plot(lcs_results, params.screen_reads_plot_cutoff)
+        }
 
 } 
