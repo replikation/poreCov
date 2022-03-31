@@ -21,9 +21,12 @@ workflow read_classification_wf {
         // calculate mixed/ pooled samples using LCS, https://github.com/rvalieris/LCS
         if (params.screen_reads) {
             lcs_sc2(fastq)
+            lcs_output = lcs_sc2.out
+        } else {
+            lcs_output = Channel.empty()
         }
-            
         
     emit:   
-        kraken2.out
+        kraken = kraken2.out
+        lcs = lcs_output
 }
