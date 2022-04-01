@@ -38,7 +38,7 @@ class SummaryReport():
     scorpio_constellations_version = None
     variants_table = None
     pangolin_version = None
-    pangolearn_version = None
+    pangolindata_version = None
     nextclade_version = None
     nextcladedata_version = None
     tabledata = None
@@ -110,14 +110,14 @@ class SummaryReport():
 
 
     def add_pangolin_version_param(self):
-        if self.pangolearn_version is None:
+        if self.pangolindata_version is None:
             error('add_pangolin_version_param() called before pangolin version was set')
-        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of pangolin-data was used ({self.pangolindata_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
         
-        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/pangolearn.html"><b>PangoLEARN</b></a> version'
-        pl_val = f'{self.pangolearn_version}'
+        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/requirements.html"><b>pangolin-data</b></a> version'
+        pl_val = f'{self.pangolindata_version}'
 
-        year, month, day = self.pangolearn_version.split('-')
+        year, month, day = self.pangolindata_version.split('-')
         if int(year) <= 2021 and int(month) <= 10:
             pl_val += warning_msg
 
@@ -361,7 +361,7 @@ class SummaryReport():
         # pangolin and scorpio versions
         assert res_data.shape[0] > 0
         self.pangolin_version = res_data.loc[0]['pangolin_version']
-        self.pangolearn_version = res_data.loc[0]['version']
+        self.pangolindata_version = res_data.loc[0]['version']
         self.scorpio_version = res_data.loc[0]['scorpio_version']
         self.scorpio_constellations_version = res_data.loc[0]['constellation_version']
 
@@ -392,9 +392,9 @@ class SummaryReport():
 
 
         self.add_column(colname, res_data['lineage_conflict'])
-        if self.pangolin_version is None or self.pangolearn_version is None:
-            error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/pangolearn.html">PangoLEARN</a> data release {self.pangolearn_version}).')
+        if self.pangolin_version is None or self.pangolindata_version is None:
+            error('No pangolin/pangolin-data versions were added before adding pangolin results.')
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/requirements.html">pangolin-data</a> data release {self.pangolindata_version}).')
         
         # Add scorpio info if any is present
         if res_data['scorpio_call'].notna().any():
