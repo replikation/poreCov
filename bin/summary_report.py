@@ -390,13 +390,16 @@ class SummaryReport():
                     res_data.at[row, 'lineage_conflict'] += f'<br><font color="{color}"><b>{var_status}</b></font>'
 
             self.add_column_raw('variant_status', res_data['variant_status'])
-            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
+            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a>' + \
+                'of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
 
 
         self.add_column(colname, res_data['lineage_conflict'])
         if self.pangolin_version is None or self.pangolindata_version is None:
             error('No pangolin/pangolin-data versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/requirements.html">pangolin-data</a> data release {self.pangolindata_version}).')
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with ' + \
+            f'<a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using ' + \
+            f'<a href="https://cov-lineages.org/resources/pangolin/requirements.html">pangolin-data</a> v{self.pangolindata_version}).')
         
         # Add scorpio info if any is present
         if res_data['scorpio_call'].notna().any():
@@ -410,7 +413,9 @@ class SummaryReport():
             self.add_column('Constellation<br>(conflict)', res_data['scorpio_conflict'])
             if self.scorpio_version is None or self.scorpio_constellations_version is None:
                 error('No Scorpio/constellations versions were added before adding Pangolin results.')
-            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with <a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using <a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
+            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with ' + \
+                f'<a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using ' + \
+                f'<a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
 
 
 
@@ -552,7 +557,8 @@ class SummaryReport():
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
-        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
+        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with ' + \
+            f'<a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
     
         
 
