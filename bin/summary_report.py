@@ -390,7 +390,7 @@ class SummaryReport():
                     res_data.at[row, 'lineage_conflict'] += f'<br><font color="{color}"><b>{var_status}</b></font>'
 
             self.add_column_raw('variant_status', res_data['variant_status'])
-            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a>' + \
+            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> ' + \
                 'of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
 
 
