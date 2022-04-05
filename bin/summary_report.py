@@ -359,11 +359,13 @@ class SummaryReport():
         self.check_and_init_tabledata(res_data.index)
 
         # pangolin and scorpio versions
+        # column names used:
+        # version,pangolin_version,scorpio_version,constellation_version
         assert res_data.shape[0] > 0
-        self.pangolin_version = res_data.loc[0]['pangolin_version']
-        self.pangolindata_version = res_data.loc[0]['version']
-        self.scorpio_version = res_data.loc[0]['scorpio_version']
-        self.scorpio_constellations_version = res_data.loc[0]['constellation_version']
+        self.pangolin_version = res_data.iloc[0]['pangolin_version']
+        self.pangolindata_version = res_data.iloc[0]['version']
+        self.scorpio_version = res_data.iloc[0]['scorpio_version']
+        self.scorpio_constellations_version = res_data.iloc[0]['constellation_version']
 
 
         # get data
