@@ -118,7 +118,7 @@ class SummaryReport():
         pl_val = f'{self.pangolindata_version}'
 
         v1, v2, v3 = self.pangolindata_version.split('-')
-        if int(v1) <= 1 and int(v2) <= 2 and int(v3) <= 132
+        if int(v1) <= 1 and int(v2) <= 2 and int(v3) <= 132:
             pl_val += warning_msg
 
         self.add_param(pl_param, pl_val)
@@ -363,7 +363,7 @@ class SummaryReport():
         # version,pangolin_version,scorpio_version,constellation_version
         assert res_data.shape[0] > 0
         self.pangolin_version = res_data.iloc[0]['pangolin_version']
-        self.pangolindata_version = res_data.iloc[0]['version']
+        self.pangolindata_version = res_data.iloc[0]['version'].split('-',1)[-1].split('v',1)[-1]
         self.scorpio_version = res_data.iloc[0]['scorpio_version']
         self.scorpio_constellations_version = res_data.iloc[0]['constellation_version']
 
