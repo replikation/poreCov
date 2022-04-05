@@ -502,6 +502,13 @@ class SummaryReport():
         self.add_column_raw('nextclade_insertions', res_data['aaInsertions'])
         self.add_column_raw('nextclade_frameshifts', res_data['frameShifts'])
 
+        # private mutation information
+        self.add_column_raw('nextclade_privateNucMutations_reversion', res_data["privateNucMutations.reversionSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_labeled', res_data["privateNucMutations.labeledSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_unlabeled', res_data["privateNucMutations.unlabeledSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_qc_status', res_data["qc.privateMutations.status"])
+
+
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
         res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
