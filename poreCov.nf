@@ -253,7 +253,7 @@ if (params.update) {
 println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
     if ( internetcheck.toString() == "true" ) { 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-        params.pangolindocker = "nanozoo/pangolin:" + tagname
+        params.pangolindocker = "nanozoo/pangolin-v4:" + tagname
         println "\033[0;32mFound latest pangolin container, using: " + params.pangolindocker + " \033[0m" 
 
         tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
