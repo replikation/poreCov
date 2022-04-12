@@ -235,7 +235,7 @@ if (params.samples) {
 
 static boolean DockernetIsAvailable() {
     try {
-        final URL url = new URL("https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/");
+        final URL url = new URL("https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/");
         final URLConnection conn = url.openConnection();
         conn.connect();
         conn.getInputStream().close();
@@ -252,7 +252,7 @@ def internetcheck = DockernetIsAvailable()
 if (params.update) {
 println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
     if ( internetcheck.toString() == "true" ) { 
-        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
         params.pangolindocker = "nanozoo/pangolin:" + tagname
         println "\033[0;32mFound latest pangolin container, using: " + params.pangolindocker + " \033[0m" 
 
