@@ -5,7 +5,6 @@ process summary_report {
     
     input:
         path(version_config)
-        tuple val(scorpio_ver), val(scorpio_constellations_ver)
         path(variants_table)
         path(pangolin_results)
         path(president_results)
@@ -32,8 +31,6 @@ process summary_report {
 
         summary_report.py \
             -v !{version_config} \
-            --scorpio_version "!{scorpio_ver}" \
-            --scorpio_constellations_version "!{scorpio_constellations_ver}" \
             --variants_table !{variants_table} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --nextclade_docker !{params.nextcladedocker} \
@@ -41,7 +38,6 @@ process summary_report {
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
             --nf_commandline '!{workflow.commandLine}' \
-            --pangolin_docker !{params.pangolindocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
             -q !{president_results} \
@@ -63,7 +59,6 @@ process summary_report_default {
     
     input:
         path(version_config)
-        tuple val(scorpio_ver), val(scorpio_constellations_ver)
         path(variants_table)
         path(pangolin_results)
         path(president_results)
@@ -89,15 +84,12 @@ process summary_report_default {
 
         summary_report.py \
             -v !{version_config} \
-            --scorpio_version "!{scorpio_ver}" \
-            --scorpio_constellations_version "!{scorpio_constellations_ver}" \
             --variants_table !{variants_table} \
             --porecov_version !{workflow.revision}:!{workflow.commitId}:!{workflow.scriptId} \
             --guppy_used !{guppyused} \
             --guppy_model !{params.guppy_model} \
             --medaka_model !{params.medaka_model} \
             --nf_commandline '!{workflow.commandLine}' \
-            --pangolin_docker !{params.pangolindocker} \
             --nextclade_docker !{params.nextcladedocker} \
             --primer !{params.primerV} \
             -p !{pangolin_results} \
@@ -117,7 +109,6 @@ process summary_report_fasta {
         label 'fastcov'
     input:
         path(version_config)
-        tuple val(scorpio_ver), val(scorpio_constellations_ver)
         path(variants_table)
         path(pangolin_results)
         path(president_results)
@@ -131,12 +122,9 @@ process summary_report_fasta {
         """
         summary_report.py \
             -v ${version_config} \
-            --scorpio_version "${scorpio_ver}" \
-            --scorpio_constellations_version "${scorpio_constellations_ver}" \
             --variants_table ${variants_table} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
             --nf_commandline '${workflow.commandLine}' \
-            --pangolin_docker ${params.pangolindocker} \
             --nextclade_docker ${params.nextcladedocker} \
             -p ${pangolin_results} \
             -q ${president_results} \

@@ -38,7 +38,7 @@ class SummaryReport():
     scorpio_constellations_version = None
     variants_table = None
     pangolin_version = None
-    pangolearn_version = None
+    pangolindata_version = None
     nextclade_version = None
     nextcladedata_version = None
     tabledata = None
@@ -110,20 +110,17 @@ class SummaryReport():
 
 
     def add_pangolin_version_param(self):
-        if self.pangolearn_version is None:
-            error('add_pangolin_version_param() called before parse_pangolin_version()')
-        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of PangoLEARN was used ({self.pangolearn_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
+        if self.pangolindata_version is None:
+            error('add_pangolin_version_param() called before pangolin version was set')
+        warning_msg = f' - <font color="{self.color_error_red}"><b>Warning</b>: A rather old version of pangolin-data was used ({self.pangolindata_version}). Use parameter \'--update\' to force the use of the most recent Pangolin container!</font>'
         
-        # pa_param = f'<a href="https://cov-lineages.org/pangolin.html"><b>Pangolin</b></a> version'
-        # pa_val =  f'{self.pangolin_version}'
-        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/pangolearn.html"><b>PangoLEARN</b></a> version'
-        pl_val = f'{self.pangolearn_version}'
+        pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/requirements.html"><b>pangolin-data</b></a> version'
+        pl_val = f'{self.pangolindata_version}'
 
-        year, month, day = self.pangolearn_version.split('-')
-        if int(year) <= 2021 and int(month) <= 10:
+        v1, v2, v3 = self.pangolindata_version.split('.')
+        if int(v1) <= 1 and int(v2) <= 2 and int(v3) <= 132:
             pl_val += warning_msg
 
-        # self.add_param(pa_param, pa_val)
         self.add_param(pl_param, pl_val)
 
 
@@ -161,22 +158,6 @@ class SummaryReport():
         self.tool_versions = version_dict
         log('Parsed version config file.')
 
-
-    def parse_scorpio_versions(self, scorpio_version, sc_constell_version):
-        # e.g. 'scorpio 0.3.14'
-        name, vers = scorpio_version.split(' ')
-        assert name == 'scorpio'
-        self.scorpio_version = vers.lstrip('v')
-
-        # e.g. 'constellations v0.0.24'
-        name, vers = sc_constell_version.split(' ')
-        assert name == 'constellations'
-        self.scorpio_constellations_version = vers.lstrip('v')
-
-
-    def parse_pangolin_version(self, pangolin_docker):
-        # e.g. nanozoo/pangolin:2.3.8--2021-04-21
-        self.pangolin_version, self.pangolearn_version = pangolin_docker.split(':',1)[-1].split('--')
 
     def parse_nextclade_version(self, nextclade_docker):
         # e.g. nanozoo/nextclade:1.3.0--2021-06-25
@@ -377,9 +358,19 @@ class SummaryReport():
         self.force_index_dtype_string(res_data)
         self.check_and_init_tabledata(res_data.index)
 
+        # pangolin and scorpio versions
+        # column names used:
+        # version,pangolin_version,scorpio_version,constellation_version
+        assert res_data.shape[0] > 0
+        self.pangolin_version = res_data.iloc[0]['pangolin_version']
+        self.pangolindata_version = res_data.iloc[0]['version'].split('-',1)[-1].split('v',1)[-1]
+        self.scorpio_version = res_data.iloc[0]['scorpio_version']
+        self.scorpio_constellations_version = res_data.iloc[0]['constellation_version']
+
+
+        # get data
         self.add_column_raw('pangolin_lineage', res_data['lineage'])
         self.add_column_raw('pangolin_conflict', res_data['conflict'])
-
 
         res_data['lineage_conflict'] = [f'<b>{l}</b><br>({p if pd.notnull(p) else "-"})' for l,p in zip(res_data['lineage'], res_data['conflict'])]
         colname = 'Lineage<br>(conflict)'
@@ -399,13 +390,16 @@ class SummaryReport():
                     res_data.at[row, 'lineage_conflict'] += f'<br><font color="{color}"><b>{var_status}</b></font>'
 
             self.add_column_raw('variant_status', res_data['variant_status'])
-            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
+            self.add_col_description(f'Variant type (VOC, VOI, etc.) was determined from the <a href="{args.variants_table}">variants table</a> ' + \
+                'of <a href="https://github.com/3dgiordano/SARS-CoV-2-Variants">SARS-CoV-2-Variants</a>.')
 
 
         self.add_column(colname, res_data['lineage_conflict'])
-        if self.pangolin_version is None or self.pangolearn_version is None:
-            error('No pangolin/pangoLEARN versions were added before adding pangolin results.')
-        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with <a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using <a href="https://cov-lineages.org/resources/pangolin/pangolearn.html">PangoLEARN</a> data release {self.pangolearn_version}).')
+        if self.pangolin_version is None or self.pangolindata_version is None:
+            error('No pangolin/pangolin-data versions were added before adding pangolin results.')
+        self.add_col_description(f'Lineage and the corresponding tree resolution conflict measure were determined with ' + \
+            f'<a href="https://cov-lineages.org/pangolin.html">Pangolin</a> (v{self.pangolin_version} using ' + \
+            f'<a href="https://cov-lineages.org/resources/pangolin/requirements.html">pangolin-data</a> v{self.pangolindata_version}).')
         
         # Add scorpio info if any is present
         if res_data['scorpio_call'].notna().any():
@@ -419,7 +413,10 @@ class SummaryReport():
             self.add_column('Constellation<br>(conflict)', res_data['scorpio_conflict'])
             if self.scorpio_version is None or self.scorpio_constellations_version is None:
                 error('No Scorpio/constellations versions were added before adding Pangolin results.')
-            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with <a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using <a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
+            self.add_col_description(f'Constellation and the corresponding tree resolution conflict measure were determined with ' + \
+                f'<a href="https://github.com/cov-lineages/scorpio">Scorpio</a> (v{self.scorpio_version} using ' + \
+                f'<a href="https://cov-lineages.org/constellations.html">Constellations</a> version {self.scorpio_constellations_version}).')
+
 
 
     def add_president_results(self, president_results):
@@ -505,6 +502,13 @@ class SummaryReport():
         self.add_column_raw('nextclade_insertions', res_data['aaInsertions'])
         self.add_column_raw('nextclade_frameshifts', res_data['frameShifts'])
 
+        # private mutation information
+        self.add_column_raw('nextclade_privateNucMutations_reversion', res_data["privateNucMutations.reversionSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_labeled', res_data["privateNucMutations.labeledSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_unlabeled', res_data["privateNucMutations.unlabeledSubstitutions"])
+        self.add_column_raw('nextclade_privateNucMutations_qc_status', res_data["qc.privateMutations.status"])
+
+
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
         res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
@@ -560,7 +564,8 @@ class SummaryReport():
 
         if self.nextclade_version is None or self.nextcladedata_version is None:
             error('No nextclade/nextcladedata versions were added before adding nextclade results.')
-        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with <a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
+        self.add_col_description(f'Clade, mutations, deletions, insertions and frameshifts were determined with ' + \
+            f'<a href="https://clades.nextstrain.org/">Nextclade</a> (v{self.nextclade_version} using nextclade data release {self.nextcladedata_version}).')
     
         
 
@@ -782,16 +787,13 @@ if __name__ == '__main__':
     log('Started summary_report.py ...')
 
     parser = argparse.ArgumentParser(description='Generate a summary report for multiple samples run with poreCov')
-    parser.add_argument("-v", "--version_config", help="version config", required=True)
-    parser.add_argument("--scorpio_version", help="scorpio version", required=True)
-    parser.add_argument("--scorpio_constellations_version", help="scorpio constellations version", required=True)    
+    parser.add_argument("-v", "--version_config", help="version config", required=True)  
     parser.add_argument("--variants_table", help="variants table with VOCs, VOIs etc.", required=True)    
     parser.add_argument("--porecov_version", help="porecov version", required=True)
     parser.add_argument("--guppy_used", help="guppy used")
     parser.add_argument("--guppy_model", help="guppy model")
     parser.add_argument("--medaka_model", help="medaka model")
     parser.add_argument("--nf_commandline", help="full nextflow command call", required=True)
-    parser.add_argument("--pangolin_docker", help="pangolin/pangoLEARN version", required=True)
     parser.add_argument("--nextclade_docker", help="nextclade/nextcladedata version", required=True)
     parser.add_argument("--primer", help="primer version")
     parser.add_argument("-p", "--pangolin_results", help="pangolin results")
@@ -806,9 +808,7 @@ if __name__ == '__main__':
     ### build report
     report = SummaryReport()
     report.parse_version_config(args.version_config)
-    report.parse_scorpio_versions(args.scorpio_version, args.scorpio_constellations_version)
     report.parse_variants_table(args.variants_table)
-    report.parse_pangolin_version(args.pangolin_docker)
     report.parse_nextclade_version(args.nextclade_docker)
 
 
