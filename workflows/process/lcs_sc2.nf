@@ -36,14 +36,14 @@ process lcs_plot {
   publishDir "${params.output}/${params.lineagedir}/", mode: 'copy'
 
   input:
-  path(tsv)
+  tuple val(name), path(tsv)
   val(cutoff)
   
   output:
-  path("lcs_bar_plot.png")
+  path("*.png")
   
   script:
   """
-  lcs_bar_plot.R ${cutoff}
+  lcs_bar_plot.R '${tsv}' '${name}' ${cutoff}
   """
 }

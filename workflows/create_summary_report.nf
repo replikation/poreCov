@@ -1,8 +1,7 @@
 include { summary_report; summary_report_fasta; summary_report_default } from './process/summary_report'
 include { plot_coverages } from '../modules/plot_coverages.nf'
-include { get_scorpio_version } from '../modules/get_scorpio_version.nf'
 include { get_variants_classification } from '../modules/get_variants_classification.nf'
-include { lcs_plot } from './process/lcs_sc2'
+include { lcs_plot as lcs_plot; lcs_plot as lcs_plot_control  } from './process/lcs_sc2'
 
 workflow create_summary_report_wf {
     take: 
@@ -16,7 +15,6 @@ workflow create_summary_report_wf {
 
         main:
         version_ch = Channel.fromPath(workflow.projectDir + "/configs/container.config")
-        scorpio_ver_ch = get_scorpio_version()
         variants_table_ch = get_variants_classification()
 
         pangolin_results = pangolin.map {it -> it[1]}.collectFile(name: 'pangolin_results.csv', skip: 1, keepHeader: true)
@@ -27,7 +25,7 @@ workflow create_summary_report_wf {
         alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             
-            summary_report_fasta(version_ch, scorpio_ver_ch, variants_table_ch, pangolin_results, president_results, nextclade_results)
+            summary_report_fasta(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results)
 
         } else {
             kraken2_results = kraken2.map {it -> it[2]}.collect()
@@ -35,13 +33,15 @@ workflow create_summary_report_wf {
             coverage_plots = plot_coverages(alignments.map{it -> it[0]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6), \
                                             alignments.map{it -> it[1]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6)).collect()
 
-            if (params.samples) { summary_report(version_ch, scorpio_ver_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_table) }
-            else { summary_report_default(version_ch, scorpio_ver_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots) }
+            if (params.samples) { summary_report(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_table) }
+            else { summary_report_default(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots) }
             
         }
 
         if (params.screen_reads){
-            lcs_plot(lcs_results, params.screen_reads_plot_cutoff)
+            lcs_plot(lcs.filter({ !it[0].contains("negativ") }).map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true).map{ it -> ['samples', it] }, params.screen_reads_plot_cutoff)
+
+            lcs_plot_control(lcs.filter({ it[0].contains("negativ") }), params.screen_reads_plot_cutoff)
         }
 
 } 
