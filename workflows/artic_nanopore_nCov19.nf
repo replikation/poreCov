@@ -1,4 +1,4 @@
-include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed; artic_nanopolish_custom_bed } from './process/artic.nf' 
+include { artic_medaka ; artic_nanopolish; artic_medaka_custom_bed; artic_nanopolish_custom_bed; artic_scheme_validation } from './process/artic.nf' 
 include { covarplot; covarplot_custom_bed } from './process/covarplot.nf'
 
 workflow artic_ncov_wf {
@@ -10,6 +10,12 @@ workflow artic_ncov_wf {
         if (params.primerV.toString().contains(".bed")) {
             primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+
+            artic_scheme_validation(primerBed)
+            artic_scheme_validation.out.view()
+            //if (artic_scheme_validation.out.head.contains('error')) {
+            //    exit 10 "Primer.bed-file contains an error. Please check the report-file in '${params.output}/X.Pipeline-runinfo' for further information"
+            //}
 
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))
             assembly = artic_medaka_custom_bed.out.fasta
@@ -48,6 +54,11 @@ workflow artic_ncov_np_wf {
         if (params.primerV.toString().contains(".bed")) {
             primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            
+            artic_scheme_validation(primerBed)
+            //if (artic_scheme_validation.out.head.contains("error")) {
+            //    exit 10 "Primer.bed-file contains an error. Please check the report-file in ${params.output}/X.Pipeline-runinfo for further information"
+            //}
 
             artic_nanopolish_custom_bed(
                 fastq

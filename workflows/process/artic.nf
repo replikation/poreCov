@@ -236,5 +236,22 @@ process artic_nanopolish_custom_bed {
         """
 }
 
+process artic_scheme_validation {
+        label 'artic'    
+        publishDir "${params.output}/", mode: 'copy', pattern: "*.txt"
+
+    input:
+        path(primerBed)
+    output:
+        path("*.txt"), emit: primerBedLog
+    script:   
+        """
+        artic-tools validate_scheme ${primerBed} 2> primerBed_log.txt
+        """
+        stub:
+        """
+        touch primerBed_log.txt
+        """
+}
 
 // --min-depth
