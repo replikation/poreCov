@@ -1,7 +1,7 @@
 include { summary_report; summary_report_fasta; summary_report_default } from './process/summary_report'
 include { plot_coverages } from '../modules/plot_coverages.nf'
 include { get_variants_classification } from '../modules/get_variants_classification.nf'
-include { lcs_plot as lcs_plot; lcs_plot as lcs_plot_control  } from './process/lcs_sc2'
+include { lcs_plot } from './process/lcs_sc2'
 
 workflow create_summary_report_wf {
     take: 
@@ -39,9 +39,7 @@ workflow create_summary_report_wf {
         }
 
         if (params.screen_reads){
-            lcs_plot(lcs.filter({ !it[0].contains("negativ") }).map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true).map{ it -> ['samples', it] }, params.screen_reads_plot_cutoff)
-
-            lcs_plot_control(lcs.filter({ it[0].contains("negativ") }), params.screen_reads_plot_cutoff)
+            lcs_plot(lcs.map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true), params.screen_reads_plot_cutoff)
         }
 
 } 

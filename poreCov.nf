@@ -453,17 +453,28 @@ ${c_yellow}Inputs (choose one):${c_reset}
                     ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control (optional)${c_reset}
-    --update        Always try to use latest pangolin & nextclade release [default: $params.update]
-    --samples       .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
-                    Status,_id
-                    barcode01,sample2011XY
-                    BC02,thirdsample_run
-    --extended      poreCov utilizes from --samples these additional headers:
-                    Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
-    --nanopolish    use nanopolish instead of medaka for ARTIC (needs --fast5)
-                    to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
-                    e.g --nanopolish sequencing_summary.txt
-    --screen_reads  Determines the Pangolineage of each individual read (takes time)         
+    --update                 Always try to use latest pangolin & nextclade release [default: $params.update]
+    --samples                .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
+                             Status,_id
+                             barcode01,sample2011XY
+                             BC02,thirdsample_run
+    --extended               poreCov utilizes from --samples these additional headers:
+                             Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
+    --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
+                             to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
+                             e.g --nanopolish sequencing_summary.txt
+    --screen_reads           Determines the Pangolineage of each individual read (takes time)    
+    --lcs_ucsc_default       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
+                             to use the marker table from the repo (most probably not up-to-date) [default: $params.lcs_ucsc_default]
+                                 ${c_dim}See https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2 for available trees.${c_reset}
+    --lcs_ucsc_update        Use latest UCSC SARS-CoV-2 tree for marker table update. Overwrites --lcs_ucsc_default [default: $params.lcs_ucsc_update]
+                                 ${c_dim}Automatically checks https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt${c_reset}
+    --lcs_ucsc_downsampling  Downsample sequences when updating marker table to save resources. Use 'None' to turn off [default: $params.lcs_ucsc_downsampling]
+                                 ${c_dim}Attention! Updating without downsampling needs a lot of resources in terms of memory and might fail.
+                                 Consider downsampling or increase the memory for this process.${c_reset}
+    --lcs_variant_groups     Provide path to custom variant groups table (TSV) for marker table update. Use 'default' for predefined groups from repo
+                                 (https://github.com/rki-mf1/LCS/blob/master/data/variant_groups.tsv) [default: $params.lcs_variant_groups]
+    --lcs_cutoff             Plot linages above this threshold [default: $params.lcs_cutoff]     
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
     --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
