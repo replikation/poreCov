@@ -277,10 +277,10 @@ if ( params.screen_reads && params.lcs_ucsc_update ){
         params.lcs_ucsc = latest_version
     }
     if ( internetcheck.toString() == "false" ) { 
-        println "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_default + "\033[0m"
-        params.lcs_ucsc = params.lcs_ucsc_default
+        println "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_version + "\033[0m"
+        params.lcs_ucsc = params.lcs_ucsc_version
     }
-} else { params.lcs_ucsc = params.lcs_ucsc_default}
+} else { params.lcs_ucsc = params.lcs_ucsc_version}
 
 
 /************************** 
@@ -477,10 +477,10 @@ ${c_yellow}Workflow control (optional)${c_reset}
                              to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
                              e.g --nanopolish sequencing_summary.txt
     --screen_reads           Determines the Pangolineage of each individual read (takes time)    
-    --lcs_ucsc_default       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
-                             to use the marker table from the repo (most probably not up-to-date) [default: $params.lcs_ucsc_default]
+    --lcs_ucsc_version       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
+                             to use the marker table from the repo (most probably not up-to-date) [default: $params.lcs_ucsc_version]
                                  ${c_dim}See https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2 for available trees.${c_reset}
-    --lcs_ucsc_update        Use latest UCSC SARS-CoV-2 tree for marker table update. Overwrites --lcs_ucsc_default [default: $params.lcs_ucsc_update]
+    --lcs_ucsc_update        Use latest UCSC SARS-CoV-2 tree for marker table update. Overwrites --lcs_ucsc_version [default: $params.lcs_ucsc_update]
                                  ${c_dim}Automatically checks https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt${c_reset}
     --lcs_ucsc_downsampling  Downsample sequences when updating marker table to save resources. Use 'None' to turn off [default: $params.lcs_ucsc_downsampling]
                                  ${c_dim}Attention! Updating without downsampling needs a lot of resources in terms of memory and might fail.
