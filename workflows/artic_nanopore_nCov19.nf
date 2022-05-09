@@ -12,9 +12,9 @@ workflow artic_ncov_wf {
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
             artic_scheme_validation(primerBed)
-            artic_scheme_validation.out.view()
-            if (artic_scheme_validation.out.splitText(by: 25).toString().contains('error')) {
-                exit 10 "Primer.bed-file contains an error. Please check the report-file in '${params.output}/X.Pipeline-runinfo' for further information"
+            artic_scheme_validation.out.map { it.text.strip().contains("error") }.view()
+            if (artic_scheme_validation.out.map { it.text.strip().contains("error") }) {
+                exit 6, "Primer.bed-file contains an error. Please check '${params.output}/X.Pipeline-runinfo/primerBed_log.txt' for further information"
             }
 
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))

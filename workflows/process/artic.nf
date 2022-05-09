@@ -237,16 +237,17 @@ process artic_nanopolish_custom_bed {
 }
 
 process artic_scheme_validation {
-        label 'artic'    
+        label 'artic'
+        errorStrategy 'terminate' 
         publishDir "${params.output}/", mode: 'copy', pattern: "primerBed_log.txt"
 
     input:
         path(primerBed)
     output:
-        file("primerBed_log.txt")
+        path("primerBed_log.txt")
     script:   
         """
-        artic-tools validate_scheme ${primerBed} 2> primerBed_log.txt | exit 0
+        artic-tools validate_scheme ${primerBed} 2> primerBed_log.txt | echo ""
         """
         stub:
         """
