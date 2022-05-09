@@ -13,9 +13,9 @@ workflow artic_ncov_wf {
 
             artic_scheme_validation(primerBed)
             artic_scheme_validation.out.view()
-            //if (artic_scheme_validation.out.head.contains('error')) {
-            //    exit 10 "Primer.bed-file contains an error. Please check the report-file in '${params.output}/X.Pipeline-runinfo' for further information"
-            //}
+            if (artic_scheme_validation.out.splitText(by: 25).toString().contains('error')) {
+                exit 10 "Primer.bed-file contains an error. Please check the report-file in '${params.output}/X.Pipeline-runinfo' for further information"
+            }
 
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))
             assembly = artic_medaka_custom_bed.out.fasta
