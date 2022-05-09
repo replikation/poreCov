@@ -36,6 +36,7 @@ process lcs_ucsc_markers_table {
         """
     stub:
     """
+    mkdir -p LCS/outputs/variants_table/
     touch LCS/outputs/variants_table/ucsc-markers-table-42.tsv
     """
 }
@@ -44,9 +45,9 @@ process lcs_sc2 {
     label 'lcs_sc2'
     publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy'
     input:
-      tuple val(name), path(reads), path(ucsc_markers_table)
+    tuple val(name), path(reads), path(ucsc_markers_table)
   	output:
-    	tuple val(name), path("${name}.lcs.tsv")
+    tuple val(name), path("${name}.lcs.tsv")
   	script:
     """
     git clone https://github.com/rvalieris/LCS.git
