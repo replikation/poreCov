@@ -270,6 +270,19 @@ println "\033[0;33mWarning: Running --update might not be poreCov compatible!\03
 }
 else { params.pangolindocker = params.defaultpangolin ; params.nextcladedocker = params.defaultnextclade  }
 
+if ( params.screen_reads && params.lcs_ucsc_update ){
+    if ( internetcheck.toString() == "true" ) { 
+        latest_version = 'https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt'.toURL().text.split('\\(')[1].split('\\)')[0]
+        println "\033[0;32mFound latest UCSC version, using: " + latest_version + " \033[0m" 
+        params.lcs_ucsc = latest_version
+    }
+    if ( internetcheck.toString() == "false" ) { 
+        println "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_default + "\033[0m"
+        params.lcs_ucsc = params.lcs_ucsc_default
+    }
+} else { params.lcs_ucsc = params.lcs_ucsc_default}
+
+
 /************************** 
 * Log-infos
 **************************/
