@@ -50,7 +50,7 @@ process lcs_sc2 {
     tuple val(name), path("${name}.lcs.tsv")
   	script:
     """
-    git clone https://github.com/rvalieris/LCS.git
+    git clone https://github.com/rki-mf1/LCS.git
 
     mkdir -p LCS/outputs/variants_table
     mv ${ucsc_markers_table} LCS/outputs/variants_table/ucsc-markers-table.tsv  
