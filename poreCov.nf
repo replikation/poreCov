@@ -487,8 +487,8 @@ ${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)$
     --lcs_ucsc_downsampling  Downsample sequences when updating marker table to save resources. Use 'None' to turn off [default: $params.lcs_ucsc_downsampling]
                                  ${c_dim}Attention! Updating without downsampling needs a lot of resources in terms of memory and might fail.
                                  Consider downsampling or increase the memory for this process.${c_reset}
-    --lcs_variant_groups     Provide path to custom variant groups table (TSV) for marker table update. Use 'default' for predefined groups from repo
-                                 (https://github.com/rki-mf1/LCS/blob/master/data/variant_groups.tsv) [default: $params.lcs_variant_groups]
+    --lcs_variant_groups     Provide path to custom variant groups table (TSV) for marker table update (requires --lcs_ucsc_update). Use 'default' 
+                                 for predefined groups from repo (https://github.com/rki-mf1/LCS/blob/master/data/variant_groups.tsv) [default: $params.lcs_variant_groups]
     --lcs_cutoff             Plot linages above this threshold [default: $params.lcs_cutoff]     
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}

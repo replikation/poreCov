@@ -20,7 +20,12 @@ workflow read_classification_wf {
 
         // calculate mixed/ pooled samples using LCS, https://github.com/rvalieris/LCS
         if (params.screen_reads) {
-            lcs_ucsc_markers_table( params.lcs_variant_groups == 'default' ? file('default') : Channel.fromPath("${params.lcs_variant_groups}", checkIfExists: true) )
+            if (params.lcs_variant_groups == 'default'){
+                lcs_variant_groups_ch = Channel.empty()
+            } else {
+                lcs_variant_groups_ch = Channel.fromPath("${params.lcs_variant_groups}", checkIfExists: true) 
+            }
+            lcs_ucsc_markers_table(lcs_variant_groups_ch.ifEmpty([]))
             lcs_sc2(fastq.combine(lcs_ucsc_markers_table.out))
             lcs_output = lcs_sc2.out
         } else {
