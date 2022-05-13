@@ -39,7 +39,7 @@ workflow create_summary_report_wf {
         }
 
         if (params.screen_reads){
-            lcs_plot(lcs.map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true), params.screen_reads_plot_cutoff)
+            lcs_plot(lcs.map {it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true), params.lcs_cutoff)
         }
 
 } 
