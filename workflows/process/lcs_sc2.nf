@@ -31,7 +31,7 @@ process lcs_ucsc_markers_table {
         """
         git clone https://github.com/rki-mf1/LCS.git
         mkdir -p LCS/outputs/variants_table
-        zcat LCS/data/pre-generated-marker-tables/ucsc-markers-2022-01-31.tsv.gz > LCS/outputs/variants_table/ucsc-markers-table.tsv
+        zcat LCS/data/pre-generated-marker-tables/ucsc-markers-${params.lcs_ucsc_predefined}.tsv.gz > LCS/outputs/variants_table/ucsc-markers-table.tsv
         mv LCS/outputs/variants_table/ucsc-markers-table.tsv LCS/outputs/variants_table/ucsc-markers-table-predefined.tsv 
         """
     stub:
