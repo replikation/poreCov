@@ -302,6 +302,8 @@ include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
+include { positional_mutation_scan } from './modules/positional_mutation_scan.nf'
+include { positional_mutation_combiner } from './modules/positional_mutation_combine.nf'
 
 /************************** 
 * Workflows
@@ -315,7 +317,6 @@ include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { positional_mutation_scan_wf } from './workflows/positional_mutation_scan_wf.nf'
 include { read_classification_wf } from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
@@ -429,8 +430,10 @@ workflow {
             else {
             mutationList_ch = Channel.fromPath(params.mutation_list, checkIfExists: true )
             }
-            analysis_ch =  fasta_input_ch.join(determine_mutations_wf.out)
-            positional_mutation_scan_wf(analysis_ch, mutationList_ch)
+            analysis_ch =  fasta_input_ch.join(determine_mutations_wf.out).combine(mutationList_ch)
+            positional_mutation_scan(analysis_ch)
+            // pos_mut_scan_result_ch = Channel.empty().collectFile(positional_mutation_scan.out).view()
+            positional_mutation_combiner(positional_mutation_scan.out.collect())
         }
 
 /*

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ################################################################################
 ## Module-import
 
@@ -12,7 +14,7 @@ import re
 
 def mutation_scan_setup(FASTA_FILE, MUTATION_LIST, SC2_GENES_START_END_NUCLEOTIDES_DF, FILE_MUTATIONS_DF):
   if FASTA_FILE != "Reference_genome.fasta":
-    FILE_NAME = FASTA_FILE.replace('_filtered.consensus.fasta', '')
+    FILE_NAME = FASTA_FILE.replace('.fasta', '')
     FASTA_SEQUENCE = open(FASTA_FILE).readlines()[1]
     [mutation_scan(FILE_NAME, FASTA_SEQUENCE, SC2_GENES_START_END_NUCLEOTIDES_DF, FILE_MUTATIONS_DF, MUTATION) for MUTATION in MUTATION_LIST]
   
@@ -25,8 +27,8 @@ def mutation_scan(FILE_NAME, FASTA_SEQUENCE, SC2_GENES_START_END_NUCLEOTIDES_DF,
       MUTATION_GENE = MUTATION[0:MUTATION_DELIMITER_INDEX]
       MUTATION_CODON = re.sub("\D","", MUTATION[(MUTATION_DELIMITER_INDEX + 1):])
       if MUTATION_GENE in list(SC2_GENES_START_END_NUCLEOTIDES_DF['Gene']) and MUTATION_CODON != '':
-        SIMILAR_MUTATIONS_LIST = [ELEMENT for ELEMENT in list(COMBINED_DF.columns) if MUTATION[0:(MUTATION_DELIMITER_INDEX + 1)] in ELEMENT if MUTATION_CODON == re.sub("\D","", ELEMENT[ELEMENT.index(':'):])]
-        SIMILAR_MUTATIONS_VALUES_LIST = [COMBINED_DF.loc[FILE_NAME, SIMILAR_MUTATION] for SIMILAR_MUTATION in SIMILAR_MUTATIONS_LIST]
+        SIMILAR_MUTATIONS_LIST = [ELEMENT for ELEMENT in list(FILE_MUTATIONS_DF.columns) if MUTATION[0:(MUTATION_DELIMITER_INDEX + 1)] in ELEMENT if MUTATION_CODON == re.sub("\D","", ELEMENT[ELEMENT.index(':'):])]
+        SIMILAR_MUTATIONS_VALUES_LIST = [FILE_MUTATIONS_DF.loc[FILE_NAME, SIMILAR_MUTATION] for SIMILAR_MUTATION in SIMILAR_MUTATIONS_LIST]
         if any(SIMILAR_MUTATIONS_VALUES_LIST): #check if any mutation already occured at the specified position
               FILE_MUTATIONS_DF.loc[FILE_NAME, MUTATION] = False
         
@@ -87,7 +89,7 @@ SC2_GENES_START_END_NUCLEOTIDES_DF = pd.DataFrame(data = SC2_GENES_START_END_NUC
 
 MUTATION_LIST = open(MUTATION_LIST_FILE).read().split('\n')
 #print(MUTATION_LIST)
-tsv_to_dataframe(TSV_FILE)
+TSV_FILE_DF = tsv_to_dataframe(TSV_FILE)
 #pd.set_option('display.expand_frame_repr', False)
 #print(TSV_FILE_DF)
 
@@ -96,8 +98,8 @@ mutation_scan_setup(FASTA_FILE, MUTATION_LIST, SC2_GENES_START_END_NUCLEOTIDES_D
 if NAME != '':
   FILE_NAME = NAME
 
-OUTPUT_FILE = FILE_NAME + "_positional_mutation_search.csv"
+OUTPUT_FILE = FILE_NAME + "_positional_mutation_status.csv"
 RESULT_CSV = TSV_FILE_DF.to_csv()
 RESULT_FILE_CSV = open(OUTPUT_FILE, "w")
-RESULT_FILE_CSV.write(result_csv)
+RESULT_FILE_CSV.write(RESULT_CSV)
 RESULT_FILE_CSV.close()

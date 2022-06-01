@@ -1,4 +1,4 @@
-include { positional_mutation_scan } from './process/positional_mutation_scan.nf'
+//include { positional_mutation_scan } from './process/positional_mutation_scan.nf'
 
 workflow positional_mutation_scan_wf {
     take:   
