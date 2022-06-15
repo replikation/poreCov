@@ -478,7 +478,8 @@ ${c_yellow}Workflow control (optional)${c_reset}
                              e.g --nanopolish sequencing_summary.txt
     --screen_reads           Determines the Pangolineage of each individual read (takes time)
     --pangolin_skip_scorpio  Skip Scorpio in pangolin run [default: $params.pangolin_skip_scorpio]
-                                  ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples${c_reset}
+                                  ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples
+                                  Can be turned of with --pangolin_skip_scorpio false${c_reset}
 
 ${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)${c_reset}
     --lcs_ucsc_version       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
