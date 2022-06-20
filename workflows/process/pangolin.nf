@@ -7,8 +7,9 @@ process pangolin {
   output:
     tuple val(name), path("lineage_report_${name}.csv") optional true
   script:
+    def args = params.scorpio ? '' : '--skip-scorpio'
     """
-    pangolin -t ${task.cpus} ${fasta}
+    pangolin ${args} -t ${task.cpus} ${fasta}
 
     mv lineage_report.csv lineage_report_${name}.csv
     
