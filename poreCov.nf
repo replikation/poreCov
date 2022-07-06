@@ -256,15 +256,15 @@ println "\033[0;33mWarning: Running --update might not be poreCov compatible!\03
         params.pangolindocker = "nanozoo/pangolin-v4:" + tagname
         println "\033[0;32mFound latest pangolin container, using: " + params.pangolindocker + " \033[0m" 
 
-        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-        params.nextcladedocker = "nanozoo/nextclade:" + tagname 
-        println "\033[0;32mFound latest nextclade container, using: " + params.nextcladedocker + " \033[0m"
+        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade2/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+        params.nextcladedocker = "nanozoo/nextclade2:" + tagname 
+        println "\033[0;32mFound latest nextclade2 container, using: " + params.nextcladedocker + " \033[0m"
     } 
     if ( internetcheck.toString() == "false" ) { 
         println "\033[0;33mCould not find the latest pangolin container, trying: " + params.defaultpangolin + "\033[0m"
         params.pangolindocker = params.defaultpangolin 
 
-        println "\033[0;33mCould not find the latest nextclade container, trying: " + params.defaultnextclade + "\033[0m"
+        println "\033[0;33mCould not find the latest nextclade2 container, trying: " + params.defaultnextclade + "\033[0m"
         params.nextcladedocker = params.defaultnextclade 
     } 
 }

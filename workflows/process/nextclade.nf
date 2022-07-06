@@ -8,7 +8,8 @@ process nextclade {
         tuple val(name), path("${name}_clade.tsv")
     script:
     """
-    nextclade run --input-fasta ${consensus} --input-dataset /data/sars-cov-2_MN908947 --output-tsv tmp.tsv
+    nextclade run -j ${task.cpus} --input-dataset /data/sars-cov-2_MN908947 --output-tsv tmp.tsv ${consensus}
+
     cat tmp.tsv | tr -d "\r" > ${name}_clade.tsv
     """
     stub:
