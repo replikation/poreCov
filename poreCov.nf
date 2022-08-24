@@ -505,7 +505,7 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
     --primerV       Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
                         ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1
-                        ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2
+                        ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
                         ${c_dim}Other:${c_reset} V1200    ${c_dim}(also known as midnight)${c_reset}
                         ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
     --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
