@@ -1,0 +1,1 @@
+https://github.com/quick-lab/nCOV19/blob/30c18f6e5dcae613560044a11374387f6da886a8/v5.1/nCOV19_400.primer.bed
