@@ -59,7 +59,10 @@ for fasta_file in sys.argv[1:]:
             log(f'Writing {outfile}')
             outfh = open(outfile, 'w')
             outfh.write(f'>{seq_name}\n')
-            
+
+        elif line in ['\n','\r\n']:
+            continue
+
         else:
             # write rest of lines (and fix windows line endings)
             outfh.write(line.replace('\r',''))
