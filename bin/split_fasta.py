@@ -36,11 +36,11 @@ for fasta_file in sys.argv[1:]:
         if line.startswith('>'):
 
             # new sequence
-            seq_name = line.strip().split()[0][1:]
+            seq_name = line.strip()[1:]
             assert seq_name != '', f'Empty header in file: {fasta_file}'
             
             # sanitize
-            seq_name = seq_name.replace('/', '_').replace(':', '_').replace('|','_')
+            seq_name = seq_name.replace(' ', '_').replace('/', '_').replace(':', '_').replace('|','_')
 
             # handle duplicates
             if seq_name in sequence_names:
