@@ -116,8 +116,7 @@ class SummaryReport():
         
         pl_param = f'<a href="https://cov-lineages.org/resources/pangolin/requirements.html"><b>pangolin-data</b></a> version'
         pl_val = f'{self.pangolindata_version}'
-
-        v1, v2 = self.pangolindata_version.split('.')
+        v1, v2, *rest = self.pangolindata_version.split('.')
         if int(v1) <= 1 and int(v2) <= 2:
             pl_val += warning_msg
 
