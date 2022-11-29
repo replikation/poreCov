@@ -507,6 +507,8 @@ class SummaryReport():
         self.add_column_raw('nextclade_privateNucMutations_unlabeled', res_data["privateNucMutations.unlabeledSubstitutions"])
         self.add_column_raw('nextclade_privateNucMutations_qc_status', res_data["qc.privateMutations.status"])
 
+        # N information
+        self.add_column_raw('nextclade_missing', res_data["missing"])
 
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
