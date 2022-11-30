@@ -47,6 +47,8 @@ class SummaryReport():
     col_descriptions = []
     coverage_plots_b64 = []
     coverage_plots_filetype = []
+    coverage_plots_spike_b64 = []
+    coverage_plots_spike_filetype = []
     sample_QC_status = None
     sample_QC_info = {}
     control_string_patterns = ['control', 'negative']
@@ -338,6 +340,9 @@ class SummaryReport():
 
             if self.coverage_plots_b64 != []:
                 self.write_html_coverage_plot(outfh)
+
+            if self.coverage_plots_spike_b64 != []:
+                self.write_html_coverage_plot_spike(outfh)
 
             outfh.write(htmlfooter)
         log(f'Wrote report to {self.output_filename}.')
@@ -639,11 +644,17 @@ class SummaryReport():
         for coverage_plot in sorted(coverage_plots.split(',')):
             data = open(coverage_plot, 'rb').read() # read bytes from file
             data_base64 = base64.b64encode(data)  # encode to base64 (bytes)
-            self.coverage_plots_b64.append(data_base64.decode())
+            if coverage_plot.startswith('coverages_spike_'):
+                self.coverage_plots_spike_b64.append(data_base64.decode())
+            else:
+                self.coverage_plots_b64.append(data_base64.decode())
             ftype = coverage_plot.rsplit('.',1)[-1]
             if ftype not in ('png', 'jpg', 'jpeg', 'gif'):
                 log(f'WARNING: {coverage_plot} does not look like a good image filetype.')
-            self.coverage_plots_filetype.append(ftype)
+            if coverage_plot.startswith('coverages_spike_'):
+                self.coverage_plots_spike_filetype.append(ftype)
+            else:
+                self.coverage_plots_filetype.append(ftype)
 
 
     def write_html_coverage_plot(self, filehandle):
@@ -656,6 +667,19 @@ class SummaryReport():
             filehandle.write(
             f'''<img src="data:image/{ftype};base64,{plot}"><br>
             ''')
+    
+    def write_html_coverage_plot_spike(self, filehandle):
+        if self.coverage_plots_b64 is []:
+            error('No coverage plot was added beforehand.')
+        filehandle.write(f'''<h3>Spike coverage plots</h3>
+        <details tag=spike_zoom><summary>Click to expand</summary>
+        ''')
+        for plot, ftype in zip(self.coverage_plots_spike_b64, self.coverage_plots_spike_filetype):
+            filehandle.write(
+            f'''<img src="data:image/{ftype};base64,{plot}"><br>
+            ''')
+        filehandle.write(f'''</details>
+        ''')
 
 
     def check_if_control(self, sample_name):
