@@ -1,1 +1,0 @@
-Original V1200 primer-set (also known as Midnight primer) as found here: https://docs.google.com/spreadsheets/d/1M5I_C56ZC8_2Ycgm9EFieVlVNqxsP7dXAnGoBZy3nDo/edit#gid=755704891
