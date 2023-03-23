@@ -8,6 +8,7 @@ process artic_medaka {
 
     input:
         tuple val(name), path(reads), path(external_scheme)
+        val(normalise_threshold)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
@@ -19,7 +20,7 @@ process artic_medaka {
         artic minion    --medaka \
                         --medaka-model ${params.medaka_model} \
                         --min-depth ${params.min_depth} \
-                        --normalise 500 \
+                        --normalise ${normalise_threshold} \
                         --threads ${task.cpus} \
                         --scheme-directory ${external_scheme} \
                         --read-file ${reads} \
@@ -63,6 +64,7 @@ process artic_medaka_custom_bed {
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(primerBed)
+        val(normalize_threshold)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
@@ -85,7 +87,7 @@ process artic_medaka_custom_bed {
         artic minion    --medaka \
                         --medaka-model ${params.medaka_model} \
                         --min-depth ${params.min_depth} \
-                        --normalise 500 \
+                        --normalise ${normalise_threshold} \
                         --threads ${task.cpus} \
                         --scheme-directory primer_scheme \
                         --read-file ${reads} \
@@ -130,6 +132,7 @@ process artic_nanopolish {
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files)
+        val(normalise_threshold)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
@@ -138,7 +141,7 @@ process artic_nanopolish {
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
         """
-        artic minion --minimap2 --normalise 500 \
+        artic minion --minimap2 --normalise ${normalise_threshold} \
             --threads ${task.cpus} \
             --scheme-directory ${external_scheme} \
             --read-file ${reads} \
@@ -185,6 +188,7 @@ process artic_nanopolish_custom_bed {
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files), path(primerBed)
+        val(normalise_threshold)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
@@ -204,7 +208,7 @@ process artic_nanopolish_custom_bed {
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
 
         # start artic
-        artic minion --minimap2 --normalise 500 \
+        artic minion --minimap2 --normalise ${normalise_threshold} \
             --threads ${task.cpus} \
             --scheme-directory primer_scheme \
             --read-file ${reads} \

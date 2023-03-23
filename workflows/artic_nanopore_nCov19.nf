@@ -4,6 +4,7 @@ include { covarplot; covarplot_custom_bed } from './process/covarplot.nf'
 workflow artic_ncov_wf {
     take:   
         fastq
+        normalise_threshold
     main: 
 
         // assembly with a primer bed file
@@ -11,7 +12,7 @@ workflow artic_ncov_wf {
             primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
-            artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed))
+            artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold)
             assembly = artic_medaka_custom_bed.out.fasta
 
             // plot amplicon coverage
@@ -22,7 +23,7 @@ workflow artic_ncov_wf {
         else {
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
             
-            artic_medaka(fastq.combine(external_primer_schemes))
+            artic_medaka(fastq.combine(external_primer_schemes), normalise_threshold)
             assembly = artic_medaka.out.fasta
 
             // plot amplicon coverage
@@ -42,6 +43,7 @@ workflow artic_ncov_np_wf {
         fastq
         fast5
         sequence_summaries
+        normalise_threshold
     main: 
 
         // assembly
@@ -55,7 +57,8 @@ workflow artic_ncov_np_wf {
                     .combine(fast5.map{it -> it[1]})
                     .combine(sequence_summaries)
                     .combine(primerBed)
-                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5],it[6])}
+                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5],it[6]),
+                normalise_threshold}
         )
 
             assembly = artic_nanopolish_custom_bed.out.fasta
@@ -73,7 +76,8 @@ workflow artic_ncov_np_wf {
                         .combine(external_primer_schemes)
                         .combine(fast5.map{it -> it[1]})
                         .combine(sequence_summaries)
-                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5])}
+                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5]).
+                    normalise_threshold}
             )
 
             assembly = artic_nanopolish.out.fasta

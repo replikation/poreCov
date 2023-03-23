@@ -347,11 +347,11 @@ workflow {
 
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
-                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1])
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1], artic_ncov_np_wf)
                 fasta_input_ch = artic_ncov_np_wf.out[0]
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(filtered_reads_ch) 
+                artic_ncov_wf(filtered_reads_ch, artic_normalize) 
                 fasta_input_ch = artic_ncov_wf.out[0] 
                 }
         }
@@ -379,11 +379,11 @@ workflow {
                 
                 external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
-                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, sequence_summary_ch )
+                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, sequence_summary_ch, artic_ncov_np_wf)
                 fasta_input_ch = artic_ncov_np_wf.out
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(filtered_reads_ch)
+                artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
                 fasta_input_ch = artic_ncov_wf.out
                 }
         }
