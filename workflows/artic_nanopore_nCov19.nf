@@ -57,8 +57,8 @@ workflow artic_ncov_np_wf {
                     .combine(fast5.map{it -> it[1]})
                     .combine(sequence_summaries)
                     .combine(primerBed)
-                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5],it[6]),
-                normalise_threshold}
+                    .map{it -> tuple(it[0],it[1],it[2],it[3],it[5],it[6])},
+                normalise_threshold
         )
 
             assembly = artic_nanopolish_custom_bed.out.fasta
@@ -76,8 +76,8 @@ workflow artic_ncov_np_wf {
                         .combine(external_primer_schemes)
                         .combine(fast5.map{it -> it[1]})
                         .combine(sequence_summaries)
-                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5]),
-                    normalise_threshold}
+                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5])},
+                    normalise_threshold
             )
 
             assembly = artic_nanopolish.out.fasta
