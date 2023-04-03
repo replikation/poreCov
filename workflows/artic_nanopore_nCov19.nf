@@ -76,7 +76,7 @@ workflow artic_ncov_np_wf {
                         .combine(external_primer_schemes)
                         .combine(fast5.map{it -> it[1]})
                         .combine(sequence_summaries)
-                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5]).
+                        .map{it -> tuple(it[0],it[1],it[2],it[3],it[5]),
                     normalise_threshold}
             )
 
