@@ -351,7 +351,7 @@ workflow {
                 fasta_input_ch = artic_ncov_np_wf.out[0]
                 }
             else if (!params.nanopolish) { 
-                artic_ncov_wf(filtered_reads_ch, artic_normalize) 
+                artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
                 fasta_input_ch = artic_ncov_wf.out[0] 
                 }
         }
