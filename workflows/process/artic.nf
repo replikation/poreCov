@@ -4,6 +4,8 @@ process artic_medaka {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.vcfcheck.log"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
 
     input:
@@ -49,7 +51,9 @@ process artic_medaka {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.vcfcheck.log \
+            ${name}.primersitereport.txt
         """
 }
 
@@ -59,6 +63,8 @@ process artic_medaka_custom_bed {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.vcfcheck.log"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
 
     input:
@@ -115,7 +121,9 @@ process artic_medaka_custom_bed {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.vcfcheck.log \
+            ${name}.primersitereport.txt
         """
 }
 
@@ -126,6 +134,8 @@ process artic_nanopolish {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.vcfcheck.log"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
 
     input:
@@ -170,7 +180,9 @@ process artic_nanopolish {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.vcfcheck.log \
+            ${name}.primersitereport.txt
         """
 }
 
@@ -181,6 +193,8 @@ process artic_nanopolish_custom_bed {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.vcfcheck.log"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
 
     input:
@@ -236,7 +250,9 @@ process artic_nanopolish_custom_bed {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.vcfcheck.log \
+            ${name}.primersitereport.txt
         """
 }
 
