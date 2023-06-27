@@ -467,7 +467,8 @@ ${c_yellow}Inputs (choose one):${c_reset}
 
 ${c_yellow}Workflow control (optional)${c_reset}
     --artic_normalize        Normalise down to moderate coverage to save runtime [default: $params.artic_normalize]
-                                   ${c_dim}(after mapping and before variant calling in the ARTIC bioinformatics pipeline)${c_reset}
+                                   ${c_dim}(after mapping and before variant calling in the ARTIC bioinformatics pipeline)
+                                   Use `--artic_normalize False` to turn off this normalisation.${c_reset}
     --update                 Always try to use latest pangolin & nextclade release [default: $params.update]
     --samples                .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
                              Status,_id
