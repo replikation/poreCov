@@ -73,6 +73,7 @@ process artic_medaka_custom_bed {
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
         """
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019
@@ -88,7 +89,7 @@ process artic_medaka_custom_bed {
         artic minion    --medaka \
                         --medaka-model ${params.medaka_model} \
                         --min-depth ${params.min_depth} \
-                        --normalise ${normalise_threshold} \
+                        ${normalise_arg} \
                         --threads ${task.cpus} \
                         --scheme-directory primer_scheme \
                         --read-file ${reads} \
@@ -141,8 +142,10 @@ process artic_nanopolish {
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
         """
-        artic minion --minimap2 --normalise ${normalise_threshold} \
+        artic minion --minimap2 \
+            ${normalise_arg} \
             --threads ${task.cpus} \
             --scheme-directory ${external_scheme} \
             --read-file ${reads} \
@@ -197,6 +200,7 @@ process artic_nanopolish_custom_bed {
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
     script:   
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
         """
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019
@@ -209,7 +213,8 @@ process artic_nanopolish_custom_bed {
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
 
         # start artic
-        artic minion --minimap2 --normalise ${normalise_threshold} \
+        artic minion --minimap2 \
+            ${normalise_arg} \
             --threads ${task.cpus} \
             --scheme-directory primer_scheme \
             --read-file ${reads} \
