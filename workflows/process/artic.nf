@@ -4,7 +4,10 @@ process artic_medaka {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
 
     input:
         tuple val(name), path(reads), path(external_scheme)
@@ -14,6 +17,10 @@ process artic_medaka {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
+        tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
+        tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
+
     script:   
         """
         artic minion    --medaka \
@@ -49,7 +56,10 @@ process artic_medaka {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.primersitereport.txt \
+            ${name}.coverage_mask.txt \
+            ${name}.fail.vcf
         """
 }
 
@@ -59,7 +69,10 @@ process artic_medaka_custom_bed {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(primerBed)
@@ -69,6 +82,9 @@ process artic_medaka_custom_bed {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
+        tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
+        tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
         """
         # create a new primer dir as input for artic
@@ -115,7 +131,10 @@ process artic_medaka_custom_bed {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.primersitereport.txt \
+            ${name}.coverage_mask.txt \
+            ${name}.fail.vcf
         """
 }
 
@@ -126,7 +145,10 @@ process artic_nanopolish {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files)
@@ -136,6 +158,9 @@ process artic_nanopolish {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
+        tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
+        tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
         """
         artic minion --minimap2 --normalise 500 \
@@ -170,7 +195,10 @@ process artic_nanopolish {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.primersitereport.txt \
+            ${name}.coverage_mask.txt \
+            ${name}.fail.vcf
         """
 }
 
@@ -181,7 +209,10 @@ process artic_nanopolish_custom_bed {
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
         publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
+        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files), path(primerBed)
@@ -191,6 +222,9 @@ process artic_nanopolish_custom_bed {
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
         tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
+        tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
+        tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
         """
         # create a new primer dir as input for artic
@@ -236,7 +270,10 @@ process artic_nanopolish_custom_bed {
             ${name}.pass.vcf.gz \
             ${name}.coverage_mask.txt.nCoV-2019_1.depths \
             ${name}.coverage_mask.txt.nCoV-2019_2.depths \
-            ${name}.trimmed.rg.sorted.bam
+            ${name}.trimmed.rg.sorted.bam \
+            ${name}.primersitereport.txt \
+            ${name}.coverage_mask.txt \
+            ${name}.fail.vcf
         """
 }
 
