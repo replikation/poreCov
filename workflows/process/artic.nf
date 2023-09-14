@@ -23,7 +23,7 @@ process artic_medaka {
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
 
     script:   
-        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
         artic minion    --medaka \
                         --medaka-model ${params.medaka_model} \
@@ -89,7 +89,7 @@ process artic_medaka_custom_bed {
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
-        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019
@@ -167,7 +167,7 @@ process artic_nanopolish {
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
-        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
         artic minion --minimap2 \
             ${normalise_arg} \
@@ -234,7 +234,7 @@ process artic_nanopolish_custom_bed {
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
     script:   
-        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : ''
+        def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019
