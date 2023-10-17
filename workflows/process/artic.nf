@@ -78,7 +78,7 @@ process artic_medaka_custom_bed {
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(primerBed)
-        val(normalize_threshold)
+        val(normalise_threshold)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
