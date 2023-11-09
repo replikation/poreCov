@@ -71,7 +71,7 @@ Table of Contents
 * installation [here](https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce) (recommended), alternatively via: `sudo apt install -y docker`
 * add Docker to the user: `sudo usermod -a -G docker $USER`
 ### Singularity
-* Singularity installation [here](https://singularity.lbl.gov/install-linux)
+* Singularity installation [here](https://apptainer.org/docs/)
 * if you can't use Docker
 
 Note, that with Singularity the following environment variables are automatically passed to the container to ensure execution on HPCs: `HTTPS_PROXY`, `HTTP_PROXY`, `http_proxy`, `https_proxy`, `FTP_PROXY` and `ftp_proxy`.
