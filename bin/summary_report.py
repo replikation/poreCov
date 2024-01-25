@@ -498,6 +498,7 @@ class SummaryReport():
 
 
         self.add_column_raw('nextclade_clade', res_data['clade'])
+        self.add_column_raw('nextclade_pango', res_data["Nextclade_pango"]) # Nextclade's pangolin assigment
         self.add_column_raw('nextclade_mutations_nt', res_data['substitutions'])
         self.add_column_raw('nextclade_mutations', res_data['aaSubstitutions'])
         self.add_column_raw('nextclade_deletions_nt', res_data['deletions'])
