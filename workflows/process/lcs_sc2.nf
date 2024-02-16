@@ -12,7 +12,7 @@ process lcs_ucsc_markers_table {
         """
         git clone https://github.com/rki-mf1/LCS.git --branch 2023.01.30
 
-        if [[ "${variant_group_tsv}" != default ]]; then
+        if [[ "${params.lcs_variant_groups}" != default ]]; then
             rm -rf LCS/data/variant_groups.tsv
             cp ${variant_group_tsv} LCS/data/variant_groups.tsv
         fi
@@ -22,6 +22,7 @@ process lcs_ucsc_markers_table {
         sed -i "s/PB_VERSION=.*/PB_VERSION='${params.lcs_ucsc}'/" rules/config.py
         sed -i "s/NUM_SAMPLE=.*/NUM_SAMPLE=${params.lcs_ucsc_downsampling}/" rules/config.py
         mem=\$(echo ${task.memory} | cut -d' ' -f1)
+        echo \$mem
         ## run pipeline
         snakemake --cores ${task.cpus} --resources mem_gb=\$mem --config dataset=somestring markers=ucsc -- ucsc_gather_tables
         ## output
