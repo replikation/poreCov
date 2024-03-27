@@ -90,4 +90,8 @@ process lcs_plot {
   """
   lcs_bar_plot.R '${tsv}' ${cutoff}
   """
+  stub:
+  """
+  touch stub.png
+  """
 }

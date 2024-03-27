@@ -39,6 +39,15 @@ process freyja {
 
         mv freyja_result/${name}_freyja_demix.tsv \$PWD
         """
+    stub:
+        """
+        touch stub_freyja_variants.tsv \
+            stub_freyja_depths.tsv \
+            stub_freyja_demix.tsv \
+            stub_freyja_aggregate.tsv \
+            stub_freyja_plot.png \
+            stub_freyja_plot.svg
+        """
 }
 
 process freyja_plot {
@@ -59,5 +68,10 @@ process freyja_plot {
         freyja plot ${aggregate_file} \
             --output combined_freyja_plot.png \
             --lineages
+        """
+    stub:
+        """
+        touch stub_combined_freyja_plot.png \
+            stub_combined_freyja_plot.svg
         """
 }
