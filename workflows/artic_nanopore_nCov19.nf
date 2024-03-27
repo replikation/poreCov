@@ -14,6 +14,7 @@ workflow artic_ncov_wf {
 
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold)
             assembly = artic_medaka_custom_bed.out.fasta
+            binary_alignment = artic_medaka_custom_bed.out.fullbam
 
             // plot amplicon coverage
             covarplot_custom_bed(artic_medaka_custom_bed.out.covarplot.combine(primerBed))
@@ -25,6 +26,7 @@ workflow artic_ncov_wf {
             
             artic_medaka(fastq.combine(external_primer_schemes), normalise_threshold)
             assembly = artic_medaka.out.fasta
+            binary_alignment = artic_medaka.out.fullbam
 
             // plot amplicon coverage
             covarplot(artic_medaka.out.covarplot.combine(external_primer_schemes))
@@ -33,9 +35,11 @@ workflow artic_ncov_wf {
 
         // error logging
         no_genomes_at_all = assembly.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
+        binary_alignment.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
 
     emit:   
         assembly
+        binary_alignment
 }
 
 workflow artic_ncov_np_wf {
@@ -62,6 +66,7 @@ workflow artic_ncov_np_wf {
         )
 
             assembly = artic_nanopolish_custom_bed.out.fasta
+            binary_alignment = artic_nanopolish_custom_bed.out.fullbam
 
             // plot amplicon coverage
             covarplot_custom_bed(artic_nanopolish_custom_bed.out.covarplot.combine(primerBed))
@@ -81,6 +86,7 @@ workflow artic_ncov_np_wf {
             )
 
             assembly = artic_nanopolish.out.fasta
+            binary_alignment = artic_nanopolish.out.fullbam
 
             // plot amplicon coverage
             covarplot(artic_nanopolish.out.covarplot.combine(external_primer_schemes))
@@ -88,4 +94,5 @@ workflow artic_ncov_np_wf {
         
     emit:   
         assembly
+        binary_alignment
 }
