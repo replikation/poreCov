@@ -125,6 +125,8 @@ if (params.extended && !params.samples ) { exit 5, "When using --extended you ne
 if (!params.freyja == true && !params.freyja == false) {exit 5, "Please provide no input to [--freyja]"}
 if (!params.lcs == true && !params.lcs == false) {exit 5, "Please provide no input to [--lcs]"}
 if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs]"}
+if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
+if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
 
 // validating sample table
 if (params.samples) {  
@@ -320,7 +322,7 @@ include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_classification_wf; read_screening_freyja_wf; freyja_plot_wf; read_screening_lsc_wf; lsc_plot_wf } from './workflows/read_classification'
+include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 
@@ -419,14 +421,9 @@ workflow {
             if (params.screen_reads) {
                 if (params.lcs) {
                     read_screening_lsc_wf(filtered_reads_ch)
-                    lcs_result_ch = read_screening_lsc_wf.out.map{it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")
-                    lsc_plot_wf(lcs_result_ch)
                 }
                 if (params.freyja) {
                     read_screening_freyja_wf(artic_ncov_wf.out.binary_alignment.combine(reference_for_qc_input_ch))
-                    freya_result_ch = read_screening_freyja_wf.out.map{it -> it[1]}.collectFile(name: 'freyja_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")
-                    freyja_plot_wf(freya_result_ch)
-                    //freyja_plot_wf(read_screening_freyja_wf.out)
                 }
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))

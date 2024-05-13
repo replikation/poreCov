@@ -29,18 +29,11 @@ workflow read_screening_freyja_wf {
         alignment
     main:
         freyja(alignment)
+        freya_result_ch = freyja.out.aggregate.map{it -> it[1]}.collectFile(name: 'freyja_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")
+        freyja_plot(freya_result_ch)
     
     emit:
-        freyja_output = freyja.out.aggregate
-}
-
-workflow freyja_plot_wf {
-    take:
-        freyja_results_ch
-    main:
-        freyja_plot(freyja_results_ch)
-
-    emit:
+        freyja_results = freyja.out.aggregate
         freyja_plots = freyja_plot.out
 }
 
@@ -56,16 +49,10 @@ workflow read_screening_lsc_wf {
         lcs_ucsc_markers_table(lcs_variant_groups_ch.ifEmpty([]))
         lcs_sc2(fastq.combine(lcs_ucsc_markers_table.out))
 
-    emit:
-        lcs = lcs_sc2.out
-}
-
-workflow lsc_plot_wf {
-    take:
-        lcs_result_ch
-    main:
+        lcs_result_ch = lcs_sc2.out.map{it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")
         lcs_plot(lcs_result_ch, params.lcs_cutoff)
 
     emit:
+        lcs_results = lcs_sc2.out
         lcs_plots = lcs_plot.out
 }
