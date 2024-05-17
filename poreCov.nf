@@ -359,7 +359,7 @@ workflow {
                 }
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
-                fasta_input_ch = artic_ncov_wf.out.assembly[0] 
+                fasta_input_ch = artic_ncov_wf.out.assembly
                 }
         }
         // fastq input via dir and or files
