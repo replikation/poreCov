@@ -355,7 +355,7 @@ workflow {
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
                 artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1], artic_ncov_np_wf)
-                fasta_input_ch = artic_ncov_np_wf.out.assembly[0]
+                fasta_input_ch = artic_ncov_np_wf.out.assembly
                 }
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
