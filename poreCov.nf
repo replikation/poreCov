@@ -119,7 +119,14 @@ if (params.minLength && !params.minLength.toString().matches("[0-9]+")) { exit 5
 if (params.maxLength && !params.maxLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as maximum read length via [--maxLength]" }
 if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
 if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
+
+// check correct usage of param-flags
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
+if (!params.freyja == true && !params.freyja == false) {exit 5, "Please provide no input to [--freyja]"}
+if (!params.lcs == true && !params.lcs == false) {exit 5, "Please provide no input to [--lcs]"}
+if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs]"}
+if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
+if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
 
 // validating sample table
 if (params.samples) {  
@@ -315,7 +322,7 @@ include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_classification_wf } from './workflows/read_classification'
+include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 
@@ -348,11 +355,11 @@ workflow {
             // use medaka or nanopolish artic reconstruction
             if (params.nanopolish) { 
                 artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1], artic_ncov_np_wf)
-                fasta_input_ch = artic_ncov_np_wf.out[0]
+                fasta_input_ch = artic_ncov_np_wf.out.assembly
                 }
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
-                fasta_input_ch = artic_ncov_wf.out[0] 
+                fasta_input_ch = artic_ncov_wf.out.assembly
                 }
         }
         // fastq input via dir and or files
@@ -384,7 +391,7 @@ workflow {
                 }
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
-                fasta_input_ch = artic_ncov_wf.out
+                fasta_input_ch = artic_ncov_wf.out.assembly
                 }
         }
 
@@ -408,14 +415,16 @@ workflow {
     // 4. Summary output
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             taxonomic_read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
-            linage_read_classification_ch = Channel.from( ['deactivated', 'deactivated'] ).collect()
             alignments_ch = Channel.from( ['deactivated'] )
         } else {
             taxonomic_read_classification_ch = read_classification_wf.out.kraken
             if (params.screen_reads) {
-                linage_read_classification_ch = read_classification_wf.out.lcs
-            } else {
-                linage_read_classification_ch = Channel.from( ['deactivated', 'deactivated'] ).collect()
+                if (params.lcs) {
+                    read_screening_lsc_wf(filtered_reads_ch)
+                }
+                if (params.freyja) {
+                    read_screening_freyja_wf(artic_ncov_wf.out.binary_alignment.combine(reference_for_qc_input_ch))
+                }
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
@@ -427,7 +436,7 @@ workflow {
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
 */
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                taxonomic_read_classification_ch, linage_read_classification_ch, alignments_ch, samples_file_ch)
+                                taxonomic_read_classification_ch, alignments_ch, samples_file_ch)
 
 }
 
@@ -479,12 +488,15 @@ ${c_yellow}Workflow control (optional)${c_reset}
     --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
                              to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
                              e.g --nanopolish sequencing_summary.txt
-    --screen_reads           Determines the Pangolineage of each individual read (takes time)
+    --screen_reads           Determines the Pangolineage of each individual read (takes time, needs --freyja and/or --lcs)
     --scorpio  Skip Scorpio in pangolin run [default: $params.scorpio]
                                   ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples
                                   Can be turned on with --scorpio${c_reset}
 
 ${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)${c_reset}
+    --freyja    activate read-screening via freyja
+    --freyja_update update freyja's barcode-db prior to running
+    --lcs       activate read-screening via lcs
     --lcs_ucsc_version       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
                              to use the marker table from the repo (most probably not up-to-date) [default: $params.lcs_ucsc_version]
                                  ${c_dim}See https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2 for available trees.${c_reset}
