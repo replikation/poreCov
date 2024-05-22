@@ -9,7 +9,7 @@ process filter_fastq_by_length {
     read_min_length = params.minLength
     read_max_length = params.maxLength
 
-    if ( params.primerV.matches('V1200')) {
+    if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200') ) {
         if ( !params.minLength ) { read_min_length = 100 }
         if ( !params.maxLength ) { read_max_length = 1500 }
     }
