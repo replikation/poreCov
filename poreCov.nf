@@ -509,11 +509,11 @@ ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
     --primerV       Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
                         ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1, V.5, V.5.1, V.5.3.2_400
                         ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
-                        ${c_dim}Other:${c_reset} V1200 ${c_dim}(also known as midnight)${c_reset}
+                        ${c_dim}Other:${c_reset} V1200, V5.2.0_1200 ${c_dim}(also known as midnight)${c_reset}
                         ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
     --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
     --minLength     min length filter raw reads [default: 100]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200)]
+    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
     --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
     --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
                     e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
@@ -620,7 +620,7 @@ def read_length() {
     log_msg_read_min_length = params.minLength
     log_msg_read_max_length = params.maxLength
 
-    if ( params.primerV.matches('V1200')) {
+    if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200') ) {
         if ( !params.minLength ) { log_msg_read_min_length = 400 }
         if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
     }
