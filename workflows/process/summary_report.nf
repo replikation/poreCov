@@ -10,6 +10,7 @@ process summary_report {
         path(president_results)
         path(nextclade_results)
         file(kraken2_results)
+        file(mixed_sites_results)
         file(coverage_plots)
         file(samples_table)
     output:
@@ -43,6 +44,7 @@ process summary_report {
             -q !{president_results} \
             -n !{nextclade_results} \
             -k kraken2_results.csv \
+            -m !{mixed_sites_results} \
             -c $(echo !{coverage_plots} | tr ' ' ',') \
             -s !{samples_table}
         '''
@@ -64,6 +66,7 @@ process summary_report_default {
         path(president_results)
         path(nextclade_results)
         path(kraken2_results)
+        path(mixed_sites_results)
         path(coverage_plots)
     output:
 	    path("poreCov_summary_report_*.html")
@@ -96,6 +99,7 @@ process summary_report_default {
             -q !{president_results} \
             -n !{nextclade_results} \
             -k kraken2_results.csv \
+            -m !{mixed_sites_results} \
             -c $(echo !{coverage_plots} | tr ' ' ',') 
         '''
     stub:

@@ -309,6 +309,7 @@ include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
+include { add_alt_allele_ration_vcf } from './modules/add_alt_allele_ration_vcf.nf'
 
 /************************** 
 * Workflows
@@ -405,6 +406,15 @@ workflow {
         determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
+        // add alternative allele ratio to the VCF
+        if (params.primerV.toString().contains(".bed")) {
+            external_primer_schemes = artic_ncov_wf.out.primer_dir
+        }
+        else {
+            external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+        }
+        add_alt_allele_ration_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+
     // 3. Specialised outputs (rki, json)
         rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
 
@@ -436,7 +446,7 @@ workflow {
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
 */
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                taxonomic_read_classification_ch, alignments_ch, samples_file_ch)
+                                taxonomic_read_classification_ch, add_alt_allele_ration_vcf.out.stats, alignments_ch, samples_file_ch)
 
 }
 
