@@ -15,6 +15,10 @@ workflow artic_ncov_wf {
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold)
             assembly = artic_medaka_custom_bed.out.fasta
             binary_alignment = artic_medaka_custom_bed.out.fullbam
+            trimmed_bam = artic_medaka.out.reference_bam
+            vcf = artic_medaka.out.vcf
+            failed_vcf = artic_medaka.out.vcf_fail
+            primer_dir = artic_medaka_custom_bed.out.primer_dir
 
             // plot amplicon coverage
             covarplot_custom_bed(artic_medaka_custom_bed.out.covarplot.combine(primerBed))
@@ -27,6 +31,10 @@ workflow artic_ncov_wf {
             artic_medaka(fastq.combine(external_primer_schemes), normalise_threshold)
             assembly = artic_medaka.out.fasta
             binary_alignment = artic_medaka.out.fullbam
+            trimmed_bam = artic_medaka.out.reference_bam
+            vcf = artic_medaka.out.vcf
+            failed_vcf = artic_medaka.out.vcf_fail
+            primer_dir = Channel.empty()
 
             // plot amplicon coverage
             covarplot(artic_medaka.out.covarplot.combine(external_primer_schemes))
@@ -40,6 +48,10 @@ workflow artic_ncov_wf {
     emit:   
         assembly
         binary_alignment
+        trimmed_bam
+        vcf
+        primer_dir
+        failed_vcf
 }
 
 workflow artic_ncov_np_wf {
