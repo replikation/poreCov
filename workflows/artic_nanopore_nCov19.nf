@@ -15,9 +15,9 @@ workflow artic_ncov_wf {
             artic_medaka_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold)
             assembly = artic_medaka_custom_bed.out.fasta
             binary_alignment = artic_medaka_custom_bed.out.fullbam
-            trimmed_bam = artic_medaka.out.reference_bam
-            vcf = artic_medaka.out.vcf
-            failed_vcf = artic_medaka.out.vcf_fail
+            trimmed_bam = artic_medaka_custom_bed.out.reference_bam
+            vcf = artic_medaka_custom_bed.out.vcf
+            failed_vcf = artic_medaka_custom_bed.out.vcf_fail
             primer_dir = artic_medaka_custom_bed.out.primer_dir
 
             // plot amplicon coverage
