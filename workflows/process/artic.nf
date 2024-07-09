@@ -88,6 +88,7 @@ process artic_medaka_custom_bed {
         tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
+        path ("primer_scheme/nCoV-2019/"), emit: primer_dir
     script:   
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
