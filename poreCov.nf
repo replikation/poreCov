@@ -309,7 +309,7 @@ include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
-include { add_alt_allele_ration_vcf } from './modules/add_alt_allele_ration_vcf.nf'
+include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf'
 
 /************************** 
 * Workflows

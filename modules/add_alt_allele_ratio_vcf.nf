@@ -1,4 +1,4 @@
-process add_alt_allele_ration_vcf {
+process add_alt_allele_ratio_vcf {
     label 'artic'
     publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy'
     input:
