@@ -361,7 +361,16 @@ workflow {
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
                 fasta_input_ch = artic_ncov_wf.out.assembly
+
+                // add alternative allele ratio to the VCF
+                if (params.primerV.toString().contains(".bed")) {
+                    external_primer_schemes = artic_ncov_wf.out.primer_dir
                 }
+                else {
+                    external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+                }
+                add_alt_allele_ratio_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+            }
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
@@ -393,7 +402,16 @@ workflow {
             else if (!params.nanopolish) { 
                 artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
                 fasta_input_ch = artic_ncov_wf.out.assembly
+                
+                // add alternative allele ratio to the VCF
+                if (params.primerV.toString().contains(".bed")) {
+                    external_primer_schemes = artic_ncov_wf.out.primer_dir
                 }
+                else {
+                    external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+                }
+                add_alt_allele_ratio_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+            }
         }
 
     // 2. Genome quality, lineages, clades and mutations
@@ -406,15 +424,6 @@ workflow {
         determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
-        // add alternative allele ratio to the VCF
-        if (params.primerV.toString().contains(".bed")) {
-            external_primer_schemes = artic_ncov_wf.out.primer_dir
-        }
-        else {
-            external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-        }
-        add_alt_allele_ration_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
-
     // 3. Specialised outputs (rki, json)
         rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
 
@@ -426,6 +435,7 @@ workflow {
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             taxonomic_read_classification_ch = Channel.from( ['deactivated', 'deactivated', 'deactivated'] ).collect()
             alignments_ch = Channel.from( ['deactivated'] )
+
         } else {
             taxonomic_read_classification_ch = read_classification_wf.out.kraken
             if (params.screen_reads) {
@@ -438,6 +448,11 @@ workflow {
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
+        if (params.fasta || workflow.profile.contains('test_fasta') || params.nanopolish ) {
+            alt_allele_ratio_ch = Channel.from( ['deactivated'] )
+        } else {
+            alt_allele_ratio_ch = add_alt_allele_ratio_vcf.out.stats
+        }
 
 /*
         if (params.samples) {
@@ -446,7 +461,7 @@ workflow {
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
 */
         create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                taxonomic_read_classification_ch, add_alt_allele_ration_vcf.out.stats, alignments_ch, samples_file_ch)
+                                taxonomic_read_classification_ch, alt_allele_ratio_ch, alignments_ch, samples_file_ch)
 
 }
 
