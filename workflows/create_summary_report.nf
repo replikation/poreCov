@@ -8,6 +8,7 @@ workflow create_summary_report_wf {
         president
         nextclade
         kraken2
+        mixed_sites
         alignments
         samples_table
 
@@ -18,6 +19,7 @@ workflow create_summary_report_wf {
         pangolin_results = pangolin.map {it -> it[1]}.collectFile(name: 'pangolin_results.csv', skip: 1, keepHeader: true)
         president_results = president.map {it -> it[1]}.collectFile(name: 'president_results.tsv', skip: 1, keepHeader: true)
         nextclade_results = nextclade.map {it -> it[1]}.collectFile(name: 'nextclade_results.tsv', skip: 1, keepHeader: true)
+        mixed_site_results = mixed_sites.map {it -> it[1]}.collectFile(name: 'mixed_sites_results.tsv', skip: 1, keepHeader: true)
 
         alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
@@ -30,7 +32,7 @@ workflow create_summary_report_wf {
             coverage_plots = plot_coverages(alignments.map{it -> it[0]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6), \
                                             alignments.map{it -> it[1]}.toSortedList({ a, b -> a.simpleName <=> b.simpleName }).flatten().collate(6)).collect()
 
-            if (params.samples) { summary_report(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots, samples_table) }
-            else { summary_report_default(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, coverage_plots) }
+            if (params.samples) { summary_report(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, mixed_site_results, coverage_plots, samples_table) }
+            else { summary_report_default(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, kraken2_results, mixed_site_results, coverage_plots) }
         }
 } 

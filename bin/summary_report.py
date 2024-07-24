@@ -640,6 +640,9 @@ class SummaryReport():
 
         self.add_col_description(f'Read classification was determined against a database containing only SARS-CoV-2 and human with <a href="https://ccb.jhu.edu/software/kraken2/">Kraken2</a> (v{self.tool_versions["kraken2"]}).')
 
+    def add_mixed_sites_results(self, mixed_site_results):
+        res_data = pd.read_csv(mixed_site_results, index_col='sample', dtype={'sample': str})
+        self.add_column_raw('num_mixed_sites', res_data['num_mixed_sites'])
 
     def add_coverage_plots(self, coverage_plots):
         for coverage_plot in sorted(coverage_plots.split(',')):
@@ -826,6 +829,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--nextclade_results", help="nextclade results")
     parser.add_argument("-q", "--president_results", help="president results")
     parser.add_argument("-k", "--kraken2_results", help="kraken2 results")
+    parser.add_argument("-m", "--mixed_sites_results", help="mixed sites statisics")
     parser.add_argument("-c", "--coverage_plots", help="coverage plots (comma separated)")
     parser.add_argument("-s", "--samples", help="sample ids (comma separated)")
     args = parser.parse_args()
@@ -852,6 +856,8 @@ if __name__ == '__main__':
         report.add_pangolin_results(args.pangolin_results)
     if args.nextclade_results:
         report.add_nextclade_results(args.nextclade_results)
+    if args.mixed_sites_results:
+        report.add_mixed_sites_results(args.mixed_sites_results)
     if args.coverage_plots:
         report.add_coverage_plots(args.coverage_plots)
 

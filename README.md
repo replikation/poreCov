@@ -262,3 +262,5 @@ Hardware|Default settings
   
 # 8. Credits
 The key steps of poreCov are carried out using the [ARTIC Network field bioinformatics pipeline](https://github.com/artic-network/fieldbioinformatics). Kudos to all amazing developers for your incredible efforts during this pandemic! Many thanks to all others who have helped out and contributed to poreCov as well. 
+
+The script [convert_VCF_info_fields.py](bin/convert_VCF_info_fields.py) was originally developed by the Intergalactic Utilities Commission in the [Tool Shed repository](https://github.com/galaxyproject/tools-iuc) under a MIT license.
