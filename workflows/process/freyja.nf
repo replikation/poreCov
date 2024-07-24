@@ -1,6 +1,6 @@
 process freyja {
         label 'freyja'
-        errorStrategy 'retry'
+        errorStrategy 'ignore'
         maxRetries 1
         publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy', pattern: "*"
 
