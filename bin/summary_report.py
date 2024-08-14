@@ -516,6 +516,25 @@ class SummaryReport():
         # N information
         self.add_column_raw('nextclade_missing', res_data["missing"])
 
+        # N percentage information in spike
+        # inspired by https://github.com/nextstrain/nextclade/issues/715
+        def get_percent_N_in_region(positions_and_ranges, positions_of_interest=set(range(int(21563), int(25384)+1))):
+            # Nextclade: ranges are closed (they include both left and right boundaries)
+            # python: ranges: start inclusive, end exclusive
+            # get missing positions (= Ns) from nextclade missing output
+            missing_set = set()
+            if positions_and_ranges == 'nan' or positions_and_ranges == '':
+                return ''
+            else:
+                for region in positions_and_ranges.split(','):
+                    if '-' not in region:
+                        missing_set.update([int(region)])
+                    elif '-' in region:
+                        missing_set.update(range(int(region.split('-')[0]), int(region.split('-')[1])+1))
+                # intersect the sets to get all positions of interest that are missing
+                return len(missing_set & positions_of_interest)/len(positions_of_interest)*100
+        self.add_column_raw('nextclade_percentN_spike', res_data['missing'].apply(lambda x: get_percent_N_in_region(str(x))))
+
         res_data['mutations_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaSubstitutions']]
         res_data['deletions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaDeletions']]
         res_data['insertions_formatted'] = [m.replace(',', ', ') if type(m) == str else '-' for m in res_data['aaInsertions']]
