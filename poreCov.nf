@@ -443,7 +443,7 @@ workflow {
                     read_screening_lsc_wf(filtered_reads_ch)
                 }
                 if (params.freyja) {
-                    read_screening_freyja_wf(artic_ncov_wf.out.binary_alignment.combine(reference_for_qc_input_ch))
+                    read_screening_freyja_wf(artic_ncov_wf.out.trimmed_bam.map{it -> [it[0], it[1]]}.combine(reference_for_qc_input_ch))
                 }
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
