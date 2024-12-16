@@ -123,10 +123,12 @@ if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params
 // check correct usage of param-flags
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
 if (!params.freyja == true && !params.freyja == false) {exit 5, "Please provide no input to [--freyja]"}
+if (!params.hercules == true && !params.hercules == false) {exit 5, "Please provide no input to [--hercules]"}
 if (!params.lcs == true && !params.lcs == false) {exit 5, "Please provide no input to [--lcs]"}
-if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs]"}
+if (params.screen_reads && !params.lcs && !params.freyja && !params.hercules) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs] or [--hercules]"}
 if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
 if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
+if (!params.screen_reads && params.hercules) {exit 5, "[--hercules] requires [--screen_reads] to work"}
 
 // validating sample table
 if (params.samples) {  
@@ -323,7 +325,7 @@ include { create_summary_report_wf } from './workflows/create_summary_report.nf'
 include { determine_lineage_wf } from './workflows/determine_lineage.nf'
 include { determine_mutations_wf } from './workflows/determine_mutations.nf'
 include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
+include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf; read_screening_hercules_wf} from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 
@@ -445,6 +447,9 @@ workflow {
                 if (params.freyja) {
                     read_screening_freyja_wf(artic_ncov_wf.out.trimmed_bam.map{it -> [it[0], it[1]]}.combine(reference_for_qc_input_ch))
                 }
+                if (params.hercules) {
+                    read_screening_hercules_wf(filtered_reads_ch)
+                }
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
@@ -513,12 +518,13 @@ ${c_yellow}Workflow control (optional)${c_reset}
     --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
                              to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
                              e.g --nanopolish sequencing_summary.txt
-    --screen_reads           Determines the Pangolineage of each individual read (takes time, needs --freyja and/or --lcs)
+    --screen_reads           Determines the Pangolineage of each individual read (takes time, needs --freyja, --hercules, and/or --lcs)
     --scorpio  Skip Scorpio in pangolin run [default: $params.scorpio]
                                   ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples
                                   Can be turned on with --scorpio${c_reset}
 
 ${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)${c_reset}
+    --hercules  activate read-screening via hercules
     --freyja    activate read-screening via freyja
     --freyja_update update freyja's barcode-db prior to running
     --lcs       activate read-screening via lcs

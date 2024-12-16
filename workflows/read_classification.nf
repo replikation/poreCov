@@ -3,6 +3,7 @@ include { krona } from './process/krona.nf'
 include { download_database_kraken2 } from './process/download_database_kraken2.nf'
 include { freyja; freyja_plot } from './process/freyja.nf'
 include { lcs_plot; lcs_sc2; lcs_ucsc_markers_table } from './process/lcs_sc2'
+include { hercules } from './process/hercules.nf'
 
 workflow read_classification_wf {
     take:   
@@ -55,4 +56,12 @@ workflow read_screening_lsc_wf {
     emit:
         lcs_results = lcs_sc2.out
         lcs_plots = lcs_plot.out
+}
+
+workflow read_screening_hercules_wf {
+    take:
+        fastq
+    main:
+        hercules(fastq)
+    //emit:
 }
