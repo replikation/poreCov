@@ -167,7 +167,12 @@ MN908947.3	3144	3166	nCoV-2019_4_LEFT	nCoV-2019_2	+
 MN908947.3	4240	4262	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 ```
 
-### Sample sheet
+### Sample input
+
+> [!NOTE]  
+> For fastq input without `--sample` and `--list`, samples with less then 1500 kB file size after fastq concatenation and size selection, are removed.
+
+#### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
 * required columns:
   * `_id` = sample name
@@ -181,7 +186,17 @@ _id,Status,Description
 Sample_2021,barcode01,good
 2ndSample,BC02,bad
 ```
-  
+
+#### --list
+
+* alternatively, fasta and fastq files can automatically renamed via `--fast[a|q] list.csv --list`
+* no header required, example:
+
+```csv
+sample1,path_to_first_sample.fastq.gz
+sample2,path_to_second_sample.fastq.gz
+```
+ 
 ### Pangolin Lineage definitions
   * lineage determinations are quickly changing in response to the pandemic
   * to avoid using out of date lineage schemes, a `--update` flag can be added to each poreCov run to get the most recent version-controlled pangolin container
