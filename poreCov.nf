@@ -417,7 +417,7 @@ workflow {
     // 2. Genome quality, lineages, clades and mutations
         // fasta input
         if ( params.fasta || workflow.profile.contains('test_fasta' ) ) {
-            if (parmas.list) {
+            if (params.list) {
                 fasta_input_ch = fasta_input_raw_ch
             } else {
                 fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
