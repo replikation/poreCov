@@ -103,6 +103,7 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
     if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
     if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
         exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
+    if (params.list && params.fasta) { exit 1, "[--fasta] and [--list] is not supported" }
 
 }
 if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
@@ -156,15 +157,9 @@ if (params.samples) {
 **************************/
 
 // fasta input 
-    if (!params.list && params.fasta && !workflow.profile.contains('test_fasta')) { 
+    if (params.fasta && !workflow.profile.contains('test_fasta')) { 
         fasta_input_raw_ch = Channel
         .fromPath( params.fasta, checkIfExists: true)
-    }
-    else if (params.list && params.fasta && !workflow.profile.contains('test_fasta')) { 
-        fasta_input_raw_ch = Channel
-        .fromPath( params.fasta, checkIfExists: true )
-        .splitCsv()
-        .map { row -> file("${row[1]}", checkIfExists: true) }
     }
 
 // consensus qc reference input - auto using git default if not specified
@@ -508,7 +503,7 @@ ${c_yellow}Workflow control (optional)${c_reset}
                              Status,_id
                              barcode01,sample2011XY
                              BC02,thirdsample_run
-    --list                   --fast[a|q] is a csv file containing a new sample name and the path (no header), e.g.:
+    --list                   --fastq is a csv file containing a new sample name and the path (no header), e.g.:
                              sample1,path_to_first_sample.fastq.gz
                              sample2,path_to_second_sample.fastq.gz
     --extended               poreCov utilizes from --samples these additional headers:

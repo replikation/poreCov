@@ -50,7 +50,9 @@ Table of Contents
     - [Version control](#version-control)
     - [Important input flags (choose one)](#important-input-flags-choose-one)
     - [Custom primer bed files](#custom-primer-bed-files)
-    - [Sample sheet](#sample-sheet)
+    - [Sample input](#sample-input)
+      - [Sample sheet](#sample-sheet)
+      - [--list](#--list)
     - [Pangolin Lineage definitions](#pangolin-lineage-definitions)
 - [3. Quality Metrics (default)](#3-quality-metrics-default)
 - [4. Workflow](#4-workflow)
@@ -170,7 +172,7 @@ MN908947.3	4240	4262	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 ### Sample input
 
 > [!NOTE]  
-> For fastq input without `--sample` and `--list`, samples with less then 1500 kB file size after fastq concatenation and size selection, are removed.
+> For fastq input without `--sample` and `--list`, samples with less than 1500 kB fastq file size after concatenation and size selection, are removed.
 
 #### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
@@ -189,7 +191,7 @@ Sample_2021,barcode01,good
 
 #### --list
 
-* alternatively, fasta and fastq files can automatically renamed via `--fast[a|q] list.csv --list`
+* alternatively fastq files can automatically renamed via `--fastq list.csv --list`
 * no header required, example:
 
 ```csv
