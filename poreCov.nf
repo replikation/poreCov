@@ -164,7 +164,7 @@ if (params.samples) {
         fasta_input_raw_ch = Channel
         .fromPath( params.fasta, checkIfExists: true )
         .splitCsv()
-        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true)] }
+        .map { row -> file("${row[1]}", checkIfExists: true) }
     }
 
 // consensus qc reference input - auto using git default if not specified
@@ -417,11 +417,7 @@ workflow {
     // 2. Genome quality, lineages, clades and mutations
         // fasta input
         if ( params.fasta || workflow.profile.contains('test_fasta' ) ) {
-            if (params.list) {
-                fasta_input_ch = fasta_input_raw_ch
-            } else {
-                fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
-            }
+            fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
         }
 
         determine_lineage_wf(fasta_input_ch)
