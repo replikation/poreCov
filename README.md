@@ -50,7 +50,9 @@ Table of Contents
     - [Version control](#version-control)
     - [Important input flags (choose one)](#important-input-flags-choose-one)
     - [Custom primer bed files](#custom-primer-bed-files)
-    - [Sample sheet](#sample-sheet)
+    - [Sample input](#sample-input)
+      - [Sample sheet](#sample-sheet)
+      - [List input](#list-input)
     - [Pangolin Lineage definitions](#pangolin-lineage-definitions)
 - [3. Quality Metrics (default)](#3-quality-metrics-default)
 - [4. Workflow](#4-workflow)
@@ -167,7 +169,12 @@ MN908947.3	3144	3166	nCoV-2019_4_LEFT	nCoV-2019_2	+
 MN908947.3	4240	4262	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 ```
 
-### Sample sheet
+### Sample input
+
+> [!NOTE]  
+> If using --fastq without either --sample or --list, samples whose concatenated and size-selected FastQ files are smaller than 1500 kB will be excluded from further analysis.
+
+#### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
 * required columns:
   * `_id` = sample name
@@ -181,7 +188,22 @@ _id,Status,Description
 Sample_2021,barcode01,good
 2ndSample,BC02,bad
 ```
-  
+
+#### List input
+* Using `--list` You can provide a csv as input to `--fastq` to select for specific fastq-files
+  * e.g.: `--fastq input.csv --list`
+  * the csv needs to contain two columns:
+    * column 1 = sample name
+    * column 2 = path to fastq-location
+  * no header should be used
+* files get automatically renamed to the sample names provided in column 1
+
+ Example:
+```csv
+sample1,path/to/first/sample.fastq.gz
+2ndSample,path/to/second/sample.fastq.gz
+```
+ 
 ### Pangolin Lineage definitions
   * lineage determinations are quickly changing in response to the pandemic
   * to avoid using out of date lineage schemes, a `--update` flag can be added to each poreCov run to get the most recent version-controlled pangolin container
