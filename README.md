@@ -52,7 +52,7 @@ Table of Contents
     - [Custom primer bed files](#custom-primer-bed-files)
     - [Sample input](#sample-input)
       - [Sample sheet](#sample-sheet)
-      - [--list](#--list)
+      - [List input](#list-input)
     - [Pangolin Lineage definitions](#pangolin-lineage-definitions)
 - [3. Quality Metrics (default)](#3-quality-metrics-default)
 - [4. Workflow](#4-workflow)
@@ -172,7 +172,7 @@ MN908947.3	4240	4262	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 ### Sample input
 
 > [!NOTE]  
-> For fastq input without `--sample` and `--list`, samples with less than 1500 kB fastq file size after concatenation and size selection, are removed.
+> If using --fastq without either --sample or --list, samples whose concatenated and size-selected FastQ files are smaller than 1500 kB will be excluded from further analysis.
 
 #### Sample sheet
 * barcodes can be automatically renamed via `--samples sample_names.csv`
@@ -189,14 +189,19 @@ Sample_2021,barcode01,good
 2ndSample,BC02,bad
 ```
 
-#### --list
+#### List input
+* Using `--list` You can provide a csv as input to `--fastq` to select for specific fastq-files
+  * e.g.: `--fastq input.csv --list`
+  * the csv needs to contain two columns:
+    * column 1 = sample name
+    * column 2 = path to fastq-location
+  * no header should be used
+* files get automatically renamed to the sample names provided in column 1
 
-* alternatively fastq files can automatically renamed via `--fastq list.csv --list`
-* no header required, example:
-
+ Example:
 ```csv
-sample1,path_to_first_sample.fastq.gz
-sample2,path_to_second_sample.fastq.gz
+sample1,path/to/first/sample.fastq.gz
+2ndSample,path/to/second/sample.fastq.gz
 ```
  
 ### Pangolin Lineage definitions

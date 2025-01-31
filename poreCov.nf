@@ -503,9 +503,10 @@ ${c_yellow}Workflow control (optional)${c_reset}
                              Status,_id
                              barcode01,sample2011XY
                              BC02,thirdsample_run
-    --list                   --fastq is a csv file containing a new sample name and the path (no header), e.g.:
-                             sample1,path_to_first_sample.fastq.gz
-                             sample2,path_to_second_sample.fastq.gz
+    --list                   --fastq takes a csv file containing (new) sample names and paths to the fastq-files (no header).
+                             Paths need to start with '/' or poreCov searches the files in the current working dir, e.g.:
+                             sample1,/path_to_first_sample.fastq.gz
+                             sample2,/path_to_second_sample.fastq.gz
     --extended               poreCov utilizes from --samples these additional headers:
                              Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
     --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
