@@ -254,6 +254,7 @@ If you are using poreCov please also check the used software to cite in your wor
 
 ## Singularity
 * Singularity needs additional option flags to run like `--userns` [Solution on how to pass Singularity commands to poreCov](https://github.com/replikation/poreCov/issues/101#issuecomment-825807042)
+* Running Singularity in nextflow-versions > 22.X.X requires the flag `NXF_SINGULARITY_HOME_MOUNT=true` in front of your nextflow command [Singularity container execution of pangolin crashes with recent nextflow versions #272](https://github.com/replikation/poreCov/issues/272#issuecomment-2358409010)
   
 # 7. Time to results
 **Table 1**: Execution speed of poreCov on different Ubuntu 20 Systems using a single sample file with 167,929 reads. Command used: `nextflow run replikation/poreCov -r 0.9.4 -profile test_fastq,local,docker`.
