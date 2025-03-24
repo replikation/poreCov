@@ -12,6 +12,6 @@ workflow genome_quality_wf {
         seqrs(fasta.combine(primerbedfile))
 
     emit:   
-        president.out.valid
-        president.out.invalid
+        president_valid = president.out.valid
+        president_invalid = president.out.invalid
 }

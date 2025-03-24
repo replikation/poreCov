@@ -420,7 +420,7 @@ workflow {
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
-        rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
+        rki_report_wf(genome_quality_wf.out.president_valid, genome_quality_wf.out.president_invalid, extended_input_ch)
 
         if (params.samples) {
             create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
