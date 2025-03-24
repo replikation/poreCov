@@ -4,7 +4,7 @@ process filter_fastq_by_length {
     input:
         tuple val(name), path(reads) 
     output:
-	    tuple val(name), path("${name}_filtered.fastq.gz") optional true
+	    tuple val(name), path("${name}_filtered.fastq.gz"), optional: true
     script:
     read_min_length = params.minLength
     read_max_length = params.maxLength

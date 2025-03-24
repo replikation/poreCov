@@ -5,7 +5,7 @@ process pangolin {
   input:
     tuple val(name), path(fasta)
   output:
-    tuple val(name), path("lineage_report_${name}.csv") optional true
+    tuple val(name), path("lineage_report_${name}.csv"), optional: true
   script:
     def args = params.scorpio ? '' : '--skip-scorpio'
     """

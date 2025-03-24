@@ -7,8 +7,8 @@ process nanoplot {
     input:
         tuple val(name), path(reads)
     output:
-        tuple val(name), path("*.html"), path("*.pdf") optional true
-        tuple val(name), path("${name}_read_quality.txt"), path("*.png") optional true
+        tuple val(name), path("*.html"), path("*.pdf"), optional: true
+        tuple val(name), path("${name}_read_quality.txt"), path("*.png"), optional: true
     script:
     """
     NanoPlot -t ${task.cpus} --fastq ${reads} --title '${name}' --color darkslategrey --N50 --plots hex --loglength -f png --store
