@@ -13,6 +13,7 @@ process summary_report {
         file(mixed_sites_results)
         file(coverage_plots)
         file(samples_table)
+        val(nextcladedocker)
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
@@ -34,7 +35,7 @@ process summary_report {
             -v ${version_config} \
             --variants_table ${variants_table} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
-            --nextclade_docker ${params.nextcladedocker} \
+            --nextclade_docker ${nextcladedocker} \
             --guppy_used ${guppyused} \
             --guppy_model ${params.guppy_model} \
             --medaka_model ${params.medaka_model} \
@@ -68,6 +69,7 @@ process summary_report_default {
         path(kraken2_results)
         path(mixed_sites_results)
         path(coverage_plots)
+        val(nextcladedocker)
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
@@ -93,7 +95,7 @@ process summary_report_default {
             --guppy_model ${params.guppy_model} \
             --medaka_model ${params.medaka_model} \
             --nf_commandline '${workflow.commandLine}' \
-            --nextclade_docker ${params.nextcladedocker} \
+            --nextclade_docker ${nextcladedocker} \
             --primer ${params.primerV} \
             -p ${pangolin_results} \
             -q ${president_results} \
@@ -117,6 +119,7 @@ process summary_report_fasta {
         path(pangolin_results)
         path(president_results)
         path(nextclade_results)
+        val(nextcladedocker)
     output:
 	    path("poreCov_summary_report_*.html")
         path("poreCov_summary_report_*.xlsx")
@@ -129,7 +132,7 @@ process summary_report_fasta {
             --variants_table ${variants_table} \
             --porecov_version ${workflow.revision}:${workflow.commitId}:${workflow.scriptId} \
             --nf_commandline '${workflow.commandLine}' \
-            --nextclade_docker ${params.nextcladedocker} \
+            --nextclade_docker ${nextcladedocker} \
             -p ${pangolin_results} \
             -q ${president_results} \
             -n ${nextclade_results} \

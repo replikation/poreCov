@@ -2,9 +2,10 @@ include { nextclade } from './process/nextclade'
 
 workflow determine_mutations_wf {
     take: 
-        fasta  
+        fasta
+        nextcladedocker
     main:
-        nextclade(fasta)
+        nextclade(fasta, nextcladedocker)
 
     emit:
         nextclade.out

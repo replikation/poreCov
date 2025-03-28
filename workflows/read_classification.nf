@@ -40,13 +40,14 @@ workflow read_screening_freyja_wf {
 workflow read_screening_lsc_wf {
     take:
         fastq
+        lsc_ucsc_work_version
     main:
         // Metagenomic analysis
         // calculate mixed/ pooled samples using LCS, https://github.com/rvalieris/LCS
         if (params.lcs_variant_groups == 'default')     { lcs_variant_groups_ch = Channel.empty() } 
         else                                            { lcs_variant_groups_ch = Channel.fromPath("${params.lcs_variant_groups}", checkIfExists: true)}
 
-        lcs_ucsc_markers_table(lcs_variant_groups_ch.ifEmpty([]))
+        lcs_ucsc_markers_table(lcs_variant_groups_ch.ifEmpty([]), lsc_ucsc_work_version)
         lcs_sc2(fastq.combine(lcs_ucsc_markers_table.out))
 
         lcs_result_ch = lcs_sc2.out.map{it -> it[1]}.collectFile(name: 'lcs_results.tsv', skip: 1, keepHeader: true, storeDir: "${params.output}/${params.lineagedir}/")

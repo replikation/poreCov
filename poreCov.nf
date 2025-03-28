@@ -7,10 +7,44 @@ nextflow.enable.dsl=2
 */
 
 /************************** 
-* HELP messages & checks
+* MODULES
 **************************/
 
-header()
+include { get_fast5 } from './modules/get_fast5_test_data.nf'
+include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
+include { get_fasta } from './modules/get_fasta_test_data.nf'
+include { align_to_reference } from './modules/align_to_reference.nf'
+include { split_fasta } from './modules/split_fasta.nf'
+include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
+include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf'
+
+/************************** 
+* Workflows
+**************************/
+
+include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
+include { basecalling_wf } from './workflows/basecalling.nf'
+include { collect_fastq_wf } from './workflows/collect_fastq.nf'
+include { create_json_entries_wf } from './workflows/create_json_entries.nf'
+include { create_summary_report_wf } from './workflows/create_summary_report.nf'
+include { determine_lineage_wf } from './workflows/determine_lineage.nf'
+include { determine_mutations_wf } from './workflows/determine_mutations.nf'
+include { genome_quality_wf } from './workflows/genome_quality.nf'
+include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
+include { read_qc_wf } from './workflows/read_qc.nf'
+include { rki_report_wf } from './workflows/provide_rki.nf'
+include { pangolin } from './workflows/process/pangolin.nf'
+
+
+/************************** 
+* Begin of Workflow
+**************************/
+workflow {
+
+    header()
+/************************** 
+* HELP messages & checks
+**************************/
 
 /* 
 Nextflow version check  
@@ -18,51 +52,36 @@ Format is this: XX.YY.ZZ  (e.g. 20.07.1)
 change below
 */
 
-XX = "21"
-YY = "04"
-ZZ = "0"
+    XX = "21"
+    YY = "10"
+    ZZ = "4"
 
-if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
-println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
-exit 1
-}
-else if ( nextflow.version.toString().tokenize('.')[1].toInteger() == XX.toInteger() && nextflow.version.toString().tokenize('.')[1].toInteger() < YY.toInteger() ) {
-println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
-exit 1
-}
-
-/* 
-try to check for poreCov releases
-*/
-
-static boolean netIsAvailable() {
-    try {
-        final URL url = new URL("https://api.github.com/repos/replikation/poreCov/releases/latest");
-        final URLConnection conn = url.openConnection();
-        conn.connect();
-        conn.getInputStream().close();
-        return true;
-    } catch (MalformedURLException e) {
-        return false;
-    } catch (IOException e) {
-        return false;
+    if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
+    println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
+    exit 1
     }
-}
-
-def gitcheck = netIsAvailable()
-
-if ( gitcheck.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
-if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version info' } 
+    else if ( nextflow.version.toString().tokenize('.')[1].toInteger() == XX.toInteger() && nextflow.version.toString().tokenize('.')[1].toInteger() < YY.toInteger() ) {
+    println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
+    exit 1
+    }
 
 
-println " "
-println "  Latest available poreCov release: " + porecovrelease
-println "  If neccessary update via: nextflow pull replikation/poreCov"
-println "________________________________________________________________________________"
+// try to check for poreCov releases
+
+    def gitcheck = NetChecker.netIsAvailable() // class "NetChecker" is found in the file NetChecker.groovy in the lib-directory
+
+    if ( gitcheck.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
+    if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version info' } 
+
+
+    println " "
+    println "  Latest available poreCov release: " + porecovrelease
+    println "  If neccessary update via: nextflow pull replikation/poreCov"
+    println "________________________________________________________________________________"
 
 
 // Log infos based on user inputs
-if ( params.help ) { exit 0, helpMSG() }
+    if ( params.help ) { exit 0, helpMSG() }
 
 // profile helps
     if ( workflow.profile == 'standard' ) { exit 1, "NO EXECUTION PROFILE SELECTED, use e.g. [-profile local,docker]" }
@@ -96,60 +115,60 @@ if ( params.help ) { exit 0, helpMSG() }
     }
 
 // params help
-if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
-    if (!params.fasta &&  !params.fast5 &&  !params.fastq && !params.fastq_pass ) {
-        exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]" }
-    if ( params.fastq && params.fastq_pass ) { exit 1, "Please use either: [--fastq] or [--fastq_pass]"}
-    if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
-    if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
-        exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
-    if (params.list && params.fasta) { exit 1, "[--fasta] and [--list] is not supported" }
+    if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test_fast5') && !workflow.profile.contains('test_fasta')) {
+        if (!params.fasta &&  !params.fast5 &&  !params.fastq && !params.fastq_pass ) {
+            exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]" }
+        if ( params.fastq && params.fastq_pass ) { exit 1, "Please use either: [--fastq] or [--fastq_pass]"}
+        if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
+        if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
+            exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
+        if (params.list && params.fasta) { exit 1, "[--fasta] and [--list] is not supported" }
 
-}
-if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
-        exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
+    }
+    if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
+            exit 1, "More cores (--cores $params.cores) specified than available (--max_cores $params.max_cores)" }
 
-if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not supported for [--single]" }
+    if ( params.single && params.samples ) { exit 1, "Sample input [--samples] not supported for [--single]" }
 
 // check that input params are used as such
-if (params.fasta == true) { exit 5, "Please provide a fasta file via [--fasta]" }
-if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sample) via [--fastq]" }
-if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
-if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
-if (params.minLength && !params.minLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as minimal read length via [--minLength]" }
-if (params.maxLength && !params.maxLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as maximum read length via [--maxLength]" }
-if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
-if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
+    if (params.fasta == true) { exit 5, "Please provide a fasta file via [--fasta]" }
+    if (params.fastq == true) { exit 5, "Please provide a fastq files (one per sample) via [--fastq]" }
+    if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [--fastq_pass]" }
+    if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
+    if (params.minLength && !params.minLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as minimal read length via [--minLength]" }
+    if (params.maxLength && !params.maxLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as maximum read length via [--maxLength]" }
+    if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
+    if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
 
 // check correct usage of param-flags
-if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
-if (!params.freyja == true && !params.freyja == false) {exit 5, "Please provide no input to [--freyja]"}
-if (!params.lcs == true && !params.lcs == false) {exit 5, "Please provide no input to [--lcs]"}
-if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs]"}
-if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
-if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
+    if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
+    if (!params.freyja == true && !params.freyja == false) {exit 5, "Please provide no input to [--freyja]"}
+    if (!params.lcs == true && !params.lcs == false) {exit 5, "Please provide no input to [--lcs]"}
+    if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [--screen_reads] you also need to use at least one: [--freyja] or [--lcs]"}
+    if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
+    if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
 
 // validating sample table
-if (params.samples) {  
+    if (params.samples) {  
 
-    // check that the rows _id and Status can be found
-    // checks afterwards that no fields are empty
-    Channel.fromPath( params.samples, checkIfExists: true)
-        .splitCsv(header: false, sep: ',')
-        .take( 1 )
-        .map { row ->  
-            if ( !("_id" in row) ) { exit 6, "The column '_id' was not found in $params.samples, hidden symbols? Use a editor to generate the csv file" }
-            if ( !("Status" in row) ) { exit 6, "The column 'Status' was not found in $params.samples" }
-        }
-        .mix(
+        // check that the rows _id and Status can be found
+        // checks afterwards that no fields are empty
         Channel.fromPath( params.samples, checkIfExists: true)
-            .splitCsv(header: true, sep: ',')
-            .map { row -> 
-                if (!row.'Status') { exit 6, "A Status field appears to be empty in the file $params.samples" }
-                if (!row.'_id') { exit 6, "A _id field appears to be empty in the file $params.samples"} 
+            .splitCsv(header: false, sep: ',')
+            .take( 1 )
+            .map { row ->  
+                if ( !("_id" in row) ) { exit 6, "The column '_id' was not found in $params.samples, hidden symbols? Use a editor to generate the csv file" }
+                if ( !("Status" in row) ) { exit 6, "The column 'Status' was not found in $params.samples" }
             }
-        )
-}
+            .mix(
+            Channel.fromPath( params.samples, checkIfExists: true)
+                .splitCsv(header: true, sep: ',')
+                .map { row -> 
+                    if (!row.'Status') { exit 6, "A Status field appears to be empty in the file $params.samples" }
+                    if (!row.'_id') { exit 6, "A _id field appears to be empty in the file $params.samples"} 
+                }
+            )
+    }
 
 
 /************************** 
@@ -235,98 +254,54 @@ if (params.samples) {
 * Automatic Pangolin version updates, with fail save
 **************************/
 
-static boolean DockernetIsAvailable() {
-    try {
-        final URL url = new URL("https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/");
-        final URLConnection conn = url.openConnection();
-        conn.connect();
-        conn.getInputStream().close();
-        return true;
-    } catch (MalformedURLException e) {
-        return false;
-    } catch (IOException e) {
-        return false;
+    def internetcheck = NetChecker.DockernetIsAvailable() // class "NetChecker" is found in the file NetChecker.groovy in the lib-directory
+
+    if (params.update) {
+    println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
+        if ( internetcheck.toString() == "true" ) { 
+            tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+            pangolindocker = "nanozoo/pangolin-v4:" + tagname
+            println "\033[0;32mFound latest pangolin container, using: " + pangolindocker + " \033[0m" 
+
+            tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade3/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
+            nextcladedocker = "nanozoo/nextclade3:" + tagname 
+            println "\033[0;32mFound latest nextclade3 container, using: " + nextcladedocker + " \033[0m"
+        } 
+        if ( internetcheck.toString() == "false" ) { 
+            println "\033[0;33mCould not find the latest pangolin container, trying: " + params.defaultpangolin + "\033[0m"
+            pangolindocker = params.defaultpangolin 
+
+            println "\033[0;33mCould not find the latest nextclade3 container, trying: " + params.defaultnextclade + "\033[0m"
+            nextcladedocker = params.defaultnextclade 
+        } 
     }
-}
+    else { pangolindocker = params.defaultpangolin ; nextcladedocker = params.defaultnextclade  }
 
-def internetcheck = DockernetIsAvailable()
-
-if (params.update) {
-println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
-    if ( internetcheck.toString() == "true" ) { 
-        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-        params.pangolindocker = "nanozoo/pangolin-v4:" + tagname
-        println "\033[0;32mFound latest pangolin container, using: " + params.pangolindocker + " \033[0m" 
-
-        tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/nextclade3/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
-        params.nextcladedocker = "nanozoo/nextclade3:" + tagname 
-        println "\033[0;32mFound latest nextclade3 container, using: " + params.nextcladedocker + " \033[0m"
-    } 
-    if ( internetcheck.toString() == "false" ) { 
-        println "\033[0;33mCould not find the latest pangolin container, trying: " + params.defaultpangolin + "\033[0m"
-        params.pangolindocker = params.defaultpangolin 
-
-        println "\033[0;33mCould not find the latest nextclade3 container, trying: " + params.defaultnextclade + "\033[0m"
-        params.nextcladedocker = params.defaultnextclade 
-    } 
-}
-else { params.pangolindocker = params.defaultpangolin ; params.nextcladedocker = params.defaultnextclade  }
-
-if ( params.screen_reads && params.lcs_ucsc_update ){
-    if ( internetcheck.toString() == "true" ) { 
-        latest_version = 'https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt'.toURL().text.split('\\(')[1].split('\\)')[0]
-        log.info "\033[0;32mFound latest UCSC version, using: " + latest_version + " \033[0m" 
-        params.lcs_ucsc = latest_version
-    }
-    if ( internetcheck.toString() == "false" ) { 
-        log.info "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_version + "\033[0m"
-        params.lcs_ucsc = params.lcs_ucsc_version
-    }
-} else { params.lcs_ucsc = params.lcs_ucsc_version}
+    if ( params.screen_reads && params.lcs_ucsc_update ){
+        if ( internetcheck.toString() == "true" ) { 
+            lsc_ucsc_work_version = 'https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt'.toURL().text.split('\\(')[1].split('\\)')[0]
+            log.info "\033[0;32mFound latest UCSC version, using: " + lsc_ucsc_work_version + " \033[0m" 
+        }
+        if ( internetcheck.toString() == "false" ) { 
+            log.info "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_version + "\033[0m"
+            lsc_ucsc_work_version = params.lcs_ucsc_version
+        }
+    } else { lsc_ucsc_work_version = params.lcs_ucsc_version}
 
 
 /************************** 
 * Log-infos
 **************************/
 
-defaultMSG()
-if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
-if (!params.fasta && !workflow.profile.contains('test_fasta')) { read_length() }
-rki()
-
-/************************** 
-* MODULES
-**************************/
-
-include { get_fast5 } from './modules/get_fast5_test_data.nf'
-include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
-include { get_fasta } from './modules/get_fasta_test_data.nf'
-include { align_to_reference } from './modules/align_to_reference.nf'
-include { split_fasta } from './modules/split_fasta.nf'
-include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
-include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf'
-
-/************************** 
-* Workflows
-**************************/
-
-include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
-include { basecalling_wf } from './workflows/basecalling.nf'
-include { collect_fastq_wf } from './workflows/collect_fastq.nf'
-include { create_json_entries_wf } from './workflows/create_json_entries.nf'
-include { create_summary_report_wf } from './workflows/create_summary_report.nf'
-include { determine_lineage_wf } from './workflows/determine_lineage.nf'
-include { determine_mutations_wf } from './workflows/determine_mutations.nf'
-include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
-include { read_qc_wf } from './workflows/read_qc.nf'
-include { rki_report_wf } from './workflows/provide_rki.nf'
+    defaultMSG()
+    if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
+    if (!params.fasta && !workflow.profile.contains('test_fasta')) { read_length() }
+    rki()
 
 /************************** 
 * MAIN WORKFLOW
 **************************/
 
-workflow {
     // 0. Test profile data
         if ( workflow.profile.contains('test_fast5')) { dir_input_ch =  get_fast5().map {it -> ['SARSCoV2', it] } }
         if ( workflow.profile.contains('test_fastq')) { fastq_input_raw_ch =  get_nanopore_fastq().map {it -> ['SARSCoV2', it] } }
@@ -415,15 +390,15 @@ workflow {
             fasta_input_ch = split_fasta(fasta_input_raw_ch).flatten().map { it -> tuple(it.simpleName, it) }
         }
 
-        determine_lineage_wf(fasta_input_ch)
-        determine_mutations_wf(fasta_input_ch)
+        determine_lineage_wf(fasta_input_ch, pangolindocker)
+        determine_mutations_wf(fasta_input_ch, nextcladedocker)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
 
     // 3. Specialised outputs (rki, json)
         rki_report_wf(genome_quality_wf.out.president_valid, genome_quality_wf.out.president_invalid, extended_input_ch)
 
         if (params.samples) {
-            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out)
+            create_json_entries_wf(determine_lineage_wf.out, genome_quality_wf.out.president_valid, determine_mutations_wf.out)
         }
 
     // 4. Summary output
@@ -435,7 +410,7 @@ workflow {
             taxonomic_read_classification_ch = read_classification_wf.out.kraken
             if (params.screen_reads) {
                 if (params.lcs) {
-                    read_screening_lsc_wf(filtered_reads_ch)
+                    read_screening_lsc_wf(filtered_reads_ch, lsc_ucsc_work_version)
                 }
                 if (params.freyja) {
                     read_screening_freyja_wf(artic_ncov_wf.out.trimmed_bam.map{it -> [it[0], it[1]]}.combine(reference_for_qc_input_ch))
@@ -455,8 +430,8 @@ workflow {
         }
         else { samples_table_ch = Channel.from( ['deactivated'] ) }
 */
-        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out[0], determine_mutations_wf.out,
-                                taxonomic_read_classification_ch, alt_allele_ratio_ch, alignments_ch, samples_file_ch)
+        create_summary_report_wf(determine_lineage_wf.out, genome_quality_wf.out.president_valid, determine_mutations_wf.out,
+                                taxonomic_read_classification_ch, alt_allele_ratio_ch, alignments_ch, samples_file_ch, nextcladedocker)
 
 }
 
@@ -464,11 +439,11 @@ workflow {
 * --help
 *************/
 def helpMSG() {
-    c_green = "\033[0;32m";
-    c_reset = "\033[0m";
-    c_yellow = "\033[0;33m";
-    c_blue = "\033[0;34m";
-    c_dim = "\033[2m";
+    def c_green = "\033[0;32m";
+    def c_reset = "\033[0m";
+    def c_yellow = "\033[0;33m";
+    def c_blue = "\033[0;34m";
+    def c_dim = "\033[2m";
     log.info """
     .    
 \033[0;33mUsage examples:${c_reset}
@@ -591,8 +566,8 @@ ${c_yellow}Execution/Engine profiles (choose executer and engine${c_reset}
 }
 
 def header(){
-    c_green = "\033[0;32m";
-    c_reset = "\033[0m";
+    def c_green = "\033[0;32m";
+    def c_reset = "\033[0m";
     log.info """
 ________________________________________________________________________________
     
@@ -653,8 +628,8 @@ def rki() {
 }
 
 def read_length() {
-    log_msg_read_min_length = params.minLength
-    log_msg_read_max_length = params.maxLength
+    def log_msg_read_min_length = params.minLength
+    def log_msg_read_max_length = params.maxLength
 
     if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200') ) {
         if ( !params.minLength ) { log_msg_read_min_length = 400 }
