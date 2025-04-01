@@ -1,6 +1,6 @@
 
 process get_fast5 {
-  	container = 'nanozoo/template:3.8--d089809'
+  	label 'template'
 	output:
 	path("fast5") 
 	script:

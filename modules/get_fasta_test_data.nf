@@ -1,6 +1,6 @@
 
 process get_fasta {
-  	container = 'nanozoo/template:3.8--d089809'
+  	label 'template'
 	output:
 	path("SARSCoV2.fasta") 
 	script:

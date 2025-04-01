@@ -4,8 +4,8 @@ process quality_genome_filter {
   input:
     tuple val(name), path(fasta)
   output:
-    tuple val(name), path("qc_${fasta}") optional true
-    tuple val(name), path("error_report_*.txt") optional true
+    tuple val(name), path("qc_${fasta}"), optional: true
+    tuple val(name), path("error_report_*.txt"), optional: true
   script:
     """
     genome_integrity.sh ${fasta} ${params.maskBegin} ${params.maskEnd} ${params.rm_N_genome}
