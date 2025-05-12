@@ -12,25 +12,25 @@ jobs:
     - name: fasta dry run
       run: |
           touch genome.fasta 
-          ./nextflow run poreCov.nf --fasta genome.fasta -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fasta genome.fasta -stub-run -profile stub --cores 2 --max_cores 2
     - name: fastq dry run
       run: |
           touch reads.fastq 
-          ./nextflow run poreCov.nf --fastq reads.fastq -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fastq reads.fastq -stub-run -profile stub --cores 2 --max_cores 2
     - name: fastq_pass dry run
       run: |
           mkdir fastq_pass 
-          ./nextflow run poreCov.nf --fastq_pass fastq_pass/  -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fastq_pass fastq_pass/  -stub-run -profile stub --cores 2 --max_cores 2
     - name: fast5 dry run
       run: |
           mkdir fast5 
-          ./nextflow run poreCov.nf --fast5 fast5/  -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fast5 fast5/  -stub-run -profile stub --cores 2 --max_cores 2
     - name: fast5 dry run nanopolish
       run: |
           mkdir fast5_2 
-          ./nextflow run poreCov.nf --fast5 fast5_2/ --nanopolish  -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fast5 fast5_2/ --nanopolish  -stub-run -profile stub --cores 2 --max_cores 2
     - name: fastq samples dry run
       run: |
           touch barcode01.fastq.gz
           printf "_id,Status\nsample,BC01\n" > sample.csv
-          ./nextflow run poreCov.nf --fastq barcode01.fastq.gz --samples sample.csv -stub -profile stub --cores 2 --max_cores 2
+          ./nextflow run poreCov.nf --fastq barcode01.fastq.gz --samples sample.csv -stub-run -profile stub --cores 2 --max_cores 2
