@@ -321,6 +321,7 @@ include { genome_quality_wf } from './workflows/genome_quality.nf'
 include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
 include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
+include { ww_cryptic_lineages_wf } from './workflows/ww_cryptic_lineages.nf'
 
 /************************** 
 * MAIN WORKFLOW
@@ -418,6 +419,13 @@ workflow {
         determine_lineage_wf(fasta_input_ch)
         determine_mutations_wf(fasta_input_ch)
         genome_quality_wf(fasta_input_ch, reference_for_qc_input_ch)
+
+    // TEST - devider haplotyping + freyja covariants co-occurring mutation profiles
+    // for cryptic variant detection later
+        if (1) { // create a flag/param for this? + make sure the channels exist?
+            ww_cryptic_lineages_wf(fastq_input_ch, reference_for_qc_input_ch, artic_ncov_wf.out.trimmed_bam)
+            // should this be filtered_reads_ch?
+        }
 
     // 3. Specialised outputs (rki, json)
         rki_report_wf(genome_quality_wf.out[0], genome_quality_wf.out[1], extended_input_ch)
