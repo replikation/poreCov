@@ -10,10 +10,13 @@ process devider {
         // add other stuff if relevant
 
     script:
+    // just run devider haplotyping
     /*"""
     devider -b ${bam_file} -v ${vcf} -r ${reference} -o ${name}_devider_output \
         -t ${task.cpus} --preset nanopore-r9
     """*/ // didn't work when I tried it separately (because it doesnt recognize chromosome name or smth)
+    
+    // run devider pipeline (does mapping, variant calling, haplotyping)
     """
     run_devider_pipeline -i ${reads} -r ${reference} -o ${name}_devider_output
     mv ${name}_devider_output/majority_vote_haplotypes.fasta ${name}_majority_vote_haplotypes.fasta

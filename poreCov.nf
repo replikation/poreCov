@@ -423,8 +423,7 @@ workflow {
     // TEST - devider haplotyping + freyja covariants co-occurring mutation profiles
     // for cryptic variant detection later
         if (1) { // create a flag/param for this? + make sure the channels exist?
-            ww_cryptic_lineages_wf(fastq_input_ch, reference_for_qc_input_ch, artic_ncov_wf.out.trimmed_bam)
-            // should this be filtered_reads_ch?
+            ww_cryptic_lineages_wf(filtered_reads_ch, reference_for_qc_input_ch, artic_ncov_wf.out.trimmed_bam)
         }
 
     // 3. Specialised outputs (rki, json)
