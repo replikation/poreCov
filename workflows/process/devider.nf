@@ -50,5 +50,6 @@ process freyja_covariants {
     """
     // could include .gff with --annot --> AA notes in result + nt mutation
     //  --threads ${task.cpus} gets error "no such option as --threads" but it exists according to --help and the wiki ??
-
+    // potential issue: gives different result than running freyja covariants separately --> just because of different (trimmed) bam?
+    
 }

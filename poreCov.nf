@@ -422,7 +422,7 @@ workflow {
 
     // TEST - devider haplotyping + freyja covariants co-occurring mutation profiles
     // for cryptic variant detection later
-        if (1) { // create a flag/param for this? + make sure the channels exist?
+        if (!(params.fasta || workflow.profile.contains('test_fasta'))) { // create a flag/param for this? + make sure the channels exist?
             ww_cryptic_lineages_wf(filtered_reads_ch, reference_for_qc_input_ch, artic_ncov_wf.out.trimmed_bam)
         }
 
