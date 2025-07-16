@@ -129,6 +129,7 @@ if (params.screen_reads && !params.lcs && !params.freyja) {exit 5, "When using [
 if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_reads] to work"}
 if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
 
+
 // validating sample table
 if (params.samples) {  
 
@@ -310,7 +311,7 @@ include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf
 * Workflows
 **************************/
 
-include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
+include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
