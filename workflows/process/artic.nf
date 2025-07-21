@@ -9,6 +9,7 @@ process artic {
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
         publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
 
+
     input:
         tuple val(name), path(reads), path(external_scheme)
         val(normalise_threshold)
@@ -45,7 +46,6 @@ process artic {
 
         """
         # artic minion --normalise 200 --scheme-directory ~/primer_schemes --scheme-name artic-inrb-mpox --scheme-length 2500 --scheme-version v1.0.0 --read-file run_name_barcode03.fastq samplename
-        # --model-dir defaults to CONDA_ROOT_PREFIX but somehow this is not set in seqera containers and instead points to MAMBA_ROOT... 
         
 
         #  tolle wurst: Invalid scheme version format, please provide a version in the format 'vX.X.X', e.g. v1.0.0
@@ -57,8 +57,9 @@ process artic {
                         --read-file ${reads} \
                         --scheme-name nCov-2019 \
                         --scheme-version ${formatted_version_number} \
-                        --model-dir /opt/conda/bin/models/ \
-                        --model ${params.clair3_model} \
+                        --scheme-length ${params.schemeLength} \
+                        --model-dir ${params.clair3_model_dir} \
+                        --model ${params.clair3_model_name} \
                         ${name}
 
         echo 'artic minion ran successfully'
@@ -90,7 +91,7 @@ process artic {
             ${name}.trimmed.rg.sorted.bam \
             ${name}.primersitereport.txt \
             ${name}.coverage_mask.txt \
-            ${name}.fail.vcf
+            ${name}.fail.vcf 
         """
 }
 

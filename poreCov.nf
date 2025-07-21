@@ -305,7 +305,7 @@ include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
-include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf'
+include { count_mixed_sites } from './modules/count_mixed_sites.nf'
 
 /************************** 
 * Workflows
@@ -365,7 +365,7 @@ workflow {
                 else {
                     external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
                 }
-                add_alt_allele_ratio_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+                count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
             }
         }
         // fastq input via dir and or files
@@ -406,7 +406,7 @@ workflow {
                 else {
                     external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
                 }
-                add_alt_allele_ratio_vcf(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+                count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
             }
         }
 
@@ -447,7 +447,7 @@ workflow {
         if (params.fasta || workflow.profile.contains('test_fasta') || params.nanopolish ) {
             alt_allele_ratio_ch = Channel.from( ['deactivated'] )
         } else {
-            alt_allele_ratio_ch = add_alt_allele_ratio_vcf.out.stats
+            alt_allele_ratio_ch = count_mixed_sites.out.stats
         }
 
 /*
@@ -657,7 +657,13 @@ def read_length() {
     log_msg_read_min_length = params.minLength
     log_msg_read_max_length = params.maxLength
 
-    if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200') ) {
+    if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200') || params.schemeLength == 1200) {
+
+        if ( params.primerV.matches('V1200') || params.primerV.matches('V5.2.0_1200')){
+            println "\033[0;33mWarning: Definition of primer scheme length via --primerV is deprecated, please use --schemeLength instead. Setting length to 1200.. \033[0m"
+            params.schemeLength = 1200
+        }
+
         if ( !params.minLength ) { log_msg_read_min_length = 400 }
         if ( !params.maxLength ) { log_msg_read_max_length = 1500 }
     }
@@ -669,6 +675,7 @@ def read_length() {
 
     log.info """
     Primerscheme:        $params.primerV [--primerV]
+    Length:              $params.schemeLength [--schemeLength]
     \033[2mMin read-length set to: $log_msg_read_min_length [--minLength]
     Max read-length set to: $log_msg_read_max_length [--maxLength]\u001B[0m
     \u001B[1;30m______________________________________\033[0m
