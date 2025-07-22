@@ -101,8 +101,6 @@ if (!workflow.profile.contains('test_fastq') && !workflow.profile.contains('test
         exit 1, "input missing, use [--fasta] [--fastq] [--fastq_pass] or [--fast5]" }
     if ( params.fastq && params.fastq_pass ) { exit 1, "Please use either: [--fastq] or [--fastq_pass]"}
     if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
-    if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
-        exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
     if (params.list && params.fasta) { exit 1, "[--fasta] and [--list] is not supported" }
 
 }
@@ -118,8 +116,8 @@ if (params.fastq_pass == true) { exit 5, "Please provide a fastq_pass dir via [-
 if (params.fast5 == true) { exit 5, "Please provide a fast5 dir via [--fast5]" }
 if (params.minLength && !params.minLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as minimal read length via [--minLength]" }
 if (params.maxLength && !params.maxLength.toString().matches("[0-9]+")) { exit 5, "Please provide an integer number (e.g. 300) as maximum read length via [--maxLength]" }
-if (params.nanopolish == true && (params.fastq || params.fastq_pass) ) { exit 5, "Please provide sequencing_summary.txt via [--nanopolish]" }
-if (!workflow.profile.contains('test_fast5')) { if (params.nanopolish && !params.fast5 ) { exit 5, "Please provide a fast5 dir for nanopolish [--fast5]" } }
+if (params.nanopolish)   { println "\033[0;33mWarning: Parameter [--nanopolish] is deprecated, ignoring flag.\033[0m" }
+if (params.medaka_model) { println "\033[0;33mWarning: Parameter [--medaka_model] is deprecated, please use [--clair3_model_dir] and / or [--clair3_model_name] to specify a non default model.\033[0m" }
 
 // check correct usage of param-flags
 if (params.extended && !params.samples ) { exit 5, "When using --extended you need to specify also a sample.csv via [--samples]" }
@@ -349,24 +347,17 @@ workflow {
             noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
             read_classification_wf(filtered_reads_ch)
 
-            // use medaka or nanopolish artic reconstruction
-            if (params.nanopolish) { 
-                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, basecalling_wf.out[1], artic_ncov_np_wf)
-                fasta_input_ch = artic_ncov_np_wf.out.assembly
-                }
-            else if (!params.nanopolish) { 
-                artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
-                fasta_input_ch = artic_ncov_wf.out.assembly
+            artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
+            fasta_input_ch = artic_ncov_wf.out.assembly
 
-                // add alternative allele ratio to the VCF
-                if (params.primerV.toString().contains(".bed")) {
-                    external_primer_schemes = artic_ncov_wf.out.primer_dir
-                }
-                else {
-                    external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-                }
-                count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+            // count mixed sites
+            if (params.primerV.toString().contains(".bed")) {
+                external_primer_schemes = artic_ncov_wf.out.primer_dir
             }
+            else {
+                external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            }
+            count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
         }
         // fastq input via dir and or files
         if ( (params.fastq || params.fastq_pass) || workflow.profile.contains('test_fastq')) { 
@@ -384,30 +375,18 @@ workflow {
             noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
             read_classification_wf(filtered_reads_ch)
 
-            // use medaka or nanopolish artic reconstruction
-            if (params.nanopolish && !params.fast5 ) { exit 3, "Please provide fast5 data for nanopolish via [--fast5]" }
-            else if (params.nanopolish && params.fast5 && (params.fastq_pass || params.fastq ) ) { 
-                // get sequence summary from nanopolish
-                sequence_summary_ch = Channel.fromPath( params.nanopolish, checkIfExists: true ).map { file -> tuple(file.name, file) }
-                
-                external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-
-                artic_ncov_np_wf(filtered_reads_ch, dir_input_ch, sequence_summary_ch, artic_ncov_np_wf)
-                fasta_input_ch = artic_ncov_np_wf.out
-                }
-            else if (!params.nanopolish) { 
-                artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
-                fasta_input_ch = artic_ncov_wf.out.assembly
-                
-                // add alternative allele ratio to the VCF
-                if (params.primerV.toString().contains(".bed")) {
-                    external_primer_schemes = artic_ncov_wf.out.primer_dir
-                }
-                else {
-                    external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
-                }
-                count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
+            // genome reconstruction with artic
+            artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
+            fasta_input_ch = artic_ncov_wf.out.assembly
+            
+            // count mixed_sites
+            if (params.primerV.toString().contains(".bed")) {
+                external_primer_schemes = artic_ncov_wf.out.primer_dir
             }
+            else {
+                external_primer_schemes = file(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
+            }
+            count_mixed_sites(artic_ncov_wf.out.trimmed_bam.join(artic_ncov_wf.out.vcf).join(artic_ncov_wf.out.failed_vcf), external_primer_schemes)
         }
 
     // 2. Genome quality, lineages, clades and mutations
@@ -444,7 +423,7 @@ workflow {
             }
             alignments_ch = align_to_reference(filtered_reads_ch.combine(reference_for_qc_input_ch))
         }
-        if (params.fasta || workflow.profile.contains('test_fasta') || params.nanopolish ) {
+        if (params.fasta || workflow.profile.contains('test_fasta')) {
             alt_allele_ratio_ch = Channel.from( ['deactivated'] )
         } else {
             alt_allele_ratio_ch = count_mixed_sites.out.stats
@@ -475,8 +454,6 @@ def helpMSG() {
 \033[0;33mUsage examples:${c_reset}
 
     nextflow run replikation/poreCov --update --fastq '*.fasta.gz' -r 1.3.0 -profile local,singularity
-
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' --fast5 dir/ --nanopolish sequencing_summary.txt -profile local,docker
 
 ${c_yellow}Inputs (choose one):${c_reset}
     --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
@@ -510,9 +487,6 @@ ${c_yellow}Workflow control (optional)${c_reset}
                              sample2,/path_to_second_sample.fastq.gz
     --extended               poreCov utilizes from --samples these additional headers:
                              Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
-    --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
-                             to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
-                             e.g --nanopolish sequencing_summary.txt
     --screen_reads           Determines the Pangolineage of each individual read (takes time, needs --freyja and/or --lcs)
     --scorpio  Skip Scorpio in pangolin run [default: $params.scorpio]
                                   ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples
@@ -535,7 +509,7 @@ ${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)$
     --lcs_cutoff             Plot linages above this threshold [default: $params.lcs_cutoff]     
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
-    --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
+    --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity
     --guppy_cpu     use cpus instead of gpus for basecalling
     --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
                     try this if to many barcodes are unclassified (beware - results might not be trustworthy)
@@ -543,21 +517,22 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
                     e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
 
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
-    --primerV       Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
-                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1, V.5, V.5.1, V.5.3.2_400
-                        ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
-                        ${c_dim}Other:${c_reset} V1200, V5.2.0_1200 ${c_dim}(also known as midnight)${c_reset}
-                        ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
-    --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 100]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
-    --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
-    --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
-                    e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
+    --primerV               Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
+                                ${c_dim}ARTIC:${c_reset} V1.0.0, V2.0.0, V3.0.0, V4.0.0, V4.1.0, V.5.0.0, V.5.1.0, V.5.3.2 (length 400)
+                                ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
+                                ${c_dim}Other:${c_reset} V1200, V5.2.0 (lenght 1200) ${c_dim}(also known as midnight)${c_reset}
+                                ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
+    --schemeLength          primer scheme length, e.g. 400, 1200 [default: ${params.schemeLength}]
+    --rapid                 rapid-barcoding-kit was used [default: ${params.rapid}]
+    --minLength             min length filter raw reads [default: 100]
+    --maxLength             max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
+    --min_depth             nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
+    --clair3_model_dir      directory to look for clair3 model files [default: ${params.clair3_model_dir}]
+    --clair3_model_name     clair3 model for the artic workflow [default: ${params.clair3_model_name}]
 
 ${c_yellow}Parameters - Genome quality control  (optional)${c_reset}
     --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
-    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
+    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}]
     --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
 
 ${c_yellow}Options  (optional)${c_reset}
@@ -620,7 +595,8 @@ def defaultMSG(){
         $params.cachedir
     \u001B[1;30m______________________________________\033[0m
     Parameters:
-    \033[2mMedaka model:         $params.medaka_model [--medaka_model]
+    \033[2mClair3 model:         $params.clair3_model_name [--clair3_model_name]
+    Clair3 model dir:     $params.clair3_model_dir
     Min depth nucleotide: $params.min_depth [--min_depth]
     Latest Pangolin/Nextclade?: $params.update [--update]
     CPUs to use:          $params.cores [--cores]
