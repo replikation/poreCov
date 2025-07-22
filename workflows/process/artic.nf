@@ -25,25 +25,6 @@ process artic {
 
     script:   
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0' // why is the --normalise flag not part of the bash script ^^
-        
-        // validate primer scheme version format
-        def fetched_version = ("${params.primerV}" =~ ~ /[\d.]+/)[0]
-        def formatted_version_number = null
-
-        if (fetched_version.count('.') == 0){
-            formatted_version_number = "v${fetched_version}.0.0"
-        }
-        else if (fetched_version.count('.') == 1){
-            formatted_version_number = "v${fetched_version}.0"
-        }
-        else if (fetched_version.count('.') == 2){
-            formatted_version_number = "v${fetched_version}"
-        }
-        else{
-            formatted_version_number = null
-            exit 1, println "\033[0;33mInvalid scheme version format 'v${fetched_version}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0\u001B[0m"
-        }
-
         """
         # artic minion --normalise 200 --scheme-directory ~/primer_schemes --scheme-name artic-inrb-mpox --scheme-length 2500 --scheme-version v1.0.0 --read-file run_name_barcode03.fastq samplename
         
@@ -56,7 +37,7 @@ process artic {
                         --scheme-directory ${external_scheme} \
                         --read-file ${reads} \
                         --scheme-name nCov-2019 \
-                        --scheme-version ${formatted_version_number} \
+                        --scheme-version ${params.primerV} \
                         --scheme-length ${params.schemeLength} \
                         --model-dir ${params.clair3_model_dir} \
                         --model ${params.clair3_model_name} \

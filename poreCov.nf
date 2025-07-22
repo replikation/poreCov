@@ -128,6 +128,11 @@ if (!params.screen_reads && params.lcs) {exit 5, "[--lcs] requires [--screen_rea
 if (!params.screen_reads && params.freyja) {exit 5, "[--freyja] requires [--screen_reads] to work"}
 
 
+        
+// validate primer scheme version format
+def fetched_version = "${params.primerV}" =~ /(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/
+if (!fetched_version){ exit 1, "\033[0;33mInvalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0\u001B[0m" }
+
 // validating sample table
 if (params.samples) {  
 
