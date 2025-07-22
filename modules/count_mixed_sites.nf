@@ -13,7 +13,6 @@ process count_mixed_sites {
     """
     # reheader failed VCF and change FILTER
     echo '##FILTER=<ID=ARTICFAIL,Description="ARTIC filter failed">' > add-to-hdr.txt
-    # -c and --rename-annots add a header with a default/wrong description
     bcftools annotate -h add-to-hdr.txt -c "FILTER/ARTICFAIL:=FILTER/PASS" ${failed_vcf} | sed '/##FILTER=<ID=ARTICFAIL,Description="All filters passed">/d' > tmp_failed_updated-filter.vcf
 
     # concat failed and passed VCF
@@ -21,7 +20,7 @@ process count_mixed_sites {
 
     # count mixed sites
     # thresholds for human geotyping: 0.35 <= x <= 0.65 
-    NUM_MIXED_SITES=\$(bcftools view -H -i 'INFO/DP>${params.min_depth} & INFO/AF>=0.3 & INFO/AF<=0.8' ${name}_all-vars-with-aar.vcf | wc -l)
+    NUM_MIXED_SITES=\$(bcftools view -H -i 'FORMAT/DP>${params.min_depth} & FORMAT/AF>=0.3 & FORMAT/AF<=0.8' ${name}_all-vars-with-aar.vcf | wc -l)
     echo sample,num_mixed_sites > mixed_sites_stats.csv
     echo ${name},\$NUM_MIXED_SITES >> mixed_sites_stats.csv
 
