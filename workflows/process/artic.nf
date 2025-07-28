@@ -26,13 +26,6 @@ process artic {
     script:   
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0' // why is the --normalise flag not part of the bash script ^^
         """
-        # artic minion --normalise 200 --scheme-directory ~/primer_schemes --scheme-name artic-inrb-mpox --scheme-length 2500 --scheme-version v1.0.0 --read-file run_name_barcode03.fastq samplename
-        
-
-        #  tolle wurst: Invalid scheme version format, please provide a version in the format 'vX.X.X', e.g. v1.0.0
-        ls ./primer-schemes
-        exit 1
-
         artic minion    --min-depth ${params.min_depth} \
                         ${normalise_arg} \
                         --threads ${task.cpus} \
@@ -48,6 +41,7 @@ process artic {
         echo 'artic minion ran successfully'
 
         # generate depth files
+        # NOTE: this seems to pull 'data/external_primer_schemes/artic-sars-cov-2' from somewhere?
         artic_make_depth_mask --depth ${params.min_depth} \
             --store-rg-depths ${external_scheme}/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta \
             ${name}.primertrimmed.rg.sorted.bam \
