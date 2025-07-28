@@ -100,7 +100,6 @@ workflow {
         if ( params.fasta && ( params.fastq || params.fast5 || params.fastq_pass)) { exit 1, "Please use [--fasta] without inputs like: [--fastq], [--fastq_pass], [--fast5]" }
         if (( params.fastq || params.fastq_pass ) && params.fast5 && !params.nanopolish ) { 
             exit 1, "Simultaneous fastq and fast5 input is only supported with [--nanopolish]"}
-        if (params.list && params.fasta) { exit 1, "[--fasta] and [--list] is not supported" }
 
     }
     if ( (params.cores.toInteger() > params.max_cores.toInteger()) && workflow.profile.contains('local')) {
