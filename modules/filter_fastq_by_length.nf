@@ -31,7 +31,7 @@ process filter_fastq_by_length {
             ;;
         esac
         
-        if [ ${params.samples} == false ] && [ ${params.list} == false ]; then
+        if [ ${params.samples} == false ] && [ ${params.fastq} != *".csv" ]; then
             find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
         fi
         """

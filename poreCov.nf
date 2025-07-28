@@ -546,58 +546,62 @@ ${c_green}poreCov${c_reset} | A Nextflow SARS-CoV-2 workflow for nanopore data
 }
 
 def defaultMSG(){
+    def c_green = "\033[0;32m";
+    def c_reset = "\033[0m";
+    def c_dim = "\033[2m";
     log.info """
-    .
-    \u001B[32mProfile:             $workflow.profile\033[0m
-    \033[2mCurrent User:        $workflow.userName
+    ${c_green}
+    Profile:             $workflow.profile${c_reset}
+    ${c_dim}Current User:        $workflow.userName
     Nextflow-version:    $nextflow.version
     poreCov-version:     $workflow.revision
-    \u001B[0m
+    ${c_reset}
     Pathing:
-    \033[2mWorkdir location [-work-Dir]:
+    ${c_dim}Workdir location [-work-Dir]:
         $workflow.workDir
     Output dir [--output]: 
         $params.output
     Databases location [--databases]:
         $params.databases
     Singularity cache dir [--cachedir]: 
-        $params.cachedir
-    \u001B[1;30m______________________________________\033[0m
+        $params.cachedir ${c_reset}
+    
     Parameters:
-    \033[2mMedaka model:         $params.medaka_model [--medaka_model]
+    ${c_dim}Medaka model:         $params.medaka_model [--medaka_model]
     Min depth nucleotide: $params.min_depth [--min_depth]
     Latest Pangolin/Nextclade?: $params.update [--update]
     CPUs to use:          $params.cores [--cores]
-    Memory in GB:         $params.memory [--memory]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
-    """.stripIndent()
+    Memory in GB:         $params.memory [--memory] ${c_reset} """.stripIndent()
 }
 
 def basecalling() {
+    def c_reset = "\033[0m";
+    def c_dim = "\033[2m";
     log.info """
     Basecalling options:
-    \033[2mUse local guppy?        $params.localguppy [--localguppy]  
+    ${c_dim}Use local guppy?        $params.localguppy [--localguppy]  
     One end demultiplexing? $params.one_end [--one_end]
     Basecalling via CPUs?   $params.guppy_cpu [--guppy_cpu]
     Basecalling modell:     $params.guppy_model [--guppy_model]
-    Rapid-barcode-kit?:     $params.rapid [--rapid]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
-    """.stripIndent()
+    Rapid-barcode-kit?:     $params.rapid [--rapid] ${c_reset} """.stripIndent()
 }
 
 def rki() {
+    def c_reset = "\033[0m";
+    def c_dim = "\033[2m";    
     log.info """
     RKI output for german DESH upload:
-    \033[2mOutput stored at:      $params.output/$params.rkidir  
+    ${c_dim}Output stored at:      $params.output/$params.rkidir  
     Min Identity to NC_045512.2: $params.seq_threshold [--seq_threshold]
     Min Depth used:        $params.min_depth [--min_depth]
        Min Depth should be 20 or more for RKI upload
-    Proportion cutoff N:   $params.n_threshold [--n_threshold]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
+    Proportion cutoff N:   $params.n_threshold [--n_threshold] ${c_reset} 
     """.stripIndent()
 }
 
 def read_length() {
+    def c_reset = "\033[0m";
+    def c_dim = "\033[2m";  
     def log_msg_read_min_length = params.minLength
     def log_msg_read_max_length = params.maxLength
 
@@ -613,8 +617,6 @@ def read_length() {
 
     log.info """
     Primerscheme:        $params.primerV [--primerV]
-    \033[2mMin read-length set to: $log_msg_read_min_length [--minLength]
-    Max read-length set to: $log_msg_read_max_length [--maxLength]\u001B[0m
-    \u001B[1;30m______________________________________\033[0m
-    """.stripIndent()
+    ${c_dim}Min read-length set to: $log_msg_read_min_length [--minLength]
+    Max read-length set to: $log_msg_read_max_length [--maxLength]${c_reset} """.stripIndent()
 }
