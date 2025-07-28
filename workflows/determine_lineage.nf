@@ -8,7 +8,7 @@ workflow determine_lineage_wf {
         pangolin(fasta, pangolindocker)
         
         // collect lineage also to a summary     
-        channel_tmp = pangolin.out.map {it -> it[1]}
+        pangolin.out.map {it -> it[1]}
                 .splitCsv(header: true, sep: ',')
                 .collectFile(seed: 'taxon,lineage,conflict,pangolin_version,pangoLEARN_version,pango_version,status,note\n', 
                             storeDir: params.output + "/" + params.lineagedir + "/") {

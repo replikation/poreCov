@@ -46,32 +46,10 @@ workflow {
 * HELP messages & checks
 **************************/
 
-/* 
-Nextflow version check  
-Format is this: XX.YY.ZZ  (e.g. 20.07.1)
-change below
-*/
-
-    XX = "21"
-    YY = "10"
-    ZZ = "4"
-
-    if ( nextflow.version.toString().tokenize('.')[0].toInteger() < XX.toInteger() ) {
-    println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
-    exit 1
-    }
-    else if ( nextflow.version.toString().tokenize('.')[1].toInteger() == XX.toInteger() && nextflow.version.toString().tokenize('.')[1].toInteger() < YY.toInteger() ) {
-    println "\033[0;33mporeCov requires at least Nextflow version " + XX + "." + YY + "." + ZZ + " -- You are using version $nextflow.version\u001B[0m"
-    exit 1
-    }
-
-
 // try to check for poreCov releases
 
-    def gitcheck = NetChecker.netIsAvailable() // class "NetChecker" is found in the file NetChecker.groovy in the lib-directory
-
-    if ( gitcheck.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
-    if ( gitcheck.toString() == "false" ) { porecovrelease = 'Could not get version info' } 
+    if ( NetChecker.netIsAvailable().toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
+    else { porecovrelease = 'Could not get version info' } 
 
 
     println " "
@@ -192,7 +170,7 @@ change below
     }
 
 // fastq input or via csv file
-    if (params.fastq && params.list && !workflow.profile.contains('test_fastq')) { 
+    if (params.fastq.toString().contains('.csv') && !workflow.profile.contains('test_fastq')) { 
         fastq_file_ch = Channel
         .fromPath( params.fastq, checkIfExists: true )
         .splitCsv()
@@ -205,13 +183,7 @@ change below
     }
 
 // fastq raw input direct from basecalling
-    if (params.fastq_pass && params.list && !workflow.profile.contains('test_fastq')) { 
-        fastq_dir_ch = Channel
-        .fromPath( params.fastq_pass, checkIfExists: true )
-        .splitCsv()
-        .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true, type: 'dir')] }
-    }
-    else if (params.fastq_pass && !workflow.profile.contains('test_fastq')) { 
+    if (params.fastq_pass && !workflow.profile.contains('test_fastq')) { 
         fastq_dir_ch = Channel
         .fromPath( params.fastq_pass, checkIfExists: true, type: 'dir')
         .map { file -> tuple(file.simpleName, file) }
@@ -315,7 +287,7 @@ change below
             // rename barcodes
                 if (params.samples) { 
                     fastq_from5_ch = basecalling_wf.out[0].join(samples_input_ch).map { it -> tuple(it[2],it[1]) }
-                    reporterrorfast5 = basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
+                    basecalling_wf.out[0].join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                     }
                 else if (!params.samples) { fastq_from5_ch = basecalling_wf.out[0] }
             
@@ -349,7 +321,7 @@ change below
 
             // rename barcodes based on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} 
-                reporterrorfastq = fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
+                   fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                 }
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 
@@ -445,103 +417,102 @@ def helpMSG() {
     def c_blue = "\033[0;34m";
     def c_dim = "\033[2m";
     log.info """
-    .    
+ ${c_dim}  ${c_reset}    
 \033[0;33mUsage examples:${c_reset}
 
     nextflow run replikation/poreCov --update --fastq '*.fasta.gz' -r 1.3.0 -profile local,singularity
 
-    nextflow run replikation/poreCov --fastq '*.fasta.gz' --fast5 dir/ --nanopolish sequencing_summary.txt -profile local,docker
+    nextflow run replikation/poreCov --fastq '*.fasta.gz' --fast5 dir/ --nanopolish sequencing_summary.txt \
+                                          -profile local,docker
 
 ${c_yellow}Inputs (choose one):${c_reset}
-    --fast5         one fast5 dir of a nanopore run containing multiple samples (barcoded);
-                    to skip demultiplexing (no barcodes) add the flag [--single]
-                    ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
+  --fast5         One fast5 dir of a nanopore run containing multiple samples (barcoded)
+                  Add the flag [--single] if no barcodes were used
+                  ${c_dim}[Basecalling + Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fastq         one fastq or fastq.gz file per sample or
-                    multiple file-samples: --fastq 'sample_*.fastq.gz'
-                    ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
+  --fastq         One fastq or fastq.gz file per sample or
+                  Multiple file-samples: --fastq 'sample_*.fastq.gz'.
+                  Or Table .csv input: ${c_dim}Sample_name,Absolut_path${c_reset} per line, NO header or SPACE
+                  ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fastq_pass    the fastq_pass dir from the (guppy) bascalling
-                    --fastq_pass 'fastq_pass/'
-                    to skip demultiplexing (no barcodes) add the flag [--single]
-                    ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
+  --fastq_pass    The fastq_pass dir after bascalling with barcodes
+                  --fastq_pass 'fastq_pass/'
+                  Add the flag [--single] if no barcodes were used
+                  ${c_dim}[Genome reconstruction + Lineage + Reports]${c_reset}
 
-    --fasta         direct input of genomes - supports multi-fasta file(s) - can be gzip compressed (.gz)
-                    ${c_dim}[Lineage + Reports]${c_reset}
+  --fasta         Direct input of genomes - supports multi-fasta file(s) - can be gzip compressed (.gz)
+                  ${c_dim}[Lineage + Reports]${c_reset}
 
 ${c_yellow}Workflow control (optional)${c_reset}
-    --artic_normalize        Normalise down to moderate coverage to save runtime [default: $params.artic_normalize]
-                                   ${c_dim}(after mapping and before variant calling in the ARTIC bioinformatics pipeline)
-                                   Use `--artic_normalize False` to turn off this normalisation.${c_reset}
-    --update                 Always try to use latest pangolin & nextclade release [default: $params.update]
-    --samples                .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
-                             Status,_id
-                             barcode01,sample2011XY
-                             BC02,thirdsample_run
-    --list                   --fastq takes a csv file containing (new) sample names and paths to the fastq-files (no header).
-                             Paths need to start with '/' or poreCov searches the files in the current working dir, e.g.:
-                             sample1,/path_to_first_sample.fastq.gz
-                             sample2,/path_to_second_sample.fastq.gz
-    --extended               poreCov utilizes from --samples these additional headers:
-                             Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type
-    --nanopolish             use nanopolish instead of medaka for ARTIC (needs --fast5)
-                             to skip basecalling use --fastq or --fastq_pass and provide a sequencing_summary.txt in addition to --fast5
-                             e.g --nanopolish sequencing_summary.txt
-    --screen_reads           Determines the Pangolineage of each individual read (takes time, needs --freyja and/or --lcs)
-    --scorpio  Skip Scorpio in pangolin run [default: $params.scorpio]
-                                  ${c_dim}From pangolin version 4, Scorpio overwrites Usher results which leads to many unassigned samples
-                                  Can be turned on with --scorpio${c_reset}
+  --artic_normalize   Normalise reads to moderate coverage, saves runtime [default: $params.artic_normalize]
+                      ${c_dim}(after mapping and before variant calling in the ARTIC bioinformatics pipeline)
+                      Use `--artic_normalize False` to turn off this normalisation.${c_reset}
+  --update            Always try to use latest pangolin & nextclade release [default: $params.update]
+  --samples           Table .csv input (header: Status,_id), renames barcodes (Status) by name (_id), e.g.:
+                          ${c_dim}Status,_id
+                          barcode01,sample2011XY
+                          BC02,thirdsample_run${c_reset}
+  --extended          poreCov utilizes from --samples these additional headers:
+                          ${c_dim}Submitting_Lab,Isolation_Date,Seq_Reason,Sample_Type${c_reset}
+  --nanopolish        Use nanopolish instead of medaka for ARTIC (needs --fast5)
+                          to skip basecalling provide --fastq or --fastq_pass and a sequencing_summary.txt
+                          e.g: --fastq_pass fastq_pass/ --nanopolish sequencing_summary.txt --fast5 fast5_dir/
+  --screen_reads      Determines Pangolineage of each read (takes time, needs --freyja and/or --lcs)
+  --scorpio           Skip Scorpio in pangolin run [default: $params.scorpio]
+                          ${c_dim}Scorpio overwrites Usher results, might lead to many unassigned samples${c_reset}
 
-${c_yellow}Parameters - Lineage detection on reads (see screen_reads, optional)${c_reset}
-    --freyja    activate read-screening via freyja
-    --freyja_update update freyja's barcode-db prior to running
-    --lcs       activate read-screening via lcs
-    --lcs_ucsc_version       Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). Use 'predefined' 
-                             to use the marker table from the repo (most probably not up-to-date) [default: $params.lcs_ucsc_version]
-                                 ${c_dim}See https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2 for available trees.${c_reset}
-    --lcs_ucsc_update        Use latest UCSC SARS-CoV-2 tree for marker table update. Overwrites --lcs_ucsc_version [default: $params.lcs_ucsc_update]
-                                 ${c_dim}Automatically checks https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt${c_reset}
-    --lcs_ucsc_downsampling  Downsample sequences when updating marker table to save resources. Use 'None' to turn off [default: $params.lcs_ucsc_downsampling]
-                                 ${c_dim}Attention! Updating without downsampling needs a lot of resources in terms of memory and might fail.
-                                 Consider downsampling or increase the memory for this process.${c_reset}
-    --lcs_variant_groups     Provide path to custom variant groups table (TSV) for marker table update (requires --lcs_ucsc_update). Use 'default' 
-                                 for predefined groups from repo (https://github.com/rki-mf1/LCS/blob/master/data/variant_groups.tsv) [default: $params.lcs_variant_groups]
-    --lcs_cutoff             Plot linages above this threshold [default: $params.lcs_cutoff]     
+${c_yellow}Parameters - Lineage detection on reads (see --screen_reads, optional)${c_reset}
+  --freyja            Activates --screen_reads via freyja
+  --freyja_update     Update freyja's barcode-db prior to running
+  
+  --lcs               Activate --screen_reads via lcs
+  --lcs_ucsc_version  Create marker table based on a specific UCSC SARS-CoV-2 tree (e.g. '2022-05-01'). 
+                      Predefined (default) uses the repository table (not up-to-date) [default: $params.lcs_ucsc_version]
+                      ${c_dim}Available trees: https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2${c_reset}
+  --lcs_cutoff        Plot linages above this threshold [default: $params.lcs_cutoff]       
+  --lcs_ucsc_update   Use latest UCSC SARS-CoV-2 tree. Overwrites --lcs_ucsc_version [default: $params.lcs_ucsc_update]
+        ${c_dim}From: https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt${c_reset}
+  --lcs_ucsc_downsampling  Downsample sequences for --lcs_ucsc_update. Use 'None' to turn off [default: $params.lcs_ucsc_downsampling]
+                           ${c_dim}Attention! High Resource and MEMORY usage without downsampling${c_reset}
+  --lcs_variant_groups  Variant groups table (.tsv) for --lcs_ucsc_update.
+                        Use 'default' for predefined groups. [default: $params.lcs_variant_groups]
+        ${c_dim}From: https://github.com/rki-mf1/LCS/blob/master/data/variant_groups.tsv${c_reset} 
 
 ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
-    --localguppy    use a native installation of guppy instead of a gpu-docker or gpu_singularity 
-    --guppy_cpu     use cpus instead of gpus for basecalling
-    --one_end       removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
-                    try this if to many barcodes are unclassified (beware - results might not be trustworthy)
-    --guppy_model   guppy basecalling model [default: ${params.guppy_model}]
-                    e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"
+  --localguppy    Use a native installation of guppy instead of a gpu-docker or gpu_singularity 
+  --guppy_cpu     Use cpus instead of gpus for basecalling ${c_dim}(super slow)${c_reset}
+  --one_end       Removes the recommended "--require_barcodes_both_ends" from guppy demultiplexing
+                  ${c_dim}try this if to many barcodes are unclassified (beware - results might not be trustworthy)${c_reset}
+  --guppy_model   Guppy basecalling model [default: ${params.guppy_model}]
+                  ${c_dim}e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"${c_reset}
 
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
-    --primerV       Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
-                        ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1, V.5, V.5.1, V.5.3.2_400
-                        ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
-                        ${c_dim}Other:${c_reset} V1200, V5.2.0_1200 ${c_dim}(also known as midnight)${c_reset}
-                        ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
-    --rapid         rapid-barcoding-kit was used [default: ${params.rapid}]
-    --minLength     min length filter raw reads [default: 100]
-    --maxLength     max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
-    --min_depth     nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
-    --medaka_model  medaka model for the artic workflow [default: ${params.medaka_model}]
-                    e.g. "r941_min_hac_g507" or "r941_min_sup_g507"
+  --primerV       Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
+                      ${c_dim}ARTIC:${c_reset} V1, V2, V3, V4, V4.1, V.5, V.5.1, V.5.3.2_400
+                      ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
+                      ${c_dim}Other:${c_reset} V1200, V5.2.0_1200 ${c_dim}(also known as midnight)${c_reset}
+                      ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
+  --rapid         Rapid-barcoding-kit was used [default: ${params.rapid}]
+  --minLength     Min length filter raw reads [default: 100]
+  --maxLength     Max length filter raw reads 
+                  [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
+  --min_depth     Nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
+  --medaka_model  Medaka model for the artic workflow [default: ${params.medaka_model}]
+                  ${c_dim}e.g. "r941_min_hac_g507" or "r941_min_sup_g507"${c_reset}
 
 ${c_yellow}Parameters - Genome quality control  (optional)${c_reset}
-    --reference_for_qc      reference FASTA for consensus qc (optional, wuhan is provided by default)
-    --seq_threshold         global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
-    --n_threshold           consensus sequence N threshold [default: ${params.n_threshold}] 
+  --reference_for_qc      Reference FASTA for consensus qc (optional, wuhan is provided by default)
+  --seq_threshold         Global pairwise ACGT sequence identity threshold [default: ${params.seq_threshold}] 
+  --n_threshold           Consensus sequence N threshold [default: ${params.n_threshold}] 
 
 ${c_yellow}Options  (optional)${c_reset}
-    --cores         amount of cores for a process (local use) [default: $params.cores]
-    --max_cores     max amount of cores for poreCov to use (local use) [default: $params.max_cores]
-    --memory        available memory [default: $params.memory]
-    --output        name of the result folder [default: $params.output]
-    --cachedir      defines the path where singularity images are cached
-                    [default: $params.cachedir]
-    --krakendb      provide a .tar.gz kraken database [default: auto downloads one]
+  --cores         Amount of cores for a process (local use) [default: $params.cores]
+  --max_cores     Max amount of cores for poreCov to use (local use) [default: $params.max_cores]
+  --memory        Available memory [default: $params.memory]
+  --output        Name of the result folder [default: $params.output]
+  --cachedir      Defines the path where singularity images are cached
+                  [default: $params.cachedir]
+  --krakendb      Provide a .tar.gz kraken database [default: auto downloads one]
 
 ${c_yellow}Execution/Engine profiles (choose executer and engine${c_reset}
     poreCov supports profiles to run via different ${c_green}Executers${c_reset} and ${c_blue}Engines${c_reset} 
@@ -560,8 +531,8 @@ ${c_yellow}Execution/Engine profiles (choose executer and engine${c_reset}
        test_fastq
        test_fast5
 
-       Note: The singularity profile automatically passes the following environment variables to the container. 
-       to ensure execution on HPCs: HTTPS_PROXY, HTTP_PROXY, http_proxy, https_proxy, FTP_PROXY, ftp_proxy
+    ${c_dim}Note: 'singularity' automatically passes the following environment variables to the container: 
+    HTTPS_PROXY, HTTP_PROXY, http_proxy, https_proxy, FTP_PROXY, ftp_proxy${c_reset}
     """.stripIndent()
 }
 

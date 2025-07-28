@@ -102,7 +102,7 @@ process summary_report_default {
             -n ${nextclade_results} \
             -k kraken2_results.csv \
             -m ${mixed_sites_results} \
-            -c \$(echo !{coverage_plots} | tr ' ' ',') 
+            -c \$(echo ${coverage_plots} | tr ' ' ',') 
         """
     stub:
         """

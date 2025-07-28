@@ -22,7 +22,7 @@ workflow create_summary_report_wf {
         nextclade_results = nextclade.map {it -> it[1]}.collectFile(name: 'nextclade_results.tsv', skip: 1, keepHeader: true)
         mixed_site_results = mixed_sites.map {it -> it[1]}.collectFile(name: 'mixed_sites_results.tsv', skip: 1, keepHeader: true)
 
-        alignment_files = alignments.map {it -> it[0]}.collect()
+        //alignment_files = alignments.map {it -> it[0]}.collect()
         if (params.fasta || workflow.profile.contains('test_fasta')) {
             
             summary_report_fasta(version_ch, variants_table_ch, pangolin_results, president_results, nextclade_results, nextcladedocker)

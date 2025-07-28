@@ -3,10 +3,6 @@ import java.net.URLConnection
 
 class NetChecker {
     
-    static {
-        println "TEST TEST TEST"
-    }
-
     static boolean netIsAvailable() {
         try {
             final URL url = new URL("https://api.github.com/repos/replikation/poreCov/releases/latest");
