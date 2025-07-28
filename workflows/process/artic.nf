@@ -30,6 +30,8 @@ process artic {
         
 
         #  tolle wurst: Invalid scheme version format, please provide a version in the format 'vX.X.X', e.g. v1.0.0
+        ls ./primer-schemes
+        exit 1
 
         artic minion    --min-depth ${params.min_depth} \
                         ${normalise_arg} \
@@ -50,6 +52,8 @@ process artic {
             --store-rg-depths ${external_scheme}/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta \
             ${name}.primertrimmed.rg.sorted.bam \
             ${name}.coverage_mask.txt
+
+        echo 'artic_make_depth_mask ran successfully'
 
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
 

@@ -7,10 +7,9 @@ process covarplot {
         tuple val(name), path("${name}_amplicon_coverage.png"), path("${name}_amplicon_coverage_log.png")
     script:
         """
-        covarplot_patched.py --version
-        covarplot_patched.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s .
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s .
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage.png
-        covarplot_patched.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
         """
     stub:
@@ -35,9 +34,9 @@ process covarplot_custom_bed {
             sort -k4 > nCoV-2019-plot.scheme.bed
 
 
-        covarplot_patched.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s .
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s .
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage.png
-        covarplot_patched.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s . --log
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b nCoV-2019-plot.scheme.bed -s . --log
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
         """
     stub:
@@ -47,7 +46,7 @@ process covarplot_custom_bed {
 }
 
 /* USAGE
-python3 CoVarPlot/covarplot_patched.py \
+python3 CoVarPlot/covarplot.py \
 -v work/0d/1e05c63f2b752e8b7ab75959623a4a/SAMPLE.pass.vcf.gz \
 -d1 work/0d/1e05c63f2b752e8b7ab75959623a4a/SAMPLE.coverage_mask.txt.nCoV-2019_1.depths \
 -d2 work/0d/1e05c63f2b752e8b7ab75959623a4a/SAMPLE.coverage_mask.txt.nCoV-2019_2.depths \
