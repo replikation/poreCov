@@ -47,8 +47,9 @@ workflow {
 **************************/
 
 // try to check for poreCov releases
+    def internetcheck_available = NetChecker.netIsAvailable()
 
-    if ( NetChecker.netIsAvailable().toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
+    if ( internetcheck_available.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
     else { porecovrelease = 'Could not get version info' } 
 
 
