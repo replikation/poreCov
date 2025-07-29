@@ -1,11 +1,12 @@
 process pangolin {
     label 'pangolin'
-    container = params.pangolindocker
+    container { pangolindocker }
     publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "lineage_report_${name}.csv"
   input:
     tuple val(name), path(fasta)
+    val(pangolindocker)
   output:
-    tuple val(name), path("lineage_report_${name}.csv") optional true
+    tuple val(name), path("lineage_report_${name}.csv"), optional: true
   script:
     def args = params.scorpio ? '' : '--skip-scorpio'
     """

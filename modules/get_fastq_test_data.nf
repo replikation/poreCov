@@ -1,5 +1,5 @@
 process get_nanopore_fastq {
-  	container = 'nanozoo/template:3.8--d089809'
+  	label 'template'
 	output:
 	path("SARSCoV2.fastq.gz") 
 	script:
