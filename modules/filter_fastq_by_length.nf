@@ -4,7 +4,7 @@ process filter_fastq_by_length {
     input:
         tuple val(name), path(reads) 
     output:
-	    tuple val(name), path("${name}_filtered.fastq.gz") optional true
+	    tuple val(name), path("${name}_filtered.fastq.gz"), optional: true
     script:
     read_min_length = params.minLength
     read_max_length = params.maxLength
@@ -31,7 +31,7 @@ process filter_fastq_by_length {
             ;;
         esac
         
-        if [ ${params.samples} == false ] && [ ${params.list} == false ]; then
+        if [ ${params.samples} == false ] && [ ${params.fastq} != *".csv" ]; then
             find . -name "${name}_filtered.fastq.gz" -type 'f' -size -1500k -delete
         fi
         """
