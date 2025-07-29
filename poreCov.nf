@@ -16,13 +16,13 @@ include { get_fasta } from './modules/get_fasta_test_data.nf'
 include { align_to_reference } from './modules/align_to_reference.nf'
 include { split_fasta } from './modules/split_fasta.nf'
 include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
-include { add_alt_allele_ratio_vcf } from './modules/add_alt_allele_ratio_vcf.nf'
+include { count_mixed_sites } from './modules/count_mixed_sites.nf'
 
 /************************** 
 * Workflows
 **************************/
 
-include { artic_ncov_wf; artic_ncov_np_wf } from './workflows/artic_nanopore_nCov19.nf'
+include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
 include { basecalling_wf } from './workflows/basecalling.nf'
 include { collect_fastq_wf } from './workflows/collect_fastq.nf'
 include { create_json_entries_wf } from './workflows/create_json_entries.nf'
@@ -42,6 +42,7 @@ include { pangolin } from './workflows/process/pangolin.nf'
 workflow {
 
     header()
+    
 /************************** 
 * HELP messages & checks
 **************************/
@@ -129,9 +130,9 @@ workflow {
 
         
 // validate primer scheme version format
-def fetched_version = "${params.primerV}" =~ /(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/
-if (!fetched_version){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
-if ("${params.primerV}".contains('_')){ exit 1, "Old scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0 via [--primerV], and primer scheme length with [--schemeLength]." }
+    def fetched_version = "${params.primerV}" =~ /(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/
+    if (!fetched_version){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
+    if ("${params.primerV}".contains('_')){ exit 1, "Old scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0 via [--primerV], and primer scheme length with [--schemeLength]." }
 
 // validating sample table
     if (params.samples) {  
@@ -267,39 +268,6 @@ if ("${params.primerV}".contains('_')){ exit 1, "Old scheme version format '${pa
         }
     } else { lsc_ucsc_work_version = params.lcs_ucsc_version}
 
-
-/************************** 
-* Log-infos
-**************************/
-
-/************************** 
-* MODULES
-**************************/
-
-include { get_fast5 } from './modules/get_fast5_test_data.nf'
-include { get_nanopore_fastq } from './modules/get_fastq_test_data.nf'
-include { get_fasta } from './modules/get_fasta_test_data.nf'
-include { align_to_reference } from './modules/align_to_reference.nf'
-include { split_fasta } from './modules/split_fasta.nf'
-include { filter_fastq_by_length } from './modules/filter_fastq_by_length.nf'
-include { count_mixed_sites } from './modules/count_mixed_sites.nf'
-
-/************************** 
-* Workflows
-**************************/
-
-include { artic_ncov_wf } from './workflows/artic_nanopore_nCov19.nf'
-include { basecalling_wf } from './workflows/basecalling.nf'
-include { collect_fastq_wf } from './workflows/collect_fastq.nf'
-include { create_json_entries_wf } from './workflows/create_json_entries.nf'
-include { create_summary_report_wf } from './workflows/create_summary_report.nf'
-include { determine_lineage_wf } from './workflows/determine_lineage.nf'
-include { determine_mutations_wf } from './workflows/determine_mutations.nf'
-include { genome_quality_wf } from './workflows/genome_quality.nf'
-include { read_classification_wf; read_screening_freyja_wf; read_screening_lsc_wf} from './workflows/read_classification'
-include { read_qc_wf } from './workflows/read_qc.nf'
-include { rki_report_wf } from './workflows/provide_rki.nf'
-=======
     defaultMSG()
     if ( params.fast5 || workflow.profile.contains('test_fast5') ) { basecalling() }
     if (!params.fasta && !workflow.profile.contains('test_fasta')) { read_length() }
