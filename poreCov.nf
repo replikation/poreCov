@@ -528,7 +528,7 @@ ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
                                 ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
                                 ${c_dim}Other:${c_reset} V1200, V5.2.0 (lenght 1200) ${c_dim}(also known as midnight)${c_reset}
                                 ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
-    --schemeLength          primer scheme length, e.g. 400, 1200 [default: ${params.schemeLength}]
+    --schemeLength          primer scheme length, e.g. 400, 700; artic remote primers are length 400, varvamp remote primers 700 [default: ${params.schemeLength}]
     --rapid                 rapid-barcoding-kit was used [default: ${params.rapid}]
     --minLength             min length filter raw reads [default: 100]
     --maxLength             max length filter raw reads [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]

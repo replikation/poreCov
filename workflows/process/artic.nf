@@ -31,9 +31,8 @@ process artic {
                         --threads ${task.cpus} \
                         --scheme-directory ${external_scheme} \
                         --read-file ${reads} \
-                        --scheme-name nCov-2019 \
+                        --scheme-name ${params.schemeLength == 400 ? 'artic' : 'varvamp'}-sars-cov-2 \
                         --scheme-version ${params.primerV} \
-                        --scheme-length ${params.schemeLength} \
                         --model-dir ${params.clair3_model_dir} \
                         --model ${params.clair3_model_name} \
                         ${name}
@@ -41,9 +40,8 @@ process artic {
         echo 'artic minion ran successfully'
 
         # generate depth files
-        # NOTE: this seems to pull 'data/external_primer_schemes/artic-sars-cov-2' from somewhere?
         artic_make_depth_mask --depth ${params.min_depth} \
-            --store-rg-depths ${external_scheme}/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta \
+            --store-rg-depths ${external_scheme}/${params.schemeLength == 400 ? 'artic' : 'varvamp'}-sars-cov-2/${params.schemeLength}/${params.primerV}/reference.fasta \
             ${name}.primertrimmed.rg.sorted.bam \
             ${name}.coverage_mask.txt
 
