@@ -42,7 +42,7 @@ include { pangolin } from './workflows/process/pangolin.nf'
 workflow {
 
     header()
-    
+
 /************************** 
 * HELP messages & checks
 **************************/
@@ -131,8 +131,9 @@ workflow {
         
 // validate primer scheme version format
     def fetched_version = "${params.primerV}" =~ /(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/
-    if (!fetched_version){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
-    if ("${params.primerV}".contains('_')){ exit 1, "Old scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0 via [--primerV], and primer scheme length with [--schemeLength]." }
+    if (!fetched_version && !("${params.primerV}".contains('.bed'))){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
+    if ("${params.primerV}".contains('_') && !("${params.primerV}".contains('.bed'))){ exit 1, "Old scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0 via [--primerV], and primer scheme length with [--schemeLength]." }
+    if ("${params.primerV}".contains('.bed') && !params.primerRef){ exit 1, "Custom primer scheme '${params.primerV}' was provided without primer reference. Please pass a primer scheme reference sequence via [--primerRef]." }
 
 // validating sample table
     if (params.samples) {  

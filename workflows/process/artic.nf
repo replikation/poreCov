@@ -100,8 +100,8 @@ process artic_custom_bed {
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
         # create a new primer dir as input for artic
-        mkdir -p primer_scheme/nCoV-2019
-        cp -r ${external_scheme}/nCoV-2019/V_custom primer_scheme/nCoV-2019/
+        mkdir -p primer_scheme/nCoV-2019/V_custom
+        cp -r ${params.primerRef} primer_scheme/nCoV-2019/V_custom
 
         # clean up bed file: replace first colum with MN908947.3, remove empty lines and sort by 4th column (primer names) 
         cut -f2- ${primerBed} |\
@@ -110,18 +110,19 @@ process artic_custom_bed {
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
 
         # start artic
-        artic minion    --medaka \
-                        --medaka-model ${params.medaka_model} \
-                        --min-depth ${params.min_depth} \
-                        ${normalise_arg} \
-                        --threads ${task.cpus} \
-                        --scheme-directory primer_scheme \
-                        --read-file ${reads} \
-                        nCoV-2019/V_custom ${name}
+        artic minion    --min-depth ${params.min_depth} \
+                ${normalise_arg} \
+                --threads ${task.cpus} \
+                --ref primer_scheme/nCoV-2019/V_custom/*fasta \
+                --bed primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed \
+                --read-file ${reads} \
+                --model-dir ${params.clair3_model_dir} \
+                --model ${params.clair3_model_name} \
+                ${name}
 
         # generate depth files
         artic_make_depth_mask --depth ${params.min_depth} \
-            --store-rg-depths primer_scheme/nCoV-2019/V_custom/nCoV-2019.reference.fasta \
+            --store-rg-depths primer_scheme/nCoV-2019/V_custom/*.fasta \
             ${name}.primertrimmed.rg.sorted.bam \
             ${name}.coverage_mask.txt
 
