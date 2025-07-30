@@ -35,7 +35,6 @@ include { read_qc_wf } from './workflows/read_qc.nf'
 include { rki_report_wf } from './workflows/provide_rki.nf'
 include { pangolin } from './workflows/process/pangolin.nf'
 
-
 /************************** 
 * Begin of Workflow
 **************************/
@@ -47,9 +46,8 @@ workflow {
 **************************/
 
 // try to check for poreCov releases
-    def internetcheck_available = NetChecker.netIsAvailable()
 
-    if ( internetcheck_available.toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
+    if ( Git_PoreCov.IsGitAvailable().toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
     else { porecovrelease = 'Could not get version info' } 
 
 
@@ -226,11 +224,9 @@ workflow {
 * Automatic Pangolin version updates, with fail save
 **************************/
 
-    def internetcheck = NetChecker.DockernetIsAvailable() // class "NetChecker" is found in the file NetChecker.groovy in the lib-directory
-
     if (params.update) {
     println "\033[0;33mWarning: Running --update might not be poreCov compatible!\033[0m"
-        if ( internetcheck.toString() == "true" ) { 
+        if ( Dockerhub_Pangolin.IsPangoAvailable().toString() == "true" ) { 
             tagname = 'https://registry.hub.docker.com/v2/repositories/nanozoo/pangolin-v4/tags/'.toURL().text.split(',"name":"')[1].split('","')[0]
             pangolindocker = "nanozoo/pangolin-v4:" + tagname
             println "\033[0;32mFound latest pangolin container, using: " + pangolindocker + " \033[0m" 
@@ -239,7 +235,7 @@ workflow {
             nextcladedocker = "nanozoo/nextclade3:" + tagname 
             println "\033[0;32mFound latest nextclade3 container, using: " + nextcladedocker + " \033[0m"
         } 
-        if ( internetcheck.toString() == "false" ) { 
+        else { 
             println "\033[0;33mCould not find the latest pangolin container, trying: " + params.defaultpangolin + "\033[0m"
             pangolindocker = params.defaultpangolin 
 
@@ -250,11 +246,11 @@ workflow {
     else { pangolindocker = params.defaultpangolin ; nextcladedocker = params.defaultnextclade  }
 
     if ( params.screen_reads && params.lcs_ucsc_update ){
-        if ( internetcheck.toString() == "true" ) { 
+        if ( Hgdownload_lcs.IsLcsAvailable().toString() == "true" ) { 
             lsc_ucsc_work_version = 'https://hgdownload.soe.ucsc.edu/goldenPath/wuhCor1/UShER_SARS-CoV-2/public-latest.version.txt'.toURL().text.split('\\(')[1].split('\\)')[0]
             log.info "\033[0;32mFound latest UCSC version, using: " + lsc_ucsc_work_version + " \033[0m" 
         }
-        if ( internetcheck.toString() == "false" ) { 
+        else { 
             log.info "\033[0;33mCould not find the latest UCSC version, trying: " + params.lcs_ucsc_version + "\033[0m"
             lsc_ucsc_work_version = params.lcs_ucsc_version
         }
