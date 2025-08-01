@@ -1,7 +1,7 @@
 import java.net.URL
-import java.net.URLConnection
 import groovy.json.JsonSlurper
 
+class Git_PoreCov {
     /**
      * Gets the latest version of a GitHub repository
      * @return Latest version string
@@ -20,3 +20,4 @@ import groovy.json.JsonSlurper
             return 'Could not get version info';
         }
     }
+}
