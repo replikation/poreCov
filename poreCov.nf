@@ -47,12 +47,8 @@ workflow {
 
 // try to check for poreCov releases
 
-    if ( Git_PoreCov.IsGitAvailable().toString() == "true" ) { porecovrelease = 'https://api.github.com/repos/replikation/poreCov/releases/latest'.toURL().text.split('"tag_name":"')[1].split('","')[0] } 
-    else { porecovrelease = 'Could not get version info' } 
-
-
     println " "
-    println "  Latest available poreCov release: " + porecovrelease
+    println "  Latest available poreCov release: " + Git_PoreCov.getLatestVersion()
     println "  If neccessary update via: nextflow pull replikation/poreCov"
     println "________________________________________________________________________________"
 
