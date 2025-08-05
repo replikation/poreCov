@@ -190,13 +190,14 @@ Sample_2021,barcode01,good
 ```
 
 #### List input
-* Using `--list` You can provide a csv as input to `--fastq` to select for specific fastq-files
-  * e.g.: `--fastq input.csv --list`
+* You can provide a csv as input to `--fastq` to select for specific fastq-files
+  * e.g.: `--fastq input.csv`
   * the csv needs to contain two columns:
     * column 1 = sample name
     * column 2 = path to fastq-location
   * no header should be used
 * files get automatically renamed to the sample names provided in column 1
+* after read length filtering, the file size selection for poor samples is disabled -> all samples will appear in the report
 
  Example:
 ```csv
