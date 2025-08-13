@@ -2,17 +2,26 @@ include { artic ; artic_custom_bed } from './process/artic.nf'
 include { covarplot; covarplot_custom_bed } from './process/covarplot.nf'
 
 workflow artic_ncov_wf {
-    take:   
+    take:  
+        legacy_primerV
         fastq
         normalise_threshold
     main: 
 
+
         // assembly with a primer bed file
-        if (params.primerV.toString().contains(".bed")) {
-            primerBed = Channel.fromPath(params.primerV, checkIfExists: true )
+        if (params.primerV.toString().contains(".bed") || legacy_primerV) {
+            
+            if (legacy_primerV) {
+                primerRef = "${workflow.projectDir}/data/external_primer_schemes/nCoV-2019/${params.primerV}/nCoV-2019.reference.fasta"
+                primerBed = Channel.fromPath("${workflow.projectDir}/data/external_primer_schemes/nCoV-2019/${params.primerV}/nCoV-2019.primer.bed", checkIfExists: true )
+            } else {
+                primerRef = "${workflow.projectDir}/${params.primerRef}"
+                primerBed = Channel.fromPath("${workflow.projectDir}/${params.primerV}", checkIfExists: true )
+            }
             external_primer_schemes = Channel.fromPath(workflow.projectDir + "/data/external_primer_schemes", checkIfExists: true, type: 'dir' )
 
-            artic_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold)
+            artic_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold, primerRef)
             assembly = artic_custom_bed.out.fasta
             binary_alignment = artic_custom_bed.out.fullbam
             trimmed_bam = artic_custom_bed.out.reference_bam

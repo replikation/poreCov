@@ -86,6 +86,7 @@ process artic_custom_bed {
     input:
         tuple val(name), path(reads), path(external_scheme), path(primerBed)
         val(normalise_threshold)
+        path(primerRef)
     output:
         tuple val(name), path("*.consensus.fasta"), emit: fasta
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
@@ -101,14 +102,15 @@ process artic_custom_bed {
         """
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019/V_custom
-        cp -r ${params.primerRef} primer_scheme/nCoV-2019/V_custom
+        cp -r ${primerRef} primer_scheme/nCoV-2019/V_custom
 
         # clean up bed file: replace first colum with MN908947.3, remove empty lines and sort by 4th column (primer names) 
         cut -f2- ${primerBed} |\
             sed '/^[[:space:]]*\$/d' |\
             sed -e \$'s/^/MN908947.3\\t/' |\
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
-
+            
+        echo 'starting artic'
         # start artic
         artic minion    --min-depth ${params.min_depth} \
                 ${normalise_arg} \
@@ -120,20 +122,25 @@ process artic_custom_bed {
                 --model ${params.clair3_model_name} \
                 ${name}
 
+        echo 'generating depth files'
         # generate depth files
         artic_make_depth_mask --depth ${params.min_depth} \
             --store-rg-depths primer_scheme/nCoV-2019/V_custom/*.fasta \
             ${name}.primertrimmed.rg.sorted.bam \
             ${name}.coverage_mask.txt
 
+        echo 'unzipping vcf'
         zcat ${name}.pass.vcf.gz > SNP_${name}.pass.vcf
 
         sed -i "1s/.*/>${name}/" *.consensus.fasta
 
+        echo 'rename bam'
         # get reference FASTA ID to rename BAM
         REF=\$(samtools view -H ${name}.primertrimmed.rg.sorted.bam | awk 'BEGIN{FS="\\t"};{if(\$1=="@SQ"){print \$2}}' | sed 's/SN://g')
         mv ${name}.primertrimmed.rg.sorted.bam ${name}_mapped_\${REF}.primertrimmed.sorted.bam
         samtools index ${name}_mapped_\${REF}.primertrimmed.sorted.bam
+
+        compgen -G "*coverage_mask.txt.*1.depths" > /dev/null && compgen -G "*coverage_mask.txt.*2.depths" > /dev/null && echo "Depth mask files present" || echo "Looks like you are dealing with single end read? Missing second primer depth mask file."
         """
         stub:
         """

@@ -131,9 +131,16 @@ workflow {
         
 // validate primer scheme version format
     def fetched_version = "${params.primerV}" =~ /(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/
-    if (!fetched_version && !("${params.primerV}".contains('.bed'))){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
-    if ("${params.primerV}".contains('_') && !("${params.primerV}".contains('.bed'))){ exit 1, "Old scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0 via [--primerV], and primer scheme length with [--schemeLength]." }
+    def legacy_primerV = ['V1','V1200','V2','V3','V4','V4.1','V5','V5.1','V5.2.0_1200','V5.3.2_400']
+    if (!fetched_version && !("${params.primerV}".contains('.bed')) && !(legacy_primerV.any{params.primerV.contains(it)})){ exit 1, "Invalid scheme version format '${params.primerV}' provided, please provide a version in the format 'vX.X.X', e.g. v1.0.0" }
     if ("${params.primerV}".contains('.bed') && !params.primerRef){ exit 1, "Custom primer scheme '${params.primerV}' was provided without primer reference. Please pass a primer scheme reference sequence via [--primerRef]." }
+    
+    if ("${params.primerV}".contains('_') && !("${params.primerV}".contains('.bed')) || (legacy_primerV.any{params.primerV.contains(it)} && !("${params.primerV}".contains('.bed')))){ 
+        println "\033[2mPrimer scheme version in legacy format detected. Using local nCov-19 primer schemes.\033[0m"
+        legacy_primerV = true 
+    } else {
+        legacy_primerV = false
+    }
 
 // validating sample table
     if (params.samples) {  
@@ -299,7 +306,7 @@ workflow {
             noreadsatall = filtered_reads_ch.ifEmpty{ log.info "\033[0;33mNot enough reads in all samples, please investigate $params.output/$params.readqcdir\033[0m" }
             read_classification_wf(filtered_reads_ch)
 
-            artic_ncov_wf(filtered_reads_ch, params.artic_normalize) 
+            artic_ncov_wf(legacy_primerV, filtered_reads_ch, params.artic_normalize) 
             fasta_input_ch = artic_ncov_wf.out.assembly
 
             // count mixed sites
@@ -328,7 +335,7 @@ workflow {
             read_classification_wf(filtered_reads_ch)
 
             // genome reconstruction with artic
-            artic_ncov_wf(filtered_reads_ch, params.artic_normalize)
+            artic_ncov_wf(legacy_primerV, filtered_reads_ch, params.artic_normalize)
             fasta_input_ch = artic_ncov_wf.out.assembly
             
             // count mixed_sites
@@ -469,11 +476,12 @@ ${c_yellow}Parameters - Basecalling  (optional)${c_reset}
                   ${c_dim}e.g. "dna_r9.4.1_450bps_hac.cfg" or "dna_r9.4.1_450bps_sup.cfg"${c_reset}
 
 ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
-  --primerV               Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
-                              ${c_dim}ARTIC:${c_reset} V1.0.0, V2.0.0, V3.0.0, V4.0.0, V4.1.0, V.5.0.0, V.5.1.0, V.5.3.2 (length 400)
-                              ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
-                              ${c_dim}Other:${c_reset} V1200, V5.2.0 (lenght 1200) ${c_dim}(also known as midnight)${c_reset}
-                              ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
+  --primerV             Supported primer variants or primer bed files - choose one [default: ${params.primerV}]
+                            ${c_dim}ARTIC (>v1.6.0) :${c_reset} V1, V2, V3, V4, V4.1, V.5, V.5.1, V.5.3.2_400
+                            ${c_dim}ARTIC (>=v1.6.0):${c_reset} v1.0.0, v2.0.0, v3.0.0, v4.0.0, v4.1.0, v5.0.0, v5.1.0, v5.3.2
+                            ${c_dim}NEB:${c_reset} VarSkipV1a, VarSkipV2, VarSkipV2b
+                            ${c_dim}Other:${c_reset} V1200, V5.2.0_1200 ${c_dim}(also known as midnight)${c_reset}
+                            ${c_dim}Primer bed file:${c_reset} e.g. primers.bed  ${c_dim}See Readme for more help${c_reset}
   --schemeLength          primer scheme length, e.g. 400, 700; artic remote primers are length 400, varvamp remote primers 700 [default: ${params.schemeLength}]
   --rapid                 rapid-barcoding-kit was used [default: ${params.rapid}]
   --minLength             min length filter raw reads [default: 100]
