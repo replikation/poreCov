@@ -109,7 +109,7 @@ process artic_custom_bed {
             sed '/^[[:space:]]*\$/d' |\
             sed -e \$'s/^/MN908947.3\\t/' |\
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
-            
+
         echo 'starting artic'
         # start artic
         artic minion    --min-depth ${params.min_depth} \
@@ -140,7 +140,7 @@ process artic_custom_bed {
         mv ${name}.primertrimmed.rg.sorted.bam ${name}_mapped_\${REF}.primertrimmed.sorted.bam
         samtools index ${name}_mapped_\${REF}.primertrimmed.sorted.bam
 
-        compgen -G "*coverage_mask.txt.*1.depths" > /dev/null && compgen -G "*coverage_mask.txt.*2.depths" > /dev/null && echo "Depth mask files present" || echo "Looks like you are dealing with single end read? Missing second primer depth mask file."
+        compgen -G "*coverage_mask.txt.*1.depths" > /dev/null && compgen -G "*coverage_mask.txt.*2.depths" > /dev/null && echo "Depth mask files present" || echo "Looks like there is only one read group, did you provide the correct *primer.bed file?"
         """
         stub:
         """
