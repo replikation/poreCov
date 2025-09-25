@@ -23,7 +23,7 @@ workflow artic_ncov_wf {
 
             artic_custom_bed(fastq.combine(external_primer_schemes).combine(primerBed), normalise_threshold, primerRef)
             assembly = artic_custom_bed.out.fasta
-            binary_alignment = artic_custom_bed.out.fullbam
+            //binary_alignment = artic_custom_bed.out.fullbam
             trimmed_bam = artic_custom_bed.out.reference_bam
             vcf = artic_custom_bed.out.vcf
             failed_vcf = artic_custom_bed.out.vcf_fail
@@ -39,7 +39,7 @@ workflow artic_ncov_wf {
             
             artic(fastq.combine(external_primer_schemes), normalise_threshold)
             assembly = artic.out.fasta
-            binary_alignment = artic.out.fullbam
+            //binary_alignment = artic.out.fullbam
             trimmed_bam = artic.out.reference_bam
             vcf = artic.out.vcf
             failed_vcf = artic.out.vcf_fail
@@ -52,11 +52,11 @@ workflow artic_ncov_wf {
 
         // error logging
         assembly.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
-        binary_alignment.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
+        //binary_alignment.ifEmpty{ log.info "\033[0;33mCould not generate any genomes, please check your reads $params.output/$params.readqcdir\033[0m" }
 
     emit:   
         assembly
-        binary_alignment
+        //binary_alignment
         trimmed_bam
         vcf
         primer_dir

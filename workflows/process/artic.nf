@@ -18,7 +18,7 @@ process artic {
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
-        tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        //tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam // seems like this was removed in 1.8.1? https://github.com/artic-network/fieldbioinformatics/compare/v1.8.0...v1.8.1#diff-fffa888a76dc7b9d6e46c423ad95b91b045c4767e43662c5eb6f9b9d9a6da243R167
         tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
@@ -38,6 +38,10 @@ process artic {
                         ${name}
 
         echo 'artic minion ran successfully'
+
+        # artic_make_depth_mask is running as part of artic minion already now https://github.com/artic-network/fieldbioinformatics/blob/master/artic/minion.py#L208
+        # so we have to rename the depth file, otherwise artic depth mask will append to the file doubling the content
+        mv ${name}.coverage_mask.txt ${name}.coverage_mask_from_minion.txt
 
         # generate depth files
         artic_make_depth_mask --depth ${params.min_depth} \
@@ -92,14 +96,15 @@ process artic_custom_bed {
         tuple val(name), path("${name}_mapped_*.primertrimmed.sorted.bam"), path("${name}_mapped_*.primertrimmed.sorted.bam.bai"), emit: reference_bam
         tuple val(name), path("SNP_${name}.pass.vcf"), emit: vcf
         tuple val(name), path("${name}.pass.vcf.gz"), path("${name}.coverage_mask.txt.*1.depths"), path("${name}.coverage_mask.txt.*2.depths"), emit: covarplot
-        tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam
+        //tuple val(name), path("${name}.trimmed.rg.sorted.bam"), emit: fullbam // seems like this was removed in 1.8.1? https://github.com/artic-network/fieldbioinformatics/compare/v1.8.0...v1.8.1#diff-fffa888a76dc7b9d6e46c423ad95b91b045c4767e43662c5eb6f9b9d9a6da243R167
         tuple val(name), path("${name}.primersitereport.txt"), emit: primersitereport
         tuple val(name), path("${name}.coverage_mask.txt"), emit: coverage_mask
         tuple val(name), path("${name}.fail.vcf"), emit: vcf_fail
         path ("primer_scheme/nCoV-2019/"), emit: primer_dir
-    script:   
+    script:
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
+
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019/V_custom
         cp -r ${primerRef} primer_scheme/nCoV-2019/V_custom
@@ -110,19 +115,33 @@ process artic_custom_bed {
             sed -e \$'s/^/MN908947.3\\t/' |\
             sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
 
+        # check if BED file has to be patched
+        # artic 1.8+ will fail on V1 primer bed files with: IndexError: Invalid BED line value: (['MN908947.3', '2826', '2850', 'nCoV-2019_10_LEFT', '2', '+']): has incorrect number of columns
+        if [ "\$(head -n 1 primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed | awk -F'\\t' '{print NF}')" -eq 6 ]; then
+            echo "Trying to patch legacy BED file ..."
+            patch_legacy_bed.py ${primerRef} primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
+            BED="primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.patched.bed"
+        else
+            echo "No BED patching needed."
+            BED="primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed"
+        fi
+
         echo 'starting artic'
         # start artic
         artic minion    --min-depth ${params.min_depth} \
                 ${normalise_arg} \
                 --threads ${task.cpus} \
                 --ref primer_scheme/nCoV-2019/V_custom/*fasta \
-                --bed primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed \
+                --bed \$BED \
                 --read-file ${reads} \
                 --model-dir ${params.clair3_model_dir} \
                 --model ${params.clair3_model_name} \
                 ${name}
 
         echo 'generating depth files'
+        # artic_make_depth_mask is running as part of artic minion already now https://github.com/artic-network/fieldbioinformatics/blob/master/artic/minion.py#L208
+        # so we have to rename the depth file, otherwise artic depth mask will append to the file doubling the content
+        mv ${name}.coverage_mask.txt ${name}.coverage_mask_from_minion.txt
         # generate depth files
         artic_make_depth_mask --depth ${params.min_depth} \
             --store-rg-depths primer_scheme/nCoV-2019/V_custom/*.fasta \
