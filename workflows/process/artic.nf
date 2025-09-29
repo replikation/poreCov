@@ -104,7 +104,6 @@ process artic_custom_bed {
     script:
         def normalise_arg = normalise_threshold ? "--normalise ${normalise_threshold}" : '--normalise 0'
         """
-
         # create a new primer dir as input for artic
         mkdir -p primer_scheme/nCoV-2019/V_custom
         cp -r ${primerRef} primer_scheme/nCoV-2019/V_custom
@@ -114,7 +113,6 @@ process artic_custom_bed {
             sed '/^[[:space:]]*\$/d' |\
             sed -e \$'s/^/MN908947.3\\t/' |\
             sort -k4,4V > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
-        # sort -n ?
 
         # check if BED file has to be patched
         # artic 1.8+ will fail on V1 primer bed files with: IndexError: Invalid BED line value: (['MN908947.3', '2826', '2850', 'nCoV-2019_10_LEFT', '2', '+']): has incorrect number of columns

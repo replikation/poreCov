@@ -1,1 +1,0 @@
-https://community.artic.network/t/sars-cov-2-v4-1-update-for-omicron-variant/342
