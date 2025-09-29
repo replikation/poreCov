@@ -113,7 +113,8 @@ process artic_custom_bed {
         cut -f2- ${primerBed} |\
             sed '/^[[:space:]]*\$/d' |\
             sed -e \$'s/^/MN908947.3\\t/' |\
-            sort -k4 > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
+            sort -k4,4V > primer_scheme/nCoV-2019/V_custom/nCoV-2019.scheme.bed
+        # sort -n ?
 
         # check if BED file has to be patched
         # artic 1.8+ will fail on V1 primer bed files with: IndexError: Invalid BED line value: (['MN908947.3', '2826', '2850', 'nCoV-2019_10_LEFT', '2', '+']): has incorrect number of columns
