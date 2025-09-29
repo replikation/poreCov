@@ -7,9 +7,9 @@ process covarplot {
         tuple val(name), path("${name}_amplicon_coverage.png"), path("${name}_amplicon_coverage_log.png")
     script:
         """
-        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s .
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/${params.schemeLength == 400 ? 'artic' : 'varvamp'}-sars-cov-2/${params.schemeLength}/${params.primerV}/primer.bed -s .
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage.png
-        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/nCoV-2019/${params.primerV}/nCoV-2019.scheme.bed -s . --log
+        covarplot.py -v ${vcf} -d1 ${depth1} -d2 ${depth2} -b ${primerbed}/${params.schemeLength == 400 ? 'artic' : 'varvamp'}-sars-cov-2/${params.schemeLength}/${params.primerV}/primer.bed -s . --log
         mv ${name}.CoVarPlot.png ${name}_amplicon_coverage_log.png
         """
     stub:
