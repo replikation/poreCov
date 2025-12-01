@@ -19,6 +19,9 @@ process add_alt_allele_ratio_vcf {
     # concat failed and passed VCF
     bcftools concat ${vcf} tmp_failed_updated-filter.vcf | bcftools sort -o tmp_merged.vcf
 
+	echo '##contig=<ID=MN908947.3,length=29903>' > header.txt
+	bcftools reheader --header header.txt tmp_merged.vcf
+
     # call medaka tools annotate for each pool and add the alternate allele ratio
     for pool in `cut -f5 ${primer_dir}/${primer_version_tag}/nCoV-2019.scheme.bed | sort | uniq`; do
         bcftools view -i 'INFO/Pool="'\$pool'"' tmp_merged.vcf -o tmp_\$pool.vcf
