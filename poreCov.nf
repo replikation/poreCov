@@ -489,6 +489,7 @@ ${c_yellow}Parameters - SARS-CoV-2 genome reconstruction (optional)${c_reset}
   --maxLength     Max length filter raw reads 
                   [default: 700 (primer-scheme: V1-4, rapid); 1500 (primer-scheme: V1200, V5.2.0_1200)]
   --min_depth     Nucleotides below min depth will be masked to "N" [default ${params.min_depth}]
+  --min_qual      Minimum variant quality for consensus masking [default ${params.min_qual}]
   --medaka_model  Medaka model for the artic workflow [default: ${params.medaka_model}]
                   ${c_dim}e.g. "r941_min_hac_g507" or "r941_min_sup_g507"${c_reset}
 
