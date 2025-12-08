@@ -107,6 +107,7 @@ process artic_medaka_custom_bed {
         artic minion    --medaka \
                         --medaka-model ${params.medaka_model} \
                         --min-depth ${params.min_depth} \
+                        --min-qual ${params.min_qual} \
                         ${normalise_arg} \
                         --threads ${task.cpus} \
                         --scheme-directory primer_scheme \
