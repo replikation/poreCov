@@ -1,5 +1,6 @@
 process artic_medaka {
         label 'artic'
+        errorStrategy { task.exitStatus in 20 ? 'terminate' : 'retry' }
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
