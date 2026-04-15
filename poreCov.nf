@@ -313,7 +313,7 @@ workflow {
 
             // rename barcodes based on --samples input.csv
                 if (params.samples) { fastq_input_ch = fastq_input_raw_ch.join(samples_input_ch).map { it -> tuple(it[2],it[1])} 
-                   fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
+                    fastq_input_raw_ch.join(samples_input_ch).ifEmpty{ exit 2, "Could not match barcode numbers from $params.samples to the read files, some typo?"} 
                 }
                 else if (!params.samples) { fastq_input_ch = fastq_input_raw_ch }
 

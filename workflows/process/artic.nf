@@ -1,5 +1,6 @@
 process artic_medaka {
         label 'artic'
+        errorStrategy {task.exitStatus == 20 ? 'ignore' : 'retry'}
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
@@ -68,6 +69,7 @@ process artic_medaka {
 
 process artic_medaka_custom_bed {
         label 'artic'
+        errorStrategy {task.exitStatus == 20 ? 'ignore' : 'retry'}
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
         publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
