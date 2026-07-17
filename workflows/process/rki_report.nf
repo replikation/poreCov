@@ -1,7 +1,7 @@
 process rki_report {
     label "ubuntu"
     publishDir "${params.output}/${params.rkidir}/valid", mode: 'copy', pattern: "rki_valid_report.csv"
-    publishDir "${params.output}/${params.rkidir}", mode: 'copy', pattern: "${readme}"
+    publishDir "${params.output}/${params.rkidir}", mode: 'copy', pattern: { "${readme}" }
     input:
         path(president_data)
         path(readme)
@@ -27,7 +27,7 @@ process rki_report {
 process rki_report_extended {
     label "ubuntu"
     publishDir "${params.output}/${params.rkidir}/valid", mode: 'copy', pattern: "rki_valid_report.csv"
-    publishDir "${params.output}/${params.rkidir}", mode: 'copy', pattern: "${readme}"
+    publishDir "${params.output}/${params.rkidir}", mode: 'copy', pattern: { "${readme}" }
     input:
         path(president_data)
         path(readme)

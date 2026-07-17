@@ -1,7 +1,7 @@
 process pangolin {
     label 'pangolin'
     container { pangolindocker }
-    publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "lineage_report_${name}.csv"
+    publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "lineage_report_${name}.csv" }
   input:
     tuple val(name), path(fasta)
     val(pangolindocker)

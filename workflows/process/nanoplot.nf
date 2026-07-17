@@ -1,9 +1,9 @@
 process nanoplot {
     label 'nanoplot'
-    publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy', pattern: "${name}_read_quality_report.html"
-    publishDir "${params.output}/${params.readqcdir}/${name}/", mode: 'copy', pattern: "${name}_read_quality.txt"
-    publishDir "${params.output}/${params.readqcdir}/${name}/figures", mode: 'copy', pattern: "*.png"
-    publishDir "${params.output}/${params.readqcdir}/${name}/vector_figures", mode: 'copy', pattern: "*.pdf"
+    publishDir { "${params.output}/${params.readqcdir}/${name}/" }, mode: 'copy', pattern: { "${name}_read_quality_report.html" }
+    publishDir { "${params.output}/${params.readqcdir}/${name}/" }, mode: 'copy', pattern: { "${name}_read_quality.txt" }
+    publishDir { "${params.output}/${params.readqcdir}/${name}/figures" }, mode: 'copy', pattern: "*.png"
+    publishDir { "${params.output}/${params.readqcdir}/${name}/vector_figures" }, mode: 'copy', pattern: "*.pdf"
     input:
         tuple val(name), path(reads)
     output:

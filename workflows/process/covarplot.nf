@@ -1,6 +1,6 @@
 process covarplot {
     label "covarplot"
-    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
+    publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy'
     input:
         tuple val(name), path(vcf), path(depth1), path(depth2), path(primerbed)
     output:
@@ -20,7 +20,7 @@ process covarplot {
 
 process covarplot_custom_bed {
     label "covarplot"
-    publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy'
+    publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy'
     input:
         tuple val(name), path(vcf), path(depth1), path(depth2), path(primerbed)
     output:
