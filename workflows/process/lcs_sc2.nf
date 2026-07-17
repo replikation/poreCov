@@ -45,7 +45,7 @@ process lcs_ucsc_markers_table {
 
 process lcs_sc2 {
     label 'lcs_sc2'
-    publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy'
+    publishDir { "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads" }, mode: 'copy'
     input:
     tuple val(name), path(reads), path(ucsc_markers_table)
   	output:

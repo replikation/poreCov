@@ -2,7 +2,7 @@ process freyja {
         label 'freyja'
         errorStrategy 'ignore'
         maxRetries 1
-        publishDir "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads", mode: 'copy', pattern: "*"
+        publishDir { "${params.output}/${params.lineagedir}/${name}/lineage-proportion-by-reads" }, mode: 'copy', pattern: "*"
 
     input:
         tuple val(name), path(bam_file), path(reference)
@@ -69,7 +69,7 @@ process freyja {
 
 process freyja_plot {
         label 'freyja'
-        publishDir "${params.output}/${params.lineagedir}/", mode: 'copy', pattern: "*"
+        publishDir { "${params.output}/${params.lineagedir}/" }, mode: 'copy', pattern: "*"
 
     input:
         path(aggregate_file)

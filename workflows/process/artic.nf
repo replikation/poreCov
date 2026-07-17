@@ -1,13 +1,13 @@
 process artic_medaka {
         label 'artic'
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
-        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}_mapped_*.primertrimmed.sorted.bam*" }
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.trimmed.rg.sorted.bam" }
+        publishDir { "${params.output}/${params.genomedir}/all_consensus_sequences/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.primersitereport.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "SNP_${name}.pass.vcf" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.coverage_mask.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.fail.vcf" }
 
     input:
         tuple val(name), path(reads), path(external_scheme)
@@ -68,14 +68,14 @@ process artic_medaka {
 
 process artic_medaka_custom_bed {
         label 'artic'
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"
-        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}_mapped_*.primertrimmed.sorted.bam*" }
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.trimmed.rg.sorted.bam" }
+        publishDir { "${params.output}/${params.genomedir}/all_consensus_sequences/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.primersitereport.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "SNP_${name}.pass.vcf" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.coverage_mask.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.fail.vcf" }
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(primerBed)
@@ -148,14 +148,14 @@ process artic_medaka_custom_bed {
 
 process artic_nanopolish {
         label 'artic'
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
-        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}_mapped_*.primertrimmed.sorted.bam*" }
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.trimmed.rg.sorted.bam" }
+        publishDir { "${params.output}/${params.genomedir}/all_consensus_sequences/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.primersitereport.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "SNP_${name}.pass.vcf" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.coverage_mask.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.fail.vcf" }
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files)
@@ -215,14 +215,14 @@ process artic_nanopolish {
 
 process artic_nanopolish_custom_bed {
         label 'artic'
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}_mapped_*.primertrimmed.sorted.bam*"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.trimmed.rg.sorted.bam"        
-        publishDir "${params.output}/${params.genomedir}/all_consensus_sequences/", mode: 'copy', pattern: "*.consensus.fasta"
-        publishDir "${params.output}/${params.genomedir}/${name}/", mode: 'copy', pattern: "${name}.primersitereport.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "SNP_${name}.pass.vcf"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.coverage_mask.txt"
-        publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}.fail.vcf"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}_mapped_*.primertrimmed.sorted.bam*" }
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.trimmed.rg.sorted.bam" }
+        publishDir { "${params.output}/${params.genomedir}/all_consensus_sequences/" }, mode: 'copy', pattern: "*.consensus.fasta"
+        publishDir { "${params.output}/${params.genomedir}/${name}/" }, mode: 'copy', pattern: { "${name}.primersitereport.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "SNP_${name}.pass.vcf" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.coverage_mask.txt" }
+        publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}.fail.vcf" }
 
     input:
         tuple val(name), path(reads), path(external_scheme), path(fast5_dir), path(txt_files), path(primerBed)

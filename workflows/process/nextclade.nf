@@ -1,7 +1,7 @@
 process nextclade {
     label 'nextclade'
     container { nextcladedocker }
-    publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy', pattern: "${name}_clade.tsv"
+    publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy', pattern: { "${name}_clade.tsv" }
     input:
         tuple val(name), path(consensus)
         val(nextcladedocker)

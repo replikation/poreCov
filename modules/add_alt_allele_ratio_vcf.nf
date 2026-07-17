@@ -1,6 +1,6 @@
 process add_alt_allele_ratio_vcf {
     label 'artic'
-    publishDir "${params.output}/${params.lineagedir}/${name}/", mode: 'copy'
+    publishDir { "${params.output}/${params.lineagedir}/${name}/" }, mode: 'copy'
     input:
         tuple val(name), path(bam), path(bai), path(vcf), path(failed_vcf)
         path(external_scheme) // primer scheme dir as input
