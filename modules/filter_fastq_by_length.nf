@@ -22,12 +22,10 @@ process filter_fastq_by_length {
         """
         case "${reads}" in
             *.fastq.gz ) 
-                zcat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${read_min_length}' |\
-                    awk -F"\\t" 'length(\$2)  <= ${read_max_length}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+                zcat ${reads} | awk 'NR%4==1{a=\$0} NR%4==2{b=\$0} NR%4==3{c=\$0} NR%4==0&&length(b)>=${read_min_length}{print a"\\n"b"\\n"c"\\n"\$0;}' | gzip > "${name}_filtered.fastq.gz"
             ;;
             *.fastq)
-                cat ${reads} | paste - - - - | awk -F"\\t" 'length(\$2)  >= ${read_min_length}' |\
-                awk -F"\\t" 'length(\$2)  <= ${read_max_length}' | sed 's/\\t/\\n/g' | gzip > "${name}_filtered.fastq.gz"
+                zcat ${reads} | awk 'NR%4==1{a=\$0} NR%4==2{b=\$0} NR%4==3{c=\$0} NR%4==0&&length(b)>=${read_min_length}{print a"\\n"b"\\n"c"\\n"\$0;}' | gzip > "${name}_filtered.fastq.gz"
             ;;
         esac
         
